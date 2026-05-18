@@ -1,0 +1,209 @@
+/**
+ * Mermaid block rule — verify each ` ```mermaid ` fence is well-formed and
+ * that at least one such block appears inside every section listed in
+ * {@link MERMAID_RULES.requiredIn}.
+ *
+ * V1 strategy is syntactic only (no full Mermaid parse). The reasoning,
+ * captured in the PR Decision Record:
+ *
+ *  - The `mermaid` npm package is a browser bundle (Cytoscape, D3, etc.) —
+ *    pulling it into a Node-only validator is wasteful.
+ *  - `@mermaid-js/parser` is Node-friendly but still adds ~2 MB to the dep
+ *    graph for a check that catches at most a handful of broken-diagram
+ *    issues. We can always upgrade later — `MERMAID_RULES.mustParse` already
+ *    flags the rule name for a future, full-parse pass.
+ *
+ * What V1 catches:
+ *  - `mermaid-fence-broken`               — opening ` ```mermaid ` with no
+ *    closing ` ``` `, detected by raw-source regex (remark "heals" some
+ *    broken fences in the AST, so a raw-source pass is the durable check).
+ *  - `mermaid-empty`                       — fence opens and closes but the
+ *    body is empty/whitespace-only.
+ *  - `mermaid-missing-in-mental-model`    — section requires at least one
+ *    Mermaid code block but none is present.
+ *
+ * @see ../../template-contract.ts (`MERMAID_RULES`)
+ * @see ../../../2026_05_18_awesome_ai_cheatsheets/prd.md §3 M1, §3 M4
+ */
+
+import { toString as mdastToString } from "mdast-util-to-string";
+import type { Code, Heading, Root } from "mdast";
+
+import {
+  MERMAID_RULES,
+  SECTION_MATCH_RULE,
+} from "../../template-contract.js";
+import { makeError, type ValidationError } from "../types.js";
+
+/**
+ * Collect all `code` nodes with `lang === "mermaid"` from the AST.
+ */
+function collectMermaidBlocks(tree: Root): Code[] {
+  const blocks: Code[] = [];
+  walk(tree, (node) => {
+    if (node.type === "code" && (node as Code).lang === "mermaid") {
+      blocks.push(node as Code);
+    }
+  });
+  return blocks;
+}
+
+// Tiny depth-first walk — avoids pulling unist-util-visit just for one pass.
+type AnyNode = { type: string; children?: AnyNode[] };
+function walk(node: AnyNode, visitor: (n: AnyNode) => void): void {
+  visitor(node);
+  if (Array.isArray(node.children)) {
+    for (const child of node.children) walk(child, visitor);
+  }
+}
+
+/**
+ * Raw-source pass: detect mermaid fence openers that lack a matching closing
+ * fence. `remark-parse` is permissive — it will sometimes treat an unclosed
+ * fence as text rather than as an unterminated code block — so we don't fully
+ * rely on the AST for this signal.
+ *
+ * Heuristic:
+ *  - For each line starting with ` ```mermaid` (allowing trailing info string),
+ *    scan forward for a line that is exactly ` ``` ` (with optional trailing
+ *    whitespace). Stop at EOF.
+ *  - If no closing fence is found, emit `mermaid-fence-broken`.
+ */
+function checkRawFences(rawSource: string): ValidationError[] {
+  const errors: ValidationError[] = [];
+  const lines = rawSource.split(/\r?\n/);
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    if (line === undefined) {
+      i++;
+      continue;
+    }
+    // Match an opener — must start the line (no indentation), language is
+    // exactly `mermaid` optionally followed by whitespace + an info string.
+    if (/^```mermaid(\s.*)?$/.test(line)) {
+      const openLine = i + 1; // 1-based
+      let closed = false;
+      for (let j = i + 1; j < lines.length; j++) {
+        const inner = lines[j];
+        if (inner === undefined) continue;
+        if (/^```\s*$/.test(inner)) {
+          closed = true;
+          i = j + 1;
+          break;
+        }
+      }
+      if (!closed) {
+        errors.push(
+          makeError(
+            "mermaid-fence-broken",
+            `\`\`\`mermaid fence opened at line ${openLine} but never closed (expected a matching \`\`\`)`,
+            openLine,
+          ),
+        );
+        // Advance past the offending opener so we don't loop forever.
+        i++;
+      }
+    } else {
+      i++;
+    }
+  }
+  return errors;
+}
+
+/**
+ * Check that every section in {@link MERMAID_RULES.requiredIn} contains at
+ * least one Mermaid block. Sections are matched by walking H2 headings and
+ * slicing the AST window until the next H2 (or EOF).
+ *
+ * If the required section itself is missing, `checkSections` emits the
+ * `section-missing` error — we stay silent here to avoid double-reporting.
+ */
+function checkRequiredSectionMermaids(tree: Root): ValidationError[] {
+  const errors: ValidationError[] = [];
+
+  for (const requiredName of MERMAID_RULES.requiredIn) {
+    const regex = SECTION_MATCH_RULE.toRegExp(requiredName);
+
+    let startIdx = -1;
+    for (let i = 0; i < tree.children.length; i++) {
+      const node = tree.children[i];
+      if (node === undefined) continue;
+      if (node.type !== "heading") continue;
+      const heading = node as Heading;
+      if (heading.depth !== 2) continue;
+      if (regex.test(mdastToString(heading).trim())) {
+        startIdx = i;
+        break;
+      }
+    }
+
+    if (startIdx === -1) continue; // covered by `section-missing`
+
+    let endIdx = tree.children.length;
+    for (let i = startIdx + 1; i < tree.children.length; i++) {
+      const node = tree.children[i];
+      if (node === undefined) continue;
+      if (node.type === "heading" && (node as Heading).depth === 2) {
+        endIdx = i;
+        break;
+      }
+    }
+
+    let hasMermaid = false;
+    for (let i = startIdx + 1; i < endIdx; i++) {
+      const node = tree.children[i];
+      if (node === undefined) continue;
+      // Only look at top-level code blocks; Mermaid fences nested in lists
+      // are uncommon and would still be at top-level here. If we later need
+      // nested support, swap to a recursive walk slice.
+      if (node.type === "code" && (node as Code).lang === "mermaid") {
+        hasMermaid = true;
+        break;
+      }
+    }
+
+    if (!hasMermaid) {
+      const heading = tree.children[startIdx];
+      const line = heading?.position?.start.line;
+      errors.push(
+        makeError(
+          "mermaid-missing-in-mental-model",
+          `section "${requiredName}" must contain at least one \`\`\`mermaid block`,
+          line,
+        ),
+      );
+    }
+  }
+
+  return errors;
+}
+
+/**
+ * Top-level entry point. Combines:
+ *  1. Raw-source fence check (catches unclosed fences remark heals).
+ *  2. AST sweep — every Mermaid `code` node with empty `value` is an error.
+ *  3. Required-section check.
+ */
+export function checkMermaid(tree: Root, rawSource: string): ValidationError[] {
+  const errors: ValidationError[] = [];
+
+  errors.push(...checkRawFences(rawSource));
+
+  for (const block of collectMermaidBlocks(tree)) {
+    if (block.value.trim().length === 0) {
+      const line = block.position?.start.line;
+      errors.push(
+        makeError(
+          "mermaid-empty",
+          "\`\`\`mermaid block is empty",
+          line,
+        ),
+      );
+    }
+  }
+
+  errors.push(...checkRequiredSectionMermaids(tree));
+
+  return errors;
+}
