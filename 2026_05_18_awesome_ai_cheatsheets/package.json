@@ -1,0 +1,21 @@
+{
+  "name": "awesome-cheatsheets",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Awesome AI Cheatsheets — authoring tools and template contract.",
+  "scripts": {
+    "type-check": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.0",
+    "tsx": "^4.22.2",
+    "typescript": "^6.0.3"
+  }
+}
