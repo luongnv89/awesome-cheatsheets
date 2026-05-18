@@ -18,9 +18,9 @@
  * elsewhere. Changing a rule here is the single act that re-locks the v1
  * template (PRD §3 M1, §6.3, §10.2).
  *
- * @see ../prd.md §3 M1 ("Standardized cheatsheet template + validator")
- * @see ../prd.md §6.3 ("Authoring layer")
- * @see ../prd.md §10.2 ("Cheatsheet" glossary entry)
+ * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §3 M1 ("Standardized cheatsheet template + validator")
+ * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §6.3 ("Authoring layer")
+ * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §10.2 ("Cheatsheet" glossary entry)
  * @see ../cheatsheets/hermes-agent/hermes-agent.md (PoC reference)
  */
 
@@ -41,7 +41,7 @@ import { z } from "zod";
  * Required so the catalog (PRD §3 M3) and freshness CI (PRD §3 M6) have an
  * authoritative "when was this last reviewed" timestamp.
  *
- * @see ../prd.md §3 M3, §3 M6
+ * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §3 M3, §3 M6
  */
 const isoDate = z
   .union([
@@ -70,8 +70,8 @@ const isoDate = z
  * `subcategory: autonomous-ai-agent`) remain free-form to avoid prematurely
  * over-constraining the taxonomy.
  *
- * @see ../prd.md §3 M3 (catalog filters by category)
- * @see ../prd.md §10.2 ("Cheatsheet" glossary entry)
+ * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §3 M3 (catalog filters by category)
+ * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §10.2 ("Cheatsheet" glossary entry)
  */
 export const CATEGORIES = ["tool", "mcp", "concept", "comparison"] as const;
 export type Category = (typeof CATEGORIES)[number];
@@ -93,7 +93,7 @@ const authorSchema = z.object({
  * has a primary URL) and leave the rest open via passthrough so a cheatsheet
  * can add arbitrary named references without schema churn.
  *
- * @see ../prd.md §3 M4 (References section pulls from this block)
+ * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §3 M4 (References section pulls from this block)
  */
 const linksSchema = z
   .object({
@@ -123,10 +123,10 @@ export type Status = (typeof STATUSES)[number];
  * Required fields satisfy Task 1.1 AC #2: `stale_after_days`, `last_updated`,
  * `category`, `tags`, `title`, `slug`.
  *
- * @see ../prd.md §3 M1 (Acceptance: linter validates frontmatter via Zod)
- * @see ../prd.md §3 M3 (catalog renders title, category, tags, last_updated)
- * @see ../prd.md §3 M6 (freshness CI consumes last_updated + stale_after_days)
- * @see ../prd.md §10.2 (Cheatsheet glossary defines the slug-as-path rule)
+ * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §3 M1 (Acceptance: linter validates frontmatter via Zod)
+ * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §3 M3 (catalog renders title, category, tags, last_updated)
+ * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §3 M6 (freshness CI consumes last_updated + stale_after_days)
+ * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §10.2 (Cheatsheet glossary defines the slug-as-path rule)
  */
 export const frontmatterSchema = z.object({
   /**
@@ -138,8 +138,8 @@ export const frontmatterSchema = z.object({
    * definition ("a single template-compliant `.md` file in
    * `cheatsheets/<slug>/`") and lets us reuse the slug as a stable web path.
    *
-   * @see ../prd.md §10.2
-   * @see ../prd.md §6.6 (repo layout: `cheatsheets/<slug>/<slug>.md`)
+   * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §10.2
+   * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §6.6 (repo layout: `cheatsheets/<slug>/<slug>.md`)
    */
   slug: z
     .string()
@@ -157,7 +157,7 @@ export const frontmatterSchema = z.object({
    * Required by Task 1.1 AC #2 and surfaced on every catalog entry per
    * PRD §3 M3.
    *
-   * @see ../prd.md §3 M3
+   * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §3 M3
    */
   title: z.string().min(1, "title must not be empty"),
 
@@ -167,8 +167,8 @@ export const frontmatterSchema = z.object({
    * Required by Task 1.1 AC #2 and used by the catalog and search index
    * (PRD §3 M3, §3 M5).
    *
-   * @see ../prd.md §3 M3
-   * @see ../prd.md §3 M5 (filter by category)
+   * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §3 M3
+   * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §3 M5 (filter by category)
    */
   category: z.enum(CATEGORIES),
 
@@ -185,7 +185,7 @@ export const frontmatterSchema = z.object({
    * Surfaces the cheatsheet's value before the reader clicks through
    * (PRD §3 M3) and seeds the meta description for the page.
    *
-   * @see ../prd.md §3 M3
+   * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §3 M3
    */
   summary: z
     .string()
@@ -199,8 +199,8 @@ export const frontmatterSchema = z.object({
    *  - Catalog rendering (PRD §3 M3) — shown next to each entry.
    *  - Freshness CI (PRD §3 M6) — combined with `stale_after_days`.
    *
-   * @see ../prd.md §3 M3
-   * @see ../prd.md §3 M6
+   * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §3 M3
+   * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §3 M6
    */
   last_updated: isoDate,
 
@@ -215,8 +215,8 @@ export const frontmatterSchema = z.object({
    * two years defeats the point of a "freshness" signal in a fast-moving
    * AI tooling space.
    *
-   * @see ../prd.md §3 M6 (Freshness CI)
-   * @see ../prd.md §3 M3 (catalog stale flag)
+   * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §3 M6 (Freshness CI)
+   * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §3 M3 (catalog stale flag)
    */
   stale_after_days: z
     .number()
@@ -240,8 +240,8 @@ export const frontmatterSchema = z.object({
    * entry shows up under at least one filter; cap at 12 to keep the
    * pill row readable on mobile.
    *
-   * @see ../prd.md §3 M3 (tag filter)
-   * @see ../prd.md §3 M5 (search filter)
+   * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §3 M3 (tag filter)
+   * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §3 M5 (search filter)
    */
   tags: z
     .array(
@@ -260,7 +260,7 @@ export const frontmatterSchema = z.object({
    *
    * Lets the catalog hide or badge non-published entries (PRD §3 M3).
    *
-   * @see ../prd.md §3 M3
+   * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §3 M3
    */
   status: z.enum(STATUSES).default("published"),
 
@@ -277,7 +277,7 @@ export const frontmatterSchema = z.object({
    * self-evolution); `homepage` is required, the rest are open via
    * `catchall`.
    *
-   * @see ../prd.md §3 M4 (References section consumes this block)
+   * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §3 M4 (References section consumes this block)
    */
   links: linksSchema,
 });
@@ -307,8 +307,8 @@ export type FrontmatterInput = z.input<typeof frontmatterSchema>;
  * Note: the "one-liner" is a bolded paragraph (`**One-line:** ...`) above
  * the first H2 — it is not an H2 heading. See {@link ONE_LINER_RULE}.
  *
- * @see ../prd.md §3 M1 (Acceptance: required sections in locked order)
- * @see ../prd.md §3 M4 (locked 8-section structure per page)
+ * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §3 M1 (Acceptance: required sections in locked order)
+ * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §3 M4 (locked 8-section structure per page)
  * @see ../cheatsheets/hermes-agent/hermes-agent.md (PoC source)
  */
 export const REQUIRED_SECTIONS = [
@@ -334,7 +334,7 @@ export type RequiredSection = (typeof REQUIRED_SECTIONS)[number];
  * reorders it.
  *
  * @see ../cheatsheets/hermes-agent/hermes-agent.md (`## Expected Outcomes (after Steps 1–5)`)
- * @see ../prd.md §3 M1 (linter validates required section names)
+ * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §3 M1 (linter validates required section names)
  */
 export const SECTION_MATCH_RULE = {
   /**
@@ -364,8 +364,8 @@ export const SECTION_MATCH_RULE = {
  * The linter (Task 1.2) must verify a bolded `**One-line:**` prefix exists
  * between the top-level `#` heading and the first `##` heading.
  *
- * @see ../prd.md §3 M1 (required sections include "one-liner")
- * @see ../prd.md §3 M4 (one-liner is part of the locked structure)
+ * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §3 M1 (required sections include "one-liner")
+ * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §3 M4 (one-liner is part of the locked structure)
  */
 export const ONE_LINER_RULE = {
   /** Required bold prefix for the one-liner paragraph. */
@@ -387,7 +387,7 @@ export const ONE_LINER_RULE = {
  * References section to be "collapsed by default" — that is implemented as
  * a `<details>` element inside the H2.
  *
- * @see ../prd.md §3 M4 (References collapsed by default)
+ * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §3 M4 (References collapsed by default)
  */
 export const REFERENCE_RULE = {
   /** The H2 name (must match {@link REQUIRED_SECTIONS}). */
@@ -413,8 +413,8 @@ export const REFERENCE_RULE = {
  *  2. Allow Mermaid blocks anywhere else (e.g., flow diagrams inside a
  *     setup step) but parse them all to catch broken fences.
  *
- * @see ../prd.md §3 M1 (Mermaid block syntax check)
- * @see ../prd.md §3 M4 ("mental model (Mermaid)")
+ * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §3 M1 (Mermaid block syntax check)
+ * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §3 M4 ("mental model (Mermaid)")
  */
 export const MERMAID_RULES = {
   /** Sections that MUST contain at least one Mermaid block. */
