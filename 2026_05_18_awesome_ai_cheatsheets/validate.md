@@ -150,35 +150,44 @@ Not "all AI tools + all AI knowledge." That dilutes against `awesome-claude-code
 1. **The stated #1 differentiator ("curation") empirically does not hold.** 36.8k-star
    incumbent owns that. Reframe to format+freshness or accept you're entering on the
    incumbent's terms.
-2. **Maintenance treadmill is the real risk, not the build.** Claude Code, MCP, and the
-   agent-skills space change weekly. 15 cheatsheets × weekly churn × weekends only =
-   permanent state of "almost up to date." The very recency UX you're shipping will
-   *flag your own staleness*. Plan the maintenance flywheel before launch.
-3. **Scope is wider than bandwidth.** "All popular AI tools + AI knowledge concepts" on
-   ~5–10 hrs/week is ambitious. The PoC should be 5–8 cheatsheets in a single
-   tightly-scoped category (e.g., Claude Code stack), not 10–15 across the field.
-4. **Contributor model contains an upstream dependency.** Community contributions require:
-   strict frontmatter schema, broken-link CI check, MDX-component contract, screenshot/
-   diagram guidelines, freshness-bot, PR review SLA. If any are missing at launch the
-   quality bar collapses.
-5. **MDX is a barrier for tier-2/tier-3 audiences.** "AI-curious learners" and even some
-   "AI power-users" will not write JSX. If contribution growth is the success criterion,
-   plan a low-friction `.md` path with the interactive parts handled by site components,
-   not authors.
+2. **Maintenance treadmill is the real risk, not the build** — *partly addressed by the
+   `cheatsheet-scribe` skill.* Per-cheatsheet authoring drops from hours to ~15–30 min,
+   but external-world churn (Claude Code/MCP/etc. shipping weekly) is unchanged. The
+   scribe makes *updating* a stale cheatsheet cheaper too, which matters more than the
+   initial write. Still: install the freshness CI + quarterly review flywheel before
+   launch.
+3. **Scope is wider than bandwidth — improved.** With the scribe collapsing authoring
+   cost, 11 cheatsheets in 4–8 weekends is more credible. Still: start with 3 (Hermes,
+   Harness Eng, MCP) to stress-test the template + scribe before scaling.
+4. **Contributor model contains an upstream dependency — improved.** The scribe now
+   *is* the on-ramp: contributors paste a draft → get a lint-clean draft back → review
+   together → PR. The strict schema is now enforced *by the authoring tool itself*, not
+   policed at PR time. This collapses one of the biggest contributor-acquisition risks.
+5. **MDX is a barrier for tier-2/tier-3 audiences — much reduced.** The scribe writes
+   the MDX so contributors don't have to. They write prose; the tool handles structure.
+   Keep a "scribe-less" `.md`-only fallback path for the truly minimal contribution.
 6. **Audience drift risk.** "Dev focus first, all three audiences" is a known dilution
    pattern. Lock the developer voice in v1; don't try to rephrase for learners until
    the catalog has a clear identity.
-7. **No git repo initialized yet.** The skill's "commit + push" acceptance criterion
-   can't be satisfied until `git init` + remote setup is done. Flagged for follow-up.
+7. **No git repo initialized yet** — *resolved.* Repo created as `luongnv89/awesome-cheatsheets`
+   (private), commits `996976d`, `9dccd16`, `ba73a3d` pushed.
+8. **NEW: Skill-content drift.** Once the scribe ships, the template contract lives in
+   *two* places: the skill (`SKILL.md` + validator) and the linter/CI. They MUST stay in
+   sync. Day-0 fix: have the skill *import* the validator, not duplicate the rules. One
+   source of truth.
+9. **NEW: Skill quality bar.** A bad scribe produces 11 inconsistent cheatsheets fast —
+   worse than 3 hand-crafted ones. Acceptance test the skill against the Hermes PoC
+   *before* using it on cheatsheet #2: it must regenerate equivalent structure from a
+   stripped draft. If it can't, fix the skill, don't grandfather in bad output.
 
-## Ratings (updated for locked launch list)
+## Ratings (updated for locked launch list + `cheatsheet-scribe` skill)
 
 | Dimension           | Score | Reasoning |
 |---------------------|-------|-----------|
-| Creativity          | 7/10  | (+1) Including Hermes Agent / Pi / OpenClaw / harness engineering — items the incumbents under-cover — gives the catalog a recognizable identity beyond format alone. |
-| Feasibility         | 6/10  | (+1) 11 cheatsheets is a more honest weekend scope than 10–15 across all AI tools. Treadmill risk still real, but it's now N tools, not the whole field. |
-| Market Impact       | 6/10  | (+1) 4 cheatsheets land in genuinely under-served terrain (Hermes / Pi / OpenClaw / Harness). Discovery hooks are present. |
-| Technical Execution | 8/10  | Unchanged. Astro + MDX + Tailwind + shadcn + Pagefind on GH Pages remains the right stack. Content quality, not code, is the real bar. |
+| Creativity          | 8/10  | (+1) Shipping a Claude Code skill that authors the catalog *from* the catalog (which itself documents agent skills) is a recursive, distinctive identity competitors don't have. |
+| Feasibility         | 7/10  | (+1) Scribe skill collapses per-cheatsheet authoring from hours to ~15–30 min and externalizes the template contract — directly attacks the maintenance-treadmill risk. |
+| Market Impact       | 6/10  | Unchanged. Skill helps *production*, not discovery. The wedge items (Hermes/Pi/OpenClaw/Harness) still carry the discovery story. |
+| Technical Execution | 8/10  | Unchanged. The skill adds a new surface (SKILL.md + validator) but Claude Code's skill model makes this cheap; the heavy lift remains the Astro site, not the skill. |
 
 ## How to Strengthen
 
@@ -214,7 +223,8 @@ Not "all AI tools + all AI knowledge." That dilutes against `awesome-claude-code
 
 ## Enhanced Version
 
-> **Terminal-native AI Coding Agents — the rich-format cheatsheet catalog.**
+> **Terminal-native AI Coding Agents — the rich-format cheatsheet catalog, with a
+> day-0 Claude Code skill that authors it.**
 >
 > 6 tools (Hermes Agent · OpenClaw · Pi · Claude Code · Codex · OpenCode) and 5 concepts
 > (Agent Skills · Sub-agents · MCP · Harness Engineering · Prompt Engineering),
@@ -225,6 +235,11 @@ Not "all AI tools + all AI knowledge." That dilutes against `awesome-claude-code
 > a one-page PDF, and links out to the canonical awesome-list and registry for deeper
 > dives. Built in 4–8 weekends; maintained via quarterly review + automated staleness
 > CI.
+>
+> Authored by `cheatsheet-scribe` — a Claude Code skill versioned in this repo that
+> turns a raw draft into a lint-clean, template-compliant cheatsheet and iterates with
+> the author until merge-ready. Same skill works for first-time contributors and for
+> updating stale entries.
 >
 > The 4 strongest discovery hooks: **Hermes Agent**, **Pi Coding Agent**, **OpenClaw**,
 > and **Harness Engineering** — all popular topics in 2026 with no canonical rich-format
@@ -237,25 +252,41 @@ incumbents who index but don't teach.
 
 ## Implementation Roadmap
 
-**Phase 0 — Rails (weekends 1–2)**
+**Phase 0a — Template contract + validator (weekend 1)**
+- Lock the v1 template contract from the Hermes PoC (frontmatter schema, required
+  sections, Mermaid block contract, command-table format, references-collapse pattern)
+- Write the validator: Zod schema for frontmatter + AST checks for required sections
+  + a broken-link checker. Ship it as a CLI: `pnpm cheatsheet:lint <file>`
+- Acceptance: validator passes the existing Hermes PoC unchanged
+
+**Phase 0b — `cheatsheet-scribe` skill (weekend 2)**
+- Author `.claude/skills/cheatsheet-scribe/SKILL.md` against the locked contract
+- Skill *imports* the validator (does not duplicate rules)
+- Acceptance test: from a stripped-down Hermes draft, the skill produces a file that
+  lints clean and matches the structure of the original PoC. If it can't, fix the
+  skill, don't ship.
+- Add a 2-page authoring tutorial: "From notes to merged cheatsheet in 30 minutes"
+
+**Phase 0c — Site rails (weekends 3–4)**
 - Astro project on GH Pages with auto-deploy CI
 - Tailwind + shadcn-equivalent components (vendored, no CDN)
 - MDX content pipeline + Mermaid build-time render
-- Frontmatter schema validator (Zod) + required-sections linter
-- Broken-link CI check
 - Pagefind client-side search index
-- Print stylesheet + PDF export verified on a stub cheatsheet
+- Print stylesheet + PDF export verified on the Hermes PoC
+- Freshness UX: stale-banner threshold from `stale_after_days` in frontmatter
 
-**Phase 1 — PoC content (weekends 3–4)**
-- 3 cheatsheets, picked to stress-test the template across a tool, a concept, and a
-  comparison: **OpenClaw** (tool with strong wedge), **Harness Engineering** (concept,
-  strongest discovery hook), **MCP** (concept, most-cited so format must hold up).
-- Iterate the template against real content; lock the section schema.
+**Phase 1 — Stress-test content (weekend 5)**
+- Hermes Agent is already done (PoC #1, hand-written, defines the contract).
+- Generate **2 more via the scribe** to stress-test the skill across categories:
+  **Harness Engineering** (concept, strongest discovery hook) and **OpenClaw** (tool,
+  strongest under-served tool).
+- After both, hold a retro: are the 3 cheatsheets visibly consistent? Where did the
+  scribe need human override? Fold those learnings back into the skill before scaling.
 
-**Phase 2 — Credible catalog (weekends 5–7)**
-- Add the remaining 8: Hermes Agent, Pi, Claude Code, Codex, OpenCode, Agent Skills,
-  Sub-agents, Prompt Engineering (or replace Prompt Engineering with a
-  *Choosing-between-CLI-agents comparison cheatsheet* — likely a stronger pick).
+**Phase 2 — Credible catalog (weekends 6–7)**
+- Author the remaining 8 via the scribe: Pi, Claude Code, Codex, OpenCode, Agent Skills,
+  Sub-agents, MCP, and either Prompt Engineering or a *Choosing-between-CLI-agents
+  comparison cheatsheet* (the latter is likely stronger).
 - Catalog page with search/filter/sort; recency badges live.
 
 **Phase 3 — Launch (weekend 8)**

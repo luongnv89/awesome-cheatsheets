@@ -90,6 +90,92 @@ Tier 2 (welcome but not primary):
 - 11 cheatsheets ≈ a credible catalog without overshooting weekend bandwidth.
 - "Harness engineering" specifically is a hot 2026 topic post-Anthropic-leak with very few rich-format references — likely the strongest discovery hook.
 
+## Authoring Workflow: `cheatsheet-scribe` Skill (day-0 decision)
+
+We ship a **Claude Code agent skill** alongside the catalog — `cheatsheet-scribe` — that
+converts raw draft text into a standard-format cheatsheet, then iterates with the author
+until merge-ready. This is a deliberate day-0 investment, not a future enhancement.
+
+### Why day 0
+The Hermes Agent PoC already demonstrated the cost: writing a single cheatsheet that
+exercises the full template contract (frontmatter, Mermaid diagram, 8-step flow, do/don't,
+comparison matrix, command table, collapsed references) takes meaningful time. Multiplying
+that across 11 cheatsheets *and* an open contributor pipeline is the single biggest risk
+to the project. The scribe skill collapses that cost from hours to a guided ~15–30 min
+session — for you and for every external contributor.
+
+### Where the skill lives
+- **In this repo** under `.claude/skills/cheatsheet-scribe/SKILL.md` (+ supporting files).
+- Versioned with the catalog so contributors clone once and get the authoring tool *plus*
+  the validator *plus* the lint rules. Single source of truth.
+
+### Workflow (input → output)
+
+```mermaid
+flowchart TD
+  A[User provides draft text<br/>article / notes / blog post] --> B{Run /cheatsheet-scribe}
+  B --> C[Skill extracts:<br/>slug, category, summary,<br/>steps, do/don't, refs]
+  C --> D[Skill fills standard template<br/>writes draft .md to cheatsheets/&lt;slug&gt;/]
+  D --> E[Skill runs linter:<br/>frontmatter schema, required sections,<br/>broken-link check]
+  E --> F{Lint clean?}
+  F -- No --> G[Skill reports gaps<br/>asks user to fill]
+  G --> D
+  F -- Yes --> H[Skill presents draft +<br/>specific review prompts:<br/>'Is this the right wedge?'<br/>'Mental model accurate?'<br/>'Missing edge cases?']
+  H --> I{User feedback}
+  I -- Edits requested --> D
+  I -- Approved --> J[Skill stages files,<br/>opens PR, suggests commit msg]
+```
+
+### Skill contract (locked at v1)
+
+The scribe MUST:
+1. **Parse the draft** for: tool/concept name, category (tool vs concept), explicit
+   step-by-step content, do/don't lists, references, and any sample commands.
+2. **Fill the template** at `cheatsheets/<slug>/<slug>.md` with all required sections
+   from the v1 template contract (see Hermes Agent PoC as canonical).
+3. **Auto-generate** the Mermaid mental-model diagram from the draft's structure, or
+   ask one targeted question if the draft doesn't imply one.
+4. **Run the validator** (frontmatter schema + required-sections + broken-link CI rules
+   running locally) and surface failures *before* asking for review.
+5. **Iterate explicitly**, not silently: after each pass, ask 2–4 specific review
+   questions (not "looks good?") — e.g., "Is the wedge framed correctly given existing
+   coverage?", "Is the comparison matrix comparing the right alternatives?".
+6. **Stop when the linter is clean *and* the user explicitly approves** — never auto-merge.
+7. **Suggest, never write,** the commit message and PR title; the human owns the merge.
+
+The scribe MUST NOT:
+- Fabricate references or commands not present in the draft.
+- Overwrite an existing cheatsheet without explicit confirmation.
+- Run any destructive git operations.
+- Add content beyond what the draft + clarifying answers support.
+
+### How this changes the project shape
+- **Authoring cost per cheatsheet drops materially** — the bottleneck moves from
+  "writing 350 lines of structured markdown" to "providing a good draft + reviewing".
+- **Contributor barrier collapses.** Outsiders don't need to memorize the template
+  contract; they paste a draft and the skill handles structure. The MDX vs MD friction
+  we worried about in `validate.md` largely disappears because the scribe outputs the
+  correct format.
+- **Quality bar is enforceable from PR #1** — the same lint rules the scribe runs
+  pre-submit also run in CI. No "I'll fix the format later" loophole.
+- **The skill becomes a discovery hook in its own right.** A working Claude Code skill
+  that converts notes → publishable cheatsheets is showcaseable — and lives naturally
+  inside the catalog (which has a cheatsheet *for* the agent-skills concept). Nice
+  recursion.
+
+### Day-0 ordering (revises the implementation roadmap in `validate.md`)
+1. **Phase 0a (weekend 1):** Lock the v1 template *contract* from the Hermes PoC.
+   Write the frontmatter schema (Zod or JSON Schema) + a CLI linter.
+2. **Phase 0b (weekend 2):** Author the `cheatsheet-scribe` skill against that contract.
+   Acceptance test: skill regenerates the Hermes cheatsheet from a stripped-down draft
+   and produces output that lints clean and is ~equivalent in structure.
+3. **Phase 0c (weekends 3–4):** Astro/MDX site + auto-deploy + freshness UX.
+4. **Phase 1+:** Use the skill to author the next cheatsheets. Hermes Agent stays
+   PoC #1 as the proof the skill's output meets the bar.
+
+This re-ordering matters: **skill before content**. Authoring cheatsheets 2–11 manually
+when a working scribe is two weekends away would burn the budget the project doesn't have.
+
 ## Technical Context
 
 - **Stack:** Astro (MD/MDX content, zero-JS default, Tailwind + shadcn-style components)
