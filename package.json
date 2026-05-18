@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "description": "Awesome AI Cheatsheets — authoring tools and template contract.",
+  "packageManager": "pnpm@10.28.0",
   "scripts": {
     "type-check": "tsc --noEmit",
     "test": "vitest run",
