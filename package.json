@@ -5,17 +5,27 @@
   "type": "module",
   "description": "Awesome AI Cheatsheets — authoring tools and template contract.",
   "scripts": {
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "engines": {
     "node": ">=20"
   },
   "dependencies": {
+    "mdast-util-to-string": "^4.0.0",
+    "remark-frontmatter": "^5.0.0",
+    "remark-parse": "^11.0.0",
+    "unified": "^11.0.5",
+    "yaml": "^2.9.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@types/mdast": "^4.0.4",
     "@types/node": "^25.9.0",
+    "@types/unist": "^3.0.3",
     "tsx": "^4.22.2",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.6"
   }
 }
