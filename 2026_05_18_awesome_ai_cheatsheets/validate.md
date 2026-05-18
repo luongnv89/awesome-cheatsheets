@@ -1,17 +1,53 @@
 # Validation: Awesome AI Cheatsheets
 
 ## Quick Verdict
-**Maybe — narrow the wedge before committing.**
+**Build it (cautiously) — the locked launch list materially strengthens the wedge.**
+*(Was: Maybe. The concrete 6-tools + 5-concepts list narrows scope and surfaces a real
+under-covered slice — terminal-native agents (OpenCode/Pi/OpenClaw/Hermes Agent/Codex)
+plus harness engineering — that the existing awesome-lists do not deeply document in
+rich format.)*
 
 ## Why
-The "trusted curated hub" lane you wanted to own is already taken: `hesreallyhim/awesome-claude-code`
-sits at 36.8k stars and is widely cited as *the* canonical curated list for this exact space
-(Claude Code, MCP, agent skills). The empirically defensible angle is **not curation** — it is
-**format + freshness**: a rich, interactive, PDF-exportable, visibly dated reference for a
-*narrow* slice of the AI tooling stack. As scoped today (10–15 cheatsheets across all AI tools
-+ AI concepts, on weekends only, with a strict template/linter/MDX/Mermaid/search/filter
-pipeline) the project is buildable but the **maintenance treadmill** is the real long-term
-risk in a space that mutates weekly. Ship the rails, narrow the scope, then re-evaluate.
+Two updates from your locked launch list:
+1. **Scope is now defensible.** 11 cheatsheets across 6 tools + 5 concepts is a credible
+   single-developer v1. The earlier "all AI tools" framing has collapsed to a focused
+   slice the incumbent awesome-lists *index* but do not *teach*.
+2. **The under-covered slice is real.** Hermes Agent, OpenClaw, Pi, and OpenCode all have
+   significant traction (68k★ OpenClaw, 160k★ OpenCode) but rich-format, comparable,
+   PDF-exportable references are missing. "Harness engineering" is a hot post-leak topic
+   with mostly blog-post coverage — no canonical interactive reference.
+
+The earlier risk still stands: **maintenance treadmill** in a weekly-mutating space, on
+weekends only. So the verdict is "Build it" *conditional on* shipping the rails (linter,
+freshness CI, scaffolder) before authoring the second cheatsheet.
+
+## Per-Cheatsheet Coverage Check
+
+How well does each launch-list item already exist in rich form?
+
+| Cheatsheet | Existing rich-format coverage | Strength of wedge |
+|---|---|---|
+| **Claude Code** | `awesomeclaude.ai/code-cheatsheet`, `FlorianBruniaux/claude-code-ultimate-guide`, scriptbyai blog posts | **Weak** — most-covered tool in the list. Compete on interactive Mermaid harness diagrams + PDF export, not novelty. |
+| **Codex CLI** | OpenAI's own docs + a few blog comparisons (shareuhack, augmentcode) | **Medium** — official docs are reference-only; no third-party rich cheatsheet found. |
+| **OpenCode** | `opencode.ai/docs` is solid; John Maeda Medium tutorials; `bradAGI/awesome-cli-coding-agents` indexes it | **Medium** — official docs cover features but no comparable cheatsheet format. |
+| **OpenClaw** | DigitalOcean/KDnuggets/Milvus blog posts, official site, GitHub README | **Strong** — 68k★ tool, no canonical interactive reference. Big opportunity. |
+| **Pi Coding Agent** | `pi.dev`, Scott Logic blog, dev.to article | **Strong** — small, recently popular, no rich reference. |
+| **Hermes Agent** | NousResearch docs, `0xNyk/awesome-hermes-agent`, `mudrii/hermes-agent-docs` | **Strong** — most under-documented tool on the list. Could become the canonical reference. |
+| **Agent Skills** | Anthropic docs, `ComposioHQ/awesome-claude-skills`, blog posts | **Medium** — concept is well-blogged; no single rich primer. |
+| **Sub-agents** | Anthropic docs, alexop.dev, antstack guide | **Medium** — taught alongside Claude Code; rarely standalone. |
+| **MCP** | `glama.ai`, Anthropic spec, `wong2/awesome-mcp-servers` | **Weak-medium** — most-covered concept. Compete on a clean mental model + diagram. |
+| **Harness Engineering** | dev.to, Anthropic engineering blog, claudecode-lab, multiple Medium posts | **Strong** — hot topic, *no* rich-format reference exists. **Likely the strongest discovery hook.** |
+| **Prompt Engineering** | Many cheatsheets (FareedKhan-dev, mlane, RepublicOfBotv109, freecodecamp) | **Weak** — most saturated. Differentiate via "patterns library" framing or skip in v1. |
+
+### Implications
+- **4 of 11 items have a strong wedge** (OpenClaw, Pi, Hermes Agent, Harness Engineering).
+  Lead with these for launch impact — they're the discovery hooks.
+- **5 of 11 are medium** — value comes from format consistency and comparability, not novelty.
+- **2 of 11 are weak** (Claude Code, Prompt Engineering) — saturated. Consider:
+  whether to include them as "table stakes" so the catalog feels complete, or to drop
+  Prompt Engineering for v1 and replace it with something like "Choosing between Claude Code,
+  Codex, OpenCode, Pi" — a comparison cheatsheet that *only* this catalog can ship,
+  because no one else has standardized sections across these tools.
 
 ## Competitive Landscape
 
@@ -135,14 +171,14 @@ Not "all AI tools + all AI knowledge." That dilutes against `awesome-claude-code
 7. **No git repo initialized yet.** The skill's "commit + push" acceptance criterion
    can't be satisfied until `git init` + remote setup is done. Flagged for follow-up.
 
-## Ratings
+## Ratings (updated for locked launch list)
 
 | Dimension           | Score | Reasoning |
 |---------------------|-------|-----------|
-| Creativity          | 6/10  | The format-for-AI-tools angle is fresh; the catalog-of-cheatsheets concept is not. |
-| Feasibility         | 5/10  | Buildable in 4–8 weekends. Maintainable long-term on weekends? Less clear. The treadmill drags the score. |
-| Market Impact       | 5/10  | Real audience, real format gap — but the largest reader segment already has habits with the 36.8k-star incumbent. Hard to displace; easier to coexist as a complement. |
-| Technical Execution | 8/10  | Astro + MDX + Tailwind + shadcn + Pagefind on GH Pages is a well-trodden stack with strong tooling. The hard part is *content*, not code. |
+| Creativity          | 7/10  | (+1) Including Hermes Agent / Pi / OpenClaw / harness engineering — items the incumbents under-cover — gives the catalog a recognizable identity beyond format alone. |
+| Feasibility         | 6/10  | (+1) 11 cheatsheets is a more honest weekend scope than 10–15 across all AI tools. Treadmill risk still real, but it's now N tools, not the whole field. |
+| Market Impact       | 6/10  | (+1) 4 cheatsheets land in genuinely under-served terrain (Hermes / Pi / OpenClaw / Harness). Discovery hooks are present. |
+| Technical Execution | 8/10  | Unchanged. Astro + MDX + Tailwind + shadcn + Pagefind on GH Pages remains the right stack. Content quality, not code, is the real bar. |
 
 ## How to Strengthen
 
@@ -178,20 +214,26 @@ Not "all AI tools + all AI knowledge." That dilutes against `awesome-claude-code
 
 ## Enhanced Version
 
-> **AI Stack Cheatsheets** — the rich-format, visibly-dated developer reference for the
-> Claude Code + MCP + agent-skills + sub-agents stack.
+> **Terminal-native AI Coding Agents — the rich-format cheatsheet catalog.**
+>
+> 6 tools (Hermes Agent · OpenClaw · Pi · Claude Code · Codex · OpenCode) and 5 concepts
+> (Agent Skills · Sub-agents · MCP · Harness Engineering · Prompt Engineering),
+> with standardized sections so any two cheatsheets are directly comparable.
 >
 > Static. Serverless. Self-hosted assets. Every cheatsheet shows its age on the page,
-> ships a Mermaid diagram of the mental model, prints to a one-page PDF, and links out
-> to the canonical curated list. Standardized sections so two cheatsheets are always
-> comparable at a glance.
+> ships a Mermaid diagram of the mental model, has copy-paste setup blocks, prints to
+> a one-page PDF, and links out to the canonical awesome-list and registry for deeper
+> dives. Built in 4–8 weekends; maintained via quarterly review + automated staleness
+> CI.
 >
-> Launch with the rails (template + linter + freshness CI + scaffolder), 5–8 high-quality
-> reference cheatsheets in *one* category, and a clear contribution model. Expand to
-> adjacent categories only after the format wins on its own.
+> The 4 strongest discovery hooks: **Hermes Agent**, **Pi Coding Agent**, **OpenClaw**,
+> and **Harness Engineering** — all popular topics in 2026 with no canonical rich-format
+> reference today.
 
-The reframe is small but consequential: from *"another catalog"* to *"the format competitors
-don't ship, scoped to the niche they care about most."*
+The reframe vs the original idea: from *"all popular AI tools + AI concepts"* to
+*"the comparable rich-format reference for terminal-native AI coding agents and the
+concepts that power them."* Tighter niche, sharper identity, defensible against
+incumbents who index but don't teach.
 
 ## Implementation Roadmap
 
@@ -205,13 +247,16 @@ don't ship, scoped to the niche they care about most."*
 - Print stylesheet + PDF export verified on a stub cheatsheet
 
 **Phase 1 — PoC content (weekends 3–4)**
-- 3 cheatsheets in the Claude Code stack: Claude Code itself, MCP overview, agent skills
-- Iterate the template against real content; lock the section schema
+- 3 cheatsheets, picked to stress-test the template across a tool, a concept, and a
+  comparison: **OpenClaw** (tool with strong wedge), **Harness Engineering** (concept,
+  strongest discovery hook), **MCP** (concept, most-cited so format must hold up).
+- Iterate the template against real content; lock the section schema.
 
 **Phase 2 — Credible catalog (weekends 5–7)**
-- Add 4–5 more: sub-agents primer, a top-3 MCP servers (e.g., filesystem, git, web),
-  a prompt-engineering primer, optional: Cursor or Cline comparison
-- Catalog page with search/filter/sort; recency badges live
+- Add the remaining 8: Hermes Agent, Pi, Claude Code, Codex, OpenCode, Agent Skills,
+  Sub-agents, Prompt Engineering (or replace Prompt Engineering with a
+  *Choosing-between-CLI-agents comparison cheatsheet* — likely a stronger pick).
+- Catalog page with search/filter/sort; recency badges live.
 
 **Phase 3 — Launch (weekend 8)**
 - Cross-link out to the major awesome-lists and registries

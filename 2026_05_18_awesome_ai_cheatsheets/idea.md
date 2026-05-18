@@ -67,6 +67,29 @@ Tier 2 (welcome but not primary):
 - Build a healthy contributor community via clear template + automated checks
 - Stay 100% static / zero-cost to host (GitHub Pages + CI)
 
+## Launch Content List (locked)
+
+### Tools (6)
+1. **Hermes Agent** — NousResearch's self-improving AI agent with built-in learning loop, autonomous skills, multi-channel gateway (Telegram/Discord/Slack/etc).
+2. **OpenClaw** — 68k★ open-source personal AI assistant by Peter Steinberger; runs locally, model-agnostic, 100+ AgentSkills, 20+ chat platform integrations.
+3. **Pi (Pi Coding Agent)** — Terminal-based coding agent, minimal-by-default (4 tools out-of-the-box), TypeScript-extensible, sub-agents + MCP + plan mode.
+4. **Claude Code** — Anthropic's CLI; the de-facto reference for harness engineering since the March 2026 source leak.
+5. **Codex CLI** — OpenAI's Rust-based terminal agent (~75k★, 14.5M monthly npm dl, 3M WAU).
+6. **OpenCode** — 160k★ Go-based open-source CLI coding agent with 75+ provider support, LSP, SQLite session storage, vim-like editor.
+
+### Concepts (5)
+1. **Agent Skills** — reusable prompts + bundled artifacts (scripts, references) for AI agents.
+2. **Sub-agents** — isolated agents exposed as tools; "who does it" layer.
+3. **MCP (Model Context Protocol)** — open standard for AI ↔ external system connectivity ("USB-C for AI").
+4. **Harness Engineering** — designing the agent loop, tool dispatch, memory/permissions/observability *around* the model (Memory + Tools + Permissions + Hooks + Observability).
+5. **Prompt Engineering** — patterns and techniques for effective LLM instruction.
+
+### Why this list works as a v1
+- Spans **3 tiers of incumbent coverage**: well-documented (Claude Code, Codex), well-known but under-documented in rich format (OpenCode, OpenClaw, Pi), under-documented period (Hermes Agent).
+- Concepts complement the tools — readers can land on a tool cheatsheet, click "Agent Skills" or "Harness Engineering" to get the mental model.
+- 11 cheatsheets ≈ a credible catalog without overshooting weekend bandwidth.
+- "Harness engineering" specifically is a hot 2026 topic post-Anthropic-leak with very few rich-format references — likely the strongest discovery hook.
+
 ## Technical Context
 
 - **Stack:** Astro (MD/MDX content, zero-JS default, Tailwind + shadcn-style components)
