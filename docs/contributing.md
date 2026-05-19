@@ -120,8 +120,39 @@ docs(cheatsheet): add hermes-agent cheatsheet — autonomous CLI/TUI AI agent wi
 ## What Happens Next
 
 1. CI runs `pnpm cheatsheet:lint` to validate your cheatsheet
-2. Maintainers may suggest tweaks
-3. Once green, your cheatsheet joins the catalog
+2. CI runs `pnpm check:no-cdn` against `dist/` to enforce the no-external-CDN rule
+3. Maintainers may suggest tweaks
+4. Once green, your cheatsheet joins the catalog
+
+---
+
+## No external CDNs
+
+The published site ships with **zero** third-party CDN dependencies. All CSS, JS, fonts, and images must be either bundled by the Astro build or served from the same origin. This is a hard requirement (PRD §3 M7 / §5 Security & Privacy / §9 R7) and is enforced by a build-time gate.
+
+**Why:** privacy (no third-party request leaks the visitor's IP), offline-first (the site keeps working on flaky networks), and supply-chain hygiene (no remote script can be tampered with after we ship).
+
+**Hosts blocked by the gate:**
+
+- `https://cdn.*` (generic CDN subdomains)
+- `https://unpkg.com`
+- `https://cdnjs.*`
+- `https://fonts.googleapis.com`, `https://fonts.gstatic.com`
+- `https://maxcdn.*`
+- `https://ajax.googleapis.com`
+- `https://*.jsdelivr.net`
+- `https://stackpath.bootstrapcdn.com`
+
+**Run the check locally:**
+
+```bash
+pnpm build           # produce dist/
+pnpm check:no-cdn    # scan dist/ for CDN URLs
+```
+
+If the gate fires, it prints the offending `file:line: url`. Either remove the dependency or self-host the asset (drop fonts into `public/fonts/`, vendor JS into `src/`, copy CSS).
+
+> The check only scans `dist/`, never source. A markdown cheatsheet may quote a CDN URL inside a code block as documentation — that's rendered as visible text. If the *rendered* HTML contains a CDN URL (e.g., as the `href` of a link), the gate will flag it; rewrite the example to be self-hosted or escape the URL so it isn't parsed as a link.
 
 ---
 
