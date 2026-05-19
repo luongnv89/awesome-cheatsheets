@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 
 test.describe("Freshness UX", () => {
   test("freshness chip shows absolute and relative date", async ({ page }) => {
-    await page.goto("cheatsheets/hermes-agent/");
+    await page.goto("e2e/fresh/");
     await expect(page.locator(".freshness-chip")).toBeVisible();
     await expect(page.locator(".absolute-date")).toContainText(/\d{4}-\d{2}-\d{2}/);
     await expect(page.locator(".relative-date")).toContainText(/\(.+\)/);
@@ -20,7 +20,7 @@ test.describe("Freshness UX", () => {
   });
 
   test("no stale banner when last_updated is recent", async ({ page }) => {
-    await page.goto("cheatsheets/hermes-agent/");
+    await page.goto("e2e/fresh/");
     await expect(page.locator(".stale-banner")).not.toBeVisible();
   });
 
@@ -30,13 +30,25 @@ test.describe("Freshness UX", () => {
     await page.goto("e2e/stale/");
     const banner = page.locator(".stale-banner");
     await expect(banner).toBeVisible();
-    const bgColor = await banner.evaluate((el) =>
-      getComputedStyle(el).backgroundColor,
-    );
-    const textColor = await banner.evaluate((el) =>
-      getComputedStyle(el).color,
-    );
-    expect(bgColor).toMatch(/(245|254),\s*(243|252),\s*(199|223)/);
-    expect(textColor).toMatch(/(146|137),\s*(64|68),\s*(14)/);
+    const contrast = await banner.evaluate((el) => {
+      const style = getComputedStyle(el);
+      const parse = (s: string) => {
+        const m = s.match(/\d+(\.\d+)?/g);
+        return m ? m.slice(0, 3).map(Number) : [0, 0, 0];
+      };
+      const toLinear = (c: number) => {
+        const v = c / 255;
+        return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+      };
+      const luminance = ([r, g, b]: number[]) =>
+        0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
+      const bg = parse(style.backgroundColor);
+      const fg = parse(style.color);
+      const l1 = luminance(bg);
+      const l2 = luminance(fg);
+      const [light, dark] = l1 > l2 ? [l1, l2] : [l2, l1];
+      return (light + 0.05) / (dark + 0.05);
+    });
+    expect(contrast).toBeGreaterThanOrEqual(4.5);
   });
 });

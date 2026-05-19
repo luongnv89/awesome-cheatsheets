@@ -15,11 +15,14 @@ const { title, frontmatter } = Astro.props;
 
 const today = new Date();
 const lastUpdated = new Date(frontmatter.last_updated);
-const daysSinceUpdate = Math.floor((today.getTime() - lastUpdated.getTime()) / (1000 * 60 * 60 * 24));
-const isStale = daysSinceUpdate > frontmatter.stale_after_days;
+const hasValidDate = !isNaN(lastUpdated.getTime());
+const daysSinceUpdate = hasValidDate
+  ? Math.floor((today.getTime() - lastUpdated.getTime()) / (1000 * 60 * 60 * 24))
+  : 0;
+const isStale = hasValidDate && daysSinceUpdate > frontmatter.stale_after_days;
 
 function getRelativeTime(days: number): string {
-  if (days === 0) return "today";
+  if (days <= 0) return "today";
   if (days === 1) return "yesterday";
   if (days < 7) return `${days} days ago`;
   if (days < 14) return "1 week ago";
@@ -63,14 +66,16 @@ const relativeTime = getRelativeTime(daysSinceUpdate);
             ))}
           </div>
 
-          <div class="freshness-chip" title={`Last updated: ${frontmatter.last_updated}`}>
-            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"></circle>
-              <polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
-            <span class="absolute-date">{frontmatter.last_updated}</span>
-            <span class="relative-date">({relativeTime})</span>
-          </div>
+          {hasValidDate && (
+            <div class="freshness-chip" title={`Last updated: ${frontmatter.last_updated}`}>
+              <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              <span class="absolute-date">{frontmatter.last_updated}</span>
+              <span class="relative-date">({relativeTime})</span>
+            </div>
+          )}
         </header>
 
         <div class="cheatsheet-content">
