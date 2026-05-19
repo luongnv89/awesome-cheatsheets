@@ -238,3 +238,8 @@ See `examples/` for input/output pairs:
 - Consumes `tools/validator` — the single source of truth for all validation rules
 - Output must pass `tools/validator` before merge
 - Section list in this skill MUST drift-test against `template-contract.md`
+
+## See Also
+
+- **[Contributor Tutorial](/docs/contributing.md)** — 30-minute walkthrough for new contributors: install Claude Code → invoke `/cheatsheet-scribe` → answer review questions → open PR
+- [Template contract](/.claude/skills/cheatsheet-scribe/template-contract.md) — structural rules every cheatsheet must obey
