@@ -1,0 +1,164 @@
+---
+interface Props {
+  title: string;
+  frontmatter: {
+    title: string;
+    summary: string;
+    category: string;
+    tags: string[];
+    last_updated: string;
+    stale_after_days: number;
+  };
+}
+
+const { title, frontmatter } = Astro.props;
+
+const today = new Date();
+const lastUpdated = new Date(frontmatter.last_updated);
+const daysSinceUpdate = Math.floor((today.getTime() - lastUpdated.getTime()) / (1000 * 60 * 60 * 24));
+const isStale = daysSinceUpdate > frontmatter.stale_after_days;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <main class="container mx-auto py-12 px-4">
+      <article class="cheatsheet">
+        <header class="cheatsheet-header">
+          <h1 class="text-4xl font-bold mb-4">{frontmatter.title}</h1>
+          <p class="text-xl text-gray-600 mb-4">{frontmatter.summary}</p>
+
+          <div class="flex flex-wrap gap-2 mb-4">
+            <span class="badge">{frontmatter.category}</span>
+            {frontmatter.tags.map((tag) => (
+              <span class="tag">{tag}</span>
+            ))}
+          </div>
+
+          <div class="flex items-center gap-4 text-sm text-gray-500">
+            <span>Last updated: {frontmatter.last_updated}</span>
+            {isStale && (
+              <span class="stale-badge">Stale</span>
+            )}
+          </div>
+        </header>
+
+        <div class="cheatsheet-content">
+          <slot />
+        </div>
+      </article>
+    </main>
+  </body>
+</html>
+
+<style is:global>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.6;
+    color: #1f2937;
+  }
+  .container { max-width: 900px; margin: 0 auto; padding: 3rem 1rem; }
+  .text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
+  .font-bold { font-weight: 700; }
+  .mb-4 { margin-bottom: 1rem; }
+  .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+  .text-gray-600 { color: #4b5563; }
+  .text-gray-500 { color: #6b7280; }
+  .text-sm { font-size: 0.875rem; }
+  .flex { display: flex; }
+  .flex-wrap { flex-wrap: wrap; }
+  .gap-2 { gap: 0.5rem; }
+  .gap-4 { gap: 1rem; }
+  .items-center { align-items: center; }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 9999px;
+    border: 1px solid transparent;
+    padding: 0.125rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background-color: #1f2937;
+    color: #fff;
+  }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 0.25rem;
+    padding: 0.125rem 0.5rem;
+    font-size: 0.75rem;
+    background-color: #f3f4f6;
+    color: #4b5563;
+  }
+
+  .stale-badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 0.25rem;
+    padding: 0.125rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background-color: #fef3c7;
+    color: #92400e;
+  }
+
+  .cheatsheet-content section {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    background-color: #f9fafb;
+  }
+
+  .cheatsheet-content section h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  details.reference-section {
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: #f3f4f6;
+    border-radius: 0.5rem;
+  }
+
+  details.reference-section summary {
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  details.reference-section summary::-webkit-details-marker {
+    display: none;
+  }
+
+  details.reference-section summary::before {
+    content: "▶";
+    display: inline-block;
+    margin-right: 0.5rem;
+    transition: transform 0.2s;
+  }
+
+  details[open].reference-section summary::before {
+    transform: rotate(90deg);
+  }
+
+  .cheatsheet-content details summary {
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  .cheatsheet-content details[open] summary {
+    margin-bottom: 1rem;
+  }
+</style>
