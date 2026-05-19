@@ -1,0 +1,20 @@
+---
+import CheatsheetLayout from '../../layouts/CheatsheetLayout.astro';
+
+const today = new Date().toISOString().slice(0, 10);
+
+const freshFrontmatter = {
+  title: 'Test Fresh Cheatsheet',
+  summary: 'A test cheatsheet with a recent last_updated date to verify chip rendering.',
+  category: 'tool' as const,
+  tags: ['test'],
+  last_updated: today,
+  stale_after_days: 90,
+};
+---
+
+<CheatsheetLayout title={freshFrontmatter.title} frontmatter={freshFrontmatter}>
+  <div class="cheatsheet-body">
+    <p>Test content for fresh cheatsheet verification.</p>
+  </div>
+</CheatsheetLayout>

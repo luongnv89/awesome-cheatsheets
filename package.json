@@ -12,6 +12,7 @@
     "type-check": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "astro build && playwright test",
     "cheatsheet:lint": "tsx tools/cli/lint.ts"
   },
   "engines": {
@@ -31,6 +32,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@types/mdast": "^4.0.4",
     "@types/node": "^25.9.0",
     "@types/unist": "^3.0.3",
