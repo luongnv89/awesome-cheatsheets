@@ -13,6 +13,7 @@ export default defineConfig({
   markdown: {
     remarkPlugins: [remarkMermaid],
   },
+  site: 'https://luongnv89.github.io',
   base: '/awesome-cheatsheets',
   output: 'static',
   build: {
