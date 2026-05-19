@@ -1,0 +1,44 @@
+{
+  "ci": {
+    "collect": {
+      "startServerCommand": "pnpm exec astro preview --host 127.0.0.1 --port 4321",
+      "startServerReadyPattern": "Local",
+      "startServerReadyTimeout": 30000,
+      "url": [
+        "http://127.0.0.1:4321/awesome-cheatsheets/",
+        "http://127.0.0.1:4321/awesome-cheatsheets/about/",
+        "http://127.0.0.1:4321/awesome-cheatsheets/cheatsheets/hermes-agent/"
+      ],
+      "numberOfRuns": 1,
+      "settings": {
+        "preset": "desktop",
+        "chromeFlags": "--no-sandbox --headless=new --disable-gpu --disable-dev-shm-usage"
+      }
+    },
+    "assert": {
+      "assertMatrix": [
+        {
+          "matchingUrlPattern": ".*/cheatsheets/.*",
+          "assertions": {
+            "categories:performance": ["error", { "minScore": 0.85 }],
+            "categories:accessibility": ["error", { "minScore": 0.9 }],
+            "categories:best-practices": ["warn", { "minScore": 0.9 }],
+            "categories:seo": ["warn", { "minScore": 0.9 }]
+          }
+        },
+        {
+          "matchingUrlPattern": "^http://[^/]+/awesome-cheatsheets/(about/)?$",
+          "assertions": {
+            "categories:performance": ["error", { "minScore": 0.85 }],
+            "categories:accessibility": ["error", { "minScore": 0.95 }],
+            "categories:best-practices": ["warn", { "minScore": 0.9 }],
+            "categories:seo": ["warn", { "minScore": 0.9 }]
+          }
+        }
+      ]
+    },
+    "upload": {
+      "target": "temporary-public-storage"
+    }
+  }
+}

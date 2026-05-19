@@ -172,7 +172,9 @@ const relativeTime = getRelativeTime(daysSinceUpdate);
   }
 
   .relative-date {
-    color: #6b7280;
+    /* #6b7280 on the #f3f4f6 chip background hits 4.39 — below WCAG AA 4.5.
+       #4b5563 (gray-600) hits 7.7 contrast, comfortably above AA. */
+    color: #4b5563;
   }
 
   .cheatsheet-content section {

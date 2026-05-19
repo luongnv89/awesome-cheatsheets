@@ -12,6 +12,9 @@ test-results/
 playwright-report/
 playwright/.cache/
 
+# Lighthouse CI
+.lighthouseci/
+
 # Editor / OS
 .DS_Store
 *.swp

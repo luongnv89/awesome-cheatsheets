@@ -1,0 +1,97 @@
+name: ci
+
+# Application CI pipeline for issue #24 (Task 4.5 / PRD §6.5).
+#
+# Responsibilities (in order):
+#   1. install      — pnpm with frozen lockfile, cached store via setup-node
+#   2. type-check   — tsc --noEmit (the `type-check` script in package.json)
+#   3. unit tests   — vitest (`pnpm test`)
+#   4. build        — astro build + pagefind index (`pnpm build`)
+#   5. no-CDN gate  — tools/ci/no-cdn-check.sh against dist/ (issue #23)
+#   6. lighthouse   — @lhci/cli autorun against `astro preview` of dist/
+#   7. audit        — `pnpm audit --prod` as a non-blocking warning
+#
+# Workflow split (Decision Record in PR #issue-24):
+#   This workflow runs alongside `.github/workflows/lint.yml`. The lint
+#   workflow remains responsible for the cheatsheet-domain lint (Hermes
+#   fixture + vitest from `tools/`). This `ci.yml` covers the application
+#   pipeline (type-check, full vitest suite, build, no-CDN, Lighthouse,
+#   pnpm audit). The two workflows have different `paths` filters in mind
+#   so unrelated edits to docs do not trigger the heavy build.
+#
+# Budget (PRD §5 Maintainability):
+#   End-to-end runtime ≤ 3 minutes on the free-tier hosted runner. Achieved
+#   via pnpm store cache (`cache: pnpm` in setup-node) plus a single-run
+#   Lighthouse pass (`numberOfRuns: 1`) over three representative URLs.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# Cancel superseded runs on the same branch so PR re-pushes don't queue.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Restrict default token: this workflow only reads code and posts statuses
+# via the Lighthouse upload (temporary public storage; no repo writes).
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    name: install → type-check → test → build → no-cdn → lighthouse
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # pnpm must be on PATH before setup-node so its `cache: pnpm` step can
+      # discover the lockfile. Version is auto-detected from the
+      # `packageManager` field in package.json (pnpm@10.28.0).
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type-check
+        run: pnpm type-check
+
+      - name: Unit tests (vitest)
+        run: pnpm test
+
+      - name: Build (astro + pagefind)
+        run: pnpm build
+
+      - name: No-CDN gate (#23)
+        run: pnpm check:no-cdn
+
+      # Chromium is preinstalled on ubuntu-latest runners; @lhci/cli locates
+      # it automatically. Single run keeps the wall-time budget; per-URL
+      # assertions live in `.lighthouserc.json`.
+      - name: Lighthouse CI
+        run: pnpm exec lhci autorun
+        env:
+          # Used by @lhci/cli to mark the run when uploaded to temporary
+          # public storage. Not a secret.
+          LHCI_BUILD_CONTEXT__CURRENT_HASH: ${{ github.sha }}
+
+      # Non-blocking: `pnpm audit --prod` reports prod-dep vulnerabilities.
+      # We use --prod to skip noisy devDep findings (test runners, etc.).
+      # When a high/critical lands, the warning surfaces in the Actions UI
+      # without failing the PR. Tighten to a hard gate when we have a clean
+      # baseline and a triage process.
+      - name: Audit production dependencies (non-blocking)
+        run: pnpm audit --prod
+        continue-on-error: true
