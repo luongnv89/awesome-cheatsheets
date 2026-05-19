@@ -13,6 +13,7 @@
 import { getCollection } from 'astro:content';
 import Layout from '../layouts/Layout.astro';
 import CatalogCard from '../components/CatalogCard.astro';
+import CatalogSearch from '../components/CatalogSearch.astro';
 
 const entries = await getCollection('cheatsheets', ({ data }) => {
   // Hide cheatsheets explicitly marked deprecated from the catalog; PoCs and
@@ -40,6 +41,8 @@ const cheatsheetHref = (slug: string) => `${baseUrl}/cheatsheets/${slug}/`;
         with a last-updated date and is flagged when it goes stale.
       </p>
     </header>
+
+    <CatalogSearch />
 
     <section class="catalog-section" aria-labelledby="catalog-heading">
       <h2 id="catalog-heading" class="catalog-section-title">
@@ -117,6 +120,18 @@ const cheatsheetHref = (slug: string) => `${baseUrl}/cheatsheets/${slug}/`;
     padding: 0;
     margin: 0;
     grid-template-columns: 1fr;
+  }
+
+  /**
+   * Honor the HTML `hidden` attribute when the catalog search toggles the
+   * grid off — the explicit `display: grid` rule above otherwise wins over
+   * the UA `[hidden] { display: none }` default. Same goes for the section
+   * title and empty-state hint when a search query is active.
+   */
+  .catalog-list[hidden],
+  .catalog-section-title[hidden],
+  .catalog-empty[hidden] {
+    display: none;
   }
 
   @media (min-width: 640px) {

@@ -43,7 +43,11 @@ const relativeTime = getRelativeTime(daysSinceUpdate);
   </head>
   <body>
     <main class="container mx-auto py-12 px-4">
-      <article class="cheatsheet">
+      <article
+        class="cheatsheet"
+        data-pagefind-body
+        data-pagefind-meta={`title:${frontmatter.title}, category:${frontmatter.category}, last_updated:${frontmatter.last_updated}`}
+      >
         {isStale && (
           <div class="stale-banner" role="alert">
             <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
