@@ -15,8 +15,18 @@ name: lint
 
 on:
   pull_request:
+    paths:
+      - ".claude/skills/cheatsheet-scribe/**"
+      - "tools/**"
+      - "scribe-fixtures/**"
+      - "cheatsheets/hermes-agent/**"
   push:
     branches: [main]
+    paths:
+      - ".claude/skills/cheatsheet-scribe/**"
+      - "tools/**"
+      - "scribe-fixtures/**"
+      - "cheatsheets/hermes-agent/**"
 
 jobs:
   lint:
