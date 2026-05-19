@@ -1,0 +1,103 @@
+name: deploy
+
+# Auto-deploy to GitHub Pages on main (issue #25 / Task 4.6 / PRD §3 M8).
+#
+# Architecture (two jobs, recommended pattern for actions/deploy-pages):
+#   build    — checkout → pnpm setup → install → pnpm build → upload artifact
+#   deploy   — needs: build → actions/deploy-pages@v4 → exposes deployed URL
+#
+# Trigger model (Decision Record in PR #issue-25):
+#   This workflow runs on `push` to `main` only (plus `workflow_dispatch` for
+#   manual re-runs). It is *independent* of ci.yml — main is a protected
+#   branch and changes arrive via reviewed PRs that already exercised the
+#   full CI pipeline (type-check, vitest, build, no-CDN gate, Lighthouse).
+#   Re-running that pipeline at deploy time would double the wall-clock and
+#   keep the rolling outage window open longer (PRD M8 requires deploy ≤ 5
+#   minutes of merge).
+#
+# Concurrency:
+#   The `pages` group with `cancel-in-progress: false` is the GitHub-blessed
+#   pattern. Pages deploys *write* to a managed environment; cancelling an
+#   in-flight deploy can leave the site in a half-written state. Queueing
+#   subsequent runs preserves ordering without truncating writes.
+#
+# Permissions:
+#   pages: write       — required by actions/deploy-pages to publish
+#   id-token: write    — required for OIDC attestation of the artifact
+#   contents: read     — checkout only; this workflow never mutates the repo
+#
+# Pre-merge verification: the workflow YAML is lint-clean; `pnpm build`
+# succeeds locally and produces dist/ with the pagefind index. Post-merge
+# verification: watch the first run, confirm the deployed URL serves the
+# latest dist (see Decision Record in the PR).
+#
+# REPO SETTING (one-time): GitHub Pages source must be set to "GitHub
+# Actions" in Settings → Pages. Documented in docs/contributing.md.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Pages-canonical concurrency: never cancel an in-flight deploy.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    name: Build site
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # pnpm must be on PATH before setup-node so its `cache: pnpm` step can
+      # discover the lockfile. Version is auto-detected from the
+      # `packageManager` field in package.json (pnpm@10.28.0).
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # `pnpm build` runs `astro build && pagefind --site dist`, producing the
+      # site under dist/ including the pagefind index at dist/pagefind/.
+      - name: Build (astro + pagefind)
+        run: pnpm build
+
+      # Packs dist/ into a Pages-compatible tar artifact and uploads it for
+      # the deploy job. Default artifact name is "github-pages" which
+      # actions/deploy-pages@v4 consumes implicitly.
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # The `github-pages` environment is provisioned by GitHub automatically
+    # the first time a Pages workflow runs. Exposing `page_url` here lets the
+    # Actions UI link directly to the deployed site.
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -156,6 +156,26 @@ If the gate fires, it prints the offending `file:line: url`. Either remove the d
 
 ---
 
+## Deployment to GitHub Pages
+
+The site auto-deploys to `https://luongnv89.github.io/awesome-cheatsheets/` on every push to `main` via `.github/workflows/deploy.yml`. The workflow builds with `pnpm build` (which runs `astro build` and generates the pagefind index), uploads `dist/` as a Pages artifact, then calls `actions/deploy-pages@v4` to publish.
+
+**One-time repository setup (maintainer only):**
+
+1. Open **Settings → Pages**
+2. Under **Build and deployment → Source**, select **GitHub Actions**
+3. Save
+
+That's it — no branch, no `gh-pages`, no `peaceiris` fallback. The workflow handles the rest.
+
+**Concurrency:** the workflow uses the GitHub-canonical `pages` concurrency group with `cancel-in-progress: false`. Overlapping pushes to `main` queue rather than cancel, so an in-flight write to Pages always completes.
+
+**Permissions:** the workflow declares `contents: read`, `pages: write`, `id-token: write` at the workflow level. The first two are required by `actions/deploy-pages`; `id-token` enables OIDC attestation of the artifact.
+
+**Manual re-deploy:** the workflow also accepts `workflow_dispatch`, so a maintainer can re-run from the Actions tab without pushing a commit.
+
+---
+
 ## Quick Reference
 
 | Step | Command |
