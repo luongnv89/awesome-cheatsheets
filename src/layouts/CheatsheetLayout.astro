@@ -202,6 +202,75 @@ const metaDescription = frontmatter.summary;
         await mermaid.run({ querySelector: '.mermaid' });
       }
     </script>
+
+    {/*
+     * Step heading enhancer. Rewrites `### Step N — Title (qualifier)` H3s
+     * into a pill badge ("STEP N") on its own row above the bare title, so
+     * setup steps are visually distinct from regular H3s. The pattern only
+     * matches the literal `Step <digits>` prefix; other H3s are left alone.
+     */}
+    <script>
+      const stepHeadings = document.querySelectorAll('.cheatsheet-content h3');
+      const STEP_RE = /^Step\s+(\d+)\s*[—–-]\s*(.+)$/;
+      stepHeadings.forEach((h3) => {
+        const match = h3.textContent?.trim().match(STEP_RE);
+        if (!match) return;
+        const [, n, title] = match;
+        h3.classList.add('step-heading');
+        h3.innerHTML = '';
+        const badge = document.createElement('span');
+        badge.className = 'step-badge';
+        badge.textContent = `STEP ${n}`;
+        const titleEl = document.createElement('span');
+        titleEl.className = 'step-title';
+        titleEl.textContent = title ?? '';
+        h3.appendChild(badge);
+        h3.appendChild(titleEl);
+      });
+    </script>
+
+    {/*
+     * Copy buttons on every fenced code block. Wraps each <pre> in a
+     * positioned container and injects a button that copies the code text and
+     * flips to "Copied" for 1.5s. Skips Mermaid wrappers (handled separately).
+     */}
+    <script>
+      const RESET_MS = 1500;
+      const blocks = document.querySelectorAll('.cheatsheet-content pre');
+      blocks.forEach((pre) => {
+        if (pre.closest('.mermaid')) return;
+        if (pre.parentElement?.classList.contains('code-block')) return;
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'code-block';
+        pre.parentNode?.insertBefore(wrapper, pre);
+        wrapper.appendChild(pre);
+
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'code-block-copy';
+        button.setAttribute('aria-label', 'Copy code to clipboard');
+        button.textContent = 'Copy';
+        wrapper.appendChild(button);
+
+        button.addEventListener('click', async () => {
+          const code = pre.querySelector('code');
+          const text = (code?.innerText ?? pre.innerText).replace(/\n$/, '');
+          try {
+            await navigator.clipboard.writeText(text);
+            button.textContent = 'Copied';
+            button.classList.add('is-copied');
+          } catch {
+            button.textContent = 'Failed';
+            button.classList.add('is-failed');
+          }
+          setTimeout(() => {
+            button.textContent = 'Copy';
+            button.classList.remove('is-copied', 'is-failed');
+          }, RESET_MS);
+        });
+      });
+    </script>
   </body>
 </html>
 

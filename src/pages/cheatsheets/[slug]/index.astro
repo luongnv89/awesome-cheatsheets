@@ -81,6 +81,36 @@ const frontmatter = {
     page-break-after: avoid;
   }
 
+  /* Step headings (rewritten client-side from `### Step N — Title`). Pill
+     badge sits above a thin rule, then the title on its own row. Gives
+     scannable "newspaper section break" separation between setup steps
+     without the bulk of a full card. */
+  .cheatsheet-body h3.step-heading {
+    display: block;
+    margin-top: 1.6rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--color-rule);
+    font-size: 1.0625rem;
+    line-height: 1.3;
+  }
+  .cheatsheet-body h3.step-heading .step-badge {
+    display: inline-block;
+    margin-bottom: 0.35rem;
+    padding: 0.1rem 0.55rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--color-ink);
+    background-color: #4ADE80;
+    border-radius: var(--radius-sm);
+    vertical-align: middle;
+  }
+  .cheatsheet-body h3.step-heading .step-title {
+    display: block;
+    color: var(--color-ink);
+  }
+
   .cheatsheet-body h4 {
     font-family: var(--font-heading);
     font-size: 0.9375rem;
@@ -183,6 +213,50 @@ const frontmatter = {
     line-height: 1.5;
     border: 1px solid var(--color-ink-soft);
     page-break-inside: avoid;
+  }
+
+  /* Copy button — injected client-side by CheatsheetLayout. The wrapper is
+     positioned so the absolute button sits in the top-right corner; the
+     wrapper inherits the <pre>'s natural margin (the <pre> resets its own
+     margin once wrapped). */
+  .cheatsheet-body .code-block {
+    position: relative;
+    margin: 0.4rem 0 0.75rem;
+  }
+  .cheatsheet-body .code-block > pre { margin: 0; }
+  .cheatsheet-body .code-block-copy {
+    position: absolute;
+    top: 0.4rem;
+    right: 0.4rem;
+    padding: 0.2rem 0.55rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    color: #DCFCE7;
+    background-color: var(--color-ink-soft);
+    border: 1px solid #4ADE80;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s;
+  }
+  .cheatsheet-body .code-block-copy:hover {
+    background-color: #4ADE80;
+    color: var(--color-ink);
+  }
+  .cheatsheet-body .code-block-copy.is-copied {
+    background-color: #4ADE80;
+    color: var(--color-ink);
+    border-color: #4ADE80;
+  }
+  .cheatsheet-body .code-block-copy.is-failed {
+    background-color: #DC2626;
+    color: #fff;
+    border-color: #DC2626;
+  }
+  @media print {
+    .cheatsheet-body .code-block-copy { display: none; }
   }
 
   .cheatsheet-body code {
