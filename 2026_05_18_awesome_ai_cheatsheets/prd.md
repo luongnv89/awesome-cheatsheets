@@ -297,12 +297,17 @@ flowchart TD
 - Color contrast ≥ 4.5:1 for body text in both light and dark modes.
 
 ### Security & Privacy
-- No PII collected. No accounts. No cookies. No third-party analytics.
+- No PII collected. No accounts. No cookies — *unless* the visitor explicitly
+  accepts the consent banner, which then loads Google Analytics (gtag.js).
+  Default is decline; declined state is persisted in localStorage so the banner
+  does not re-appear. No analytics requests are issued before consent.
 - All external links open with `rel="noopener noreferrer"`.
-- Content Security Policy: `default-src 'self'`; explicit allowlist if/when external
-  embeds are added (none in v1).
+- Content Security Policy: `default-src 'self'` with `https://www.googletagmanager.com`
+  and `https://www.google-analytics.com` allowed in `script-src` / `img-src` only
+  when consent has been granted.
 - Dependencies pinned via `pnpm-lock.yaml`; `npm audit` clean at build time (CI gate).
-- All assets self-hosted; CI fails on any external CDN URL in `dist/`.
+- All site assets self-hosted; CI fails on any external CDN URL in `dist/`. The
+  GA snippet is the documented exception (see Contributing → "No external CDNs").
 
 ### Compatibility
 - Browsers: latest 2 versions of Chrome, Firefox, Safari, Edge. No IE.

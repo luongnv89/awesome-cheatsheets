@@ -62,7 +62,7 @@ The catalog covers four kinds of references:
 - **Concepts** — patterns, primitives, and mental models behind the tooling.
 - **Comparisons** — head-to-head diffs between mutually-relevant entries.
 
-See the live site for the up-to-date list. The catalog is built statically and search-indexed at build time via [Pagefind](https://pagefind.app) — no third-party JavaScript, no runtime API.
+See the live site for the up-to-date list. The catalog is built statically and search-indexed at build time via [Pagefind](https://pagefind.app) — no runtime API. The only third-party script is Google Analytics, and it is gated behind explicit cookie-consent (default-deny, no tracking until you click Accept).
 
 ## Quick start
 

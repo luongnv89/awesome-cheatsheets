@@ -128,9 +128,11 @@ docs(cheatsheet): add hermes-agent cheatsheet — autonomous CLI/TUI AI agent wi
 
 ## No external CDNs
 
-The published site ships with **zero** third-party CDN dependencies. All CSS, JS, fonts, and images must be either bundled by the Astro build or served from the same origin. This is a hard requirement (PRD §3 M7 / §5 Security & Privacy / §9 R7) and is enforced by a build-time gate.
+The published site ships with **zero** third-party CDN dependencies for content, styling, and behaviour. All CSS, JS, fonts, and images must be either bundled by the Astro build or served from the same origin. This is a hard requirement (PRD §3 M7 / §5 Security & Privacy / §9 R7) and is enforced by a build-time gate.
 
-**Why:** privacy (no third-party request leaks the visitor's IP), offline-first (the site keeps working on flaky networks), and supply-chain hygiene (no remote script can be tampered with after we ship).
+**One documented exception:** Google Analytics (`googletagmanager.com`). It is gated by an explicit cookie-consent banner (default-deny), so no GA script is loaded until the visitor clicks Accept. Decline is persisted, so the banner does not re-appear. The no-CDN gate intentionally does not enumerate the GA host because the consent gating makes the dependency conditional rather than baseline.
+
+**Why:** privacy (the baseline page load makes no third-party requests, so the visitor's IP is not leaked to a tracker unless they opt in), offline-first (the site keeps working on flaky networks), and supply-chain hygiene (no remote script can be tampered with after we ship — and GA only runs if the visitor consented).
 
 **Hosts blocked by the gate:**
 
