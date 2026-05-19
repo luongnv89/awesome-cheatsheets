@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Awesome AI Cheatsheets — Brand Showcase</title>
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <style>
+      :root {
+        --ink: #1B1F3A;
+        --amber: #F2B705;
+        --coral: #FF6B5C;
+        --paper: #FAF7F2;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        color: var(--ink);
+        background: var(--paper);
+        line-height: 1.5;
+      }
+      header {
+        padding: 3rem 2rem 1.5rem;
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+      h1 {
+        font-size: 2.25rem;
+        margin: 0 0 0.5rem;
+        letter-spacing: -0.02em;
+      }
+      h2 {
+        font-size: 1.25rem;
+        margin: 2rem 0 1rem;
+        letter-spacing: -0.01em;
+      }
+      .lede {
+        max-width: 60ch;
+        color: #5A5F7A;
+        margin: 0;
+      }
+      .palette {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+        flex-wrap: wrap;
+      }
+      .swatch {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.4rem 0.75rem;
+        background: white;
+        border: 1px solid #E6E2D9;
+        border-radius: 8px;
+        font-size: 0.85rem;
+      }
+      .swatch span.chip {
+        display: inline-block;
+        width: 18px;
+        height: 18px;
+        border-radius: 4px;
+        border: 1px solid rgba(0,0,0,0.08);
+      }
+      main {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 2rem 4rem;
+      }
+      .grid {
+        display: grid;
+        gap: 1.25rem;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      }
+      .tile {
+        background: white;
+        border: 1px solid #E6E2D9;
+        border-radius: 12px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .tile.dark { background: var(--ink); border-color: var(--ink); }
+      .tile-canvas {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+        min-height: 160px;
+      }
+      .tile-canvas img { max-width: 100%; height: auto; max-height: 120px; }
+      .tile-meta {
+        padding: 0.75rem 1rem 1rem;
+        border-top: 1px solid #E6E2D9;
+        background: #FBF9F5;
+      }
+      .tile.dark .tile-meta {
+        background: #15182E;
+        border-top-color: #2D335E;
+        color: #E6E2D9;
+      }
+      .tile-name {
+        font-weight: 700;
+        font-size: 0.95rem;
+        letter-spacing: -0.01em;
+        margin: 0 0 0.25rem;
+      }
+      .tile-use {
+        font-size: 0.85rem;
+        color: #5A5F7A;
+        margin: 0;
+      }
+      .tile.dark .tile-use { color: #A6ABC4; }
+      .row-title {
+        margin-top: 2.5rem;
+        margin-bottom: 0.75rem;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #5A5F7A;
+      }
+      footer {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 2rem 3rem;
+        color: #5A5F7A;
+        font-size: 0.85rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Awesome AI Cheatsheets — Brand</h1>
+      <p class="lede">
+        A stacked-card mark with a folded corner: layered, ready-to-grab knowledge.
+        Warm amber against deep ink — highlighter on a notebook page. Coral marks
+        the fold to suggest "open and use it now."
+      </p>
+      <div class="palette" aria-label="Color palette">
+        <span class="swatch"><span class="chip" style="background:#1B1F3A"></span>Ink #1B1F3A</span>
+        <span class="swatch"><span class="chip" style="background:#F2B705"></span>Amber #F2B705</span>
+        <span class="swatch"><span class="chip" style="background:#FF6B5C"></span>Coral #FF6B5C</span>
+        <span class="swatch"><span class="chip" style="background:#FAF7F2;border-color:#ccc"></span>Paper #FAF7F2</span>
+      </div>
+    </header>
+
+    <main>
+      <h2 class="row-title">On light background</h2>
+      <div class="grid">
+        <article class="tile">
+          <div class="tile-canvas"><img src="./mark.svg" alt="mark variant" /></div>
+          <div class="tile-meta"><p class="tile-name">mark.svg</p><p class="tile-use">Just the symbol — social avatars, OG tile corner.</p></div>
+        </article>
+        <article class="tile">
+          <div class="tile-canvas"><img src="./full.svg" alt="full variant" /></div>
+          <div class="tile-meta"><p class="tile-name">full.svg</p><p class="tile-use">Mark + wordmark — site header, README banner.</p></div>
+        </article>
+        <article class="tile">
+          <div class="tile-canvas"><img src="./wordmark.svg" alt="wordmark variant" /></div>
+          <div class="tile-meta"><p class="tile-name">wordmark.svg</p><p class="tile-use">Text only — footers, byline strips.</p></div>
+        </article>
+        <article class="tile">
+          <div class="tile-canvas"><img src="./icon.svg" alt="icon variant" width="64" height="64" /></div>
+          <div class="tile-meta"><p class="tile-name">icon.svg</p><p class="tile-use">32px viewBox simplified mark — app icons, dock tiles.</p></div>
+        </article>
+        <article class="tile">
+          <div class="tile-canvas"><img src="./favicon.svg" alt="favicon variant" width="64" height="64" /></div>
+          <div class="tile-meta"><p class="tile-name">favicon.svg</p><p class="tile-use">Browser tab — minimal, max legibility at 16px.</p></div>
+        </article>
+        <article class="tile">
+          <div class="tile-canvas"><img src="./black.svg" alt="black variant" /></div>
+          <div class="tile-meta"><p class="tile-name">black.svg</p><p class="tile-use">Monochrome black — print, embossing, single-color contexts.</p></div>
+        </article>
+      </div>
+
+      <h2 class="row-title">On dark background</h2>
+      <div class="grid">
+        <article class="tile dark">
+          <div class="tile-canvas"><img src="./mark.svg" alt="mark on dark" /></div>
+          <div class="tile-meta"><p class="tile-name">mark.svg</p><p class="tile-use">Reads cleanly thanks to amber paper card.</p></div>
+        </article>
+        <article class="tile dark">
+          <div class="tile-canvas"><img src="./full.svg" alt="full on dark" /></div>
+          <div class="tile-meta"><p class="tile-name">full.svg</p><p class="tile-use">Wordmark loses contrast on dark — prefer white.svg.</p></div>
+        </article>
+        <article class="tile dark">
+          <div class="tile-canvas"><img src="./white.svg" alt="white variant" /></div>
+          <div class="tile-meta"><p class="tile-name">white.svg</p><p class="tile-use">Pure white — dark-mode site nav, photo overlays.</p></div>
+        </article>
+        <article class="tile dark">
+          <div class="tile-canvas"><img src="./icon.svg" alt="icon on dark" width="64" height="64" /></div>
+          <div class="tile-meta"><p class="tile-name">icon.svg</p><p class="tile-use">Amber holds shape on dark tiles.</p></div>
+        </article>
+        <article class="tile dark">
+          <div class="tile-canvas"><img src="./favicon.svg" alt="favicon on dark" width="64" height="64" /></div>
+          <div class="tile-meta"><p class="tile-name">favicon.svg</p><p class="tile-use">Works against dark browser themes.</p></div>
+        </article>
+        <article class="tile dark">
+          <div class="tile-canvas"><img src="./wordmark.svg" alt="wordmark on dark" /></div>
+          <div class="tile-meta"><p class="tile-name">wordmark.svg</p><p class="tile-use">Use white.svg on dark instead — shown here for completeness.</p></div>
+        </article>
+      </div>
+    </main>
+
+    <footer>
+      <p>All variants live in <code>/public/brand/</code>. See <code>README.md</code> for usage guidance and color tokens.</p>
+    </footer>
+  </body>
+</html>

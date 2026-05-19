@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 180" role="img" aria-label="Awesome AI Cheatsheets wordmark">
+  <title>Awesome AI Cheatsheets wordmark</title>
+  <g font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif">
+    <text x="20" y="80" font-size="60" font-weight="800" letter-spacing="-1" fill="#1B1F3A">Awesome</text>
+    <text x="20" y="148" font-size="44" font-weight="500" fill="#5A5F7A">AI Cheatsheets</text>
+    <rect x="22" y="92" width="180" height="4" rx="2" fill="#F2B705"/>
+  </g>
+</svg>
