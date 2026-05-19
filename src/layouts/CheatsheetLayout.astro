@@ -80,6 +80,17 @@ const metaDescription = frontmatter.summary;
     <meta name="twitter:image" content={ogImage} />
 
     <title>{title}</title>
+
+    {/* Google Analytics — gtag.js. `is:inline` keeps Astro from bundling
+        the snippet so the global `gtag()` function is available to any
+        page script that wants to send custom events. */}
+    <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-E82DZ04Y07"></script>
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-E82DZ04Y07');
+    </script>
   </head>
   <body>
     <a class="skip-link" href="#main-content">Skip to content</a>
