@@ -48,6 +48,7 @@ function getRelativeTime(days: number): string {
 
 const relativeTime = getRelativeTime(daysSinceUpdate);
 const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, '');
+const slug = Astro.url.pathname.replace(/\/$/, '').split('/').pop() ?? '';
 
 const siteOrigin = 'https://luongnv89.github.io';
 const canonicalUrl = `${siteOrigin}${Astro.url.pathname}`;
@@ -127,16 +128,19 @@ const metaDescription = frontmatter.summary;
         </p>
 
         <header class="cheatsheet-header">
-          <span class={`catalog-category catalog-category-${frontmatter.category}`}>
-            {frontmatter.category}
-          </span>
-          <h1 class="cheatsheet-title">{frontmatter.title}</h1>
-          <p class="cheatsheet-summary">{frontmatter.summary}</p>
-
-          <div class="cheatsheet-meta-row">
+          <div class="cheatsheet-header-main">
+            <span class={`catalog-category catalog-category-${frontmatter.category}`}>
+              {frontmatter.category}
+            </span>
+            <h1 class="cheatsheet-title">{frontmatter.title}</h1>
+            <p class="cheatsheet-summary">{frontmatter.summary}</p>
+          </div>
+          <aside class="cheatsheet-header-meta" aria-label="Document metadata">
+            <div class="cheatsheet-header-meta-slug">{slug}</div>
+            <div class="cheatsheet-header-meta-row">cheatsheet · {today.getFullYear()}</div>
             {hasValidDate && (
               <div class="freshness-chip" title={`Last updated: ${frontmatter.last_updated}`}>
-                <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="10"></circle>
                   <polyline points="12 6 12 12 16 14"></polyline>
                 </svg>
@@ -144,14 +148,14 @@ const metaDescription = frontmatter.summary;
                 <span class="relative-date">({relativeTime})</span>
               </div>
             )}
-            {frontmatter.tags.length > 0 && (
-              <ul class="cheatsheet-tags" aria-label="tags">
-                {frontmatter.tags.map((tag) => (
-                  <li class="cheatsheet-tag">{tag}</li>
-                ))}
-              </ul>
-            )}
-          </div>
+          </aside>
+          {frontmatter.tags.length > 0 && (
+            <ul class="cheatsheet-tags" aria-label="tags">
+              {frontmatter.tags.map((tag) => (
+                <li class="cheatsheet-tag">{tag}</li>
+              ))}
+            </ul>
+          )}
         </header>
 
         <div class="cheatsheet-content">
@@ -355,13 +359,13 @@ const metaDescription = frontmatter.summary;
 
   /* ----- Cheatsheet page ----- */
   .cheatsheet-main {
-    max-width: 880px;
+    max-width: 960px;
     margin: 0 auto;
-    padding: 2.5rem 1.25rem 3rem;
+    padding: 2rem 1.25rem 3rem;
     flex: 1 0 auto;
   }
   .cheatsheet-back {
-    margin: 0 0 1.5rem 0;
+    margin: 0 0 1rem 0;
     font-size: 0.9375rem;
   }
   .cheatsheet-back a {
@@ -375,40 +379,63 @@ const metaDescription = frontmatter.summary;
     border-bottom-color: var(--color-amber);
   }
 
+  /* MAG-style header strip: title + summary on the left, meta column on
+     the right, anchored by a neon-green underline. */
   .cheatsheet-header {
-    margin-bottom: 2.5rem;
-    padding-bottom: 2rem;
-    border-bottom: 1px solid var(--color-rule);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "main meta"
+      "tags tags";
+    align-items: end;
+    gap: 0.75rem 2rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 3px solid var(--color-amber);
   }
+  .cheatsheet-header-main { grid-area: main; min-width: 0; }
+  .cheatsheet-header-meta {
+    grid-area: meta;
+    text-align: right;
+    font-size: 0.8125rem;
+    color: var(--color-muted);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.375rem;
+    line-height: 1.4;
+  }
+  .cheatsheet-header-meta-slug {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--color-ink);
+    font-size: 0.875rem;
+  }
+  .cheatsheet-header-meta-row { color: var(--color-muted); }
 
   .cheatsheet-title {
-    font-size: clamp(2rem, 4vw, 2.75rem);
+    font-size: clamp(1.625rem, 3vw, 2.125rem);
     font-weight: 700;
-    margin: 0.75rem 0 1rem;
+    margin: 0.5rem 0 0.5rem;
     color: var(--color-ink);
+    letter-spacing: -0.015em;
   }
 
   .cheatsheet-summary {
-    font-size: 1.125rem;
+    font-size: 1rem;
     color: var(--color-muted);
-    line-height: 1.6;
-    margin: 0 0 1.5rem;
+    line-height: 1.55;
+    margin: 0;
     max-width: 65ch;
   }
 
-  .cheatsheet-meta-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    align-items: center;
-  }
-
   .cheatsheet-tags {
+    grid-area: tags;
     display: flex;
     flex-wrap: wrap;
     gap: 0.375rem;
     list-style: none;
-    margin: 0;
+    margin: 0.25rem 0 0;
   }
   .cheatsheet-tag {
     display: inline-flex;
@@ -465,12 +492,12 @@ const metaDescription = frontmatter.summary;
   .freshness-chip {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    padding: 0.375rem 0.75rem;
+    gap: 0.35rem;
+    padding: 0.25rem 0.625rem;
     background-color: var(--color-paper-shade);
     border: 1px solid var(--color-rule);
     border-radius: 9999px;
-    font-size: 0.8125rem;
+    font-size: 0.75rem;
     color: var(--color-ink);
   }
   .freshness-chip svg { color: var(--color-muted); }
@@ -485,55 +512,12 @@ const metaDescription = frontmatter.summary;
     color: var(--color-muted);
   }
 
-  /* Body content — section cards in paper tone with a subtle inset ruling
-     under each <h2>. */
-  .cheatsheet-content section {
-    margin-bottom: 1.75rem;
-    padding: 1.5rem 1.5rem 1.25rem;
-    border-radius: var(--radius-lg);
-    background-color: #fff;
-    border: 1px solid var(--color-rule);
-    box-shadow: 0 1px 0 rgba(27, 31, 58, 0.04);
-  }
-
-  .cheatsheet-content section h2 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 2px solid var(--color-amber);
-    color: var(--color-ink);
-    display: inline-block;
-    padding-right: 1rem;
-  }
-
-  details.reference-section {
-    margin-top: 1rem;
-    padding: 1rem;
-    background-color: var(--color-paper);
-    border: 1px solid var(--color-rule);
-    border-radius: var(--radius-md);
-  }
-  details.reference-section summary {
-    font-weight: 600;
-    cursor: pointer;
-    list-style: none;
-  }
-  details.reference-section summary::-webkit-details-marker { display: none; }
-  details.reference-section summary::before {
-    content: "▸";
-    display: inline-block;
-    margin-right: 0.5rem;
-    color: var(--color-amber-deep);
-    transition: transform 0.2s;
-  }
-  details[open].reference-section summary::before { transform: rotate(90deg); }
-
-  .cheatsheet-content details summary { cursor: pointer; font-weight: 600; }
-  .cheatsheet-content details[open] summary { margin-bottom: 1rem; }
-
   @media (max-width: 640px) {
     .cheatsheet-main { padding: 1.5rem 1rem 2rem; }
-    .cheatsheet-content section { padding: 1.25rem 1rem 1rem; }
+    .cheatsheet-header {
+      grid-template-columns: 1fr;
+      grid-template-areas: "main" "meta" "tags";
+    }
+    .cheatsheet-header-meta { text-align: left; align-items: flex-start; }
   }
 </style>
