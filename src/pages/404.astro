@@ -1,0 +1,135 @@
+---
+/**
+ * Custom 404 page (issue #27).
+ *
+ * Astro emits `src/pages/404.astro` to `dist/404.html`, which GitHub Pages
+ * serves for any unmatched path under the configured base. Styled to mirror
+ * the catalog landing hero (`src/pages/index.astro`) so the chrome stays
+ * cohesive — same `<Layout>`, same typography, same max-width container.
+ *
+ * This is a top-level chrome page, NOT a cheatsheet detail page: it uses the
+ * base `Layout.astro` and intentionally does NOT use `CheatsheetLayout.astro`
+ * (which is reserved for content-collection entries with the locked 7-section
+ * structure).
+ *
+ * Internal links honor the configured base (`/awesome-cheatsheets`) via
+ * `import.meta.env.BASE_URL`, so they resolve correctly on GitHub Pages.
+ */
+import Layout from '../layouts/Layout.astro';
+
+const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, '');
+const catalogHref = `${baseUrl}/`;
+const aboutHref = `${baseUrl}/about/`;
+---
+
+<Layout title="Page not found — Awesome AI Cheatsheets">
+  <main class="catalog-main">
+    <header class="catalog-hero">
+      <p class="not-found-eyebrow" aria-hidden="true">404</p>
+      <h1 class="catalog-hero-title">Page not found</h1>
+      <p class="catalog-hero-lede">
+        We couldn't find that cheatsheet. It may have been renamed, removed,
+        or never existed. Head back to the catalog or learn more about the
+        project.
+      </p>
+    </header>
+
+    <section class="not-found-actions" aria-label="Where to next">
+      <ul class="not-found-link-list" role="list">
+        <li>
+          <a class="not-found-link" href={catalogHref}>
+            Browse all cheatsheets
+          </a>
+        </li>
+        <li>
+          <a class="not-found-link" href={aboutHref}>
+            About this project
+          </a>
+        </li>
+      </ul>
+    </section>
+  </main>
+</Layout>
+
+<style is:global>
+  /**
+   * Catalog hero typography — duplicated here intentionally so the 404 page
+   * styles even when the catalog landing page's stylesheet isn't loaded.
+   * (Astro scopes `is:global` stylesheets per route; the rules in
+   * `index.astro` ship only with `dist/index.html`.) Keep these in sync with
+   * `src/pages/index.astro` and `src/pages/about.astro`.
+   */
+  .catalog-main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 3rem 1.25rem 4rem;
+  }
+
+  .catalog-hero {
+    margin-bottom: 3rem;
+  }
+
+  .catalog-hero-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1.15;
+    margin: 0 0 1rem 0;
+    color: #111827;
+  }
+
+  .catalog-hero-lede {
+    font-size: 1.125rem;
+    line-height: 1.6;
+    color: #4b5563;
+    max-width: 60ch;
+    margin: 0;
+  }
+
+  .catalog-hero-lede strong {
+    color: #111827;
+    font-weight: 600;
+  }
+
+  /* 404-specific rules below. */
+  .not-found-eyebrow {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: #6b7280;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+  }
+
+  .not-found-actions {
+    margin-top: 1rem;
+  }
+
+  .not-found-link-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  @media (min-width: 640px) {
+    .not-found-link-list {
+      flex-direction: row;
+      gap: 1rem;
+    }
+  }
+
+  .not-found-link {
+    display: inline-block;
+    color: #2563eb;
+    text-decoration: underline;
+    font-size: 1rem;
+    font-weight: 500;
+  }
+
+  .not-found-link:hover {
+    color: #1d4ed8;
+  }
+</style>
