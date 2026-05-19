@@ -14,7 +14,8 @@
     "test:watch": "vitest",
     "test:e2e": "INCLUDE_E2E_FIXTURES=1 astro build && pagefind --site dist && playwright test",
     "cheatsheet:lint": "tsx tools/cli/lint.ts",
-    "check:no-cdn": "bash tools/ci/no-cdn-check.sh dist"
+    "check:no-cdn": "bash tools/ci/no-cdn-check.sh dist",
+    "freshness:scan": "tsx tools/ci/freshness-scan.ts"
   },
   "engines": {
     "node": ">=20"
