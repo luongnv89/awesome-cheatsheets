@@ -100,7 +100,7 @@ Every cheatsheet must follow `template-contract.md`:
 Use the canonical Hermes Agent example (`examples/hermes-draft.md` → `examples/hermes-expected.md`) as a reference for:
 - Tone: actionable, concise, expert-level
 - Structure: locked 7-section format
-- Mermaid: flowchart in Mental Model section
+- Installation: copy-paste one-line installer block at the top
 - Frontmatter: all required fields populated
 
 Generate a first draft incorporating:
@@ -166,7 +166,7 @@ After validation passes, emit **2–4 specific review questions** tied to ambigu
 ❌ "Is the cheatsheet ready?"
 
 ✅ "The slug `ollama-run` vs `ollama-cli` — which is more widely recognized in the community?"
-✅ "The Mental Model shows a sequential flow, but the tool supports parallel agents. Should I add an alternative branch?"
+✅ "The Installation block shows the curl one-liner — is there a Homebrew formula or apt repo I should add as an alternative?"
 ✅ "The `run` commands reference v0.1.2 — should I note that v0.1.3 is the latest stable?"
 ✅ "This cheatsheet assumes Linux. Should I add a note for macOS/Windows users?"
 
@@ -214,7 +214,7 @@ On contributor approval of all review questions, suggest:
    <summary from frontmatter>
 
    ## Sections
-   - Mental Model: <brief description of flowchart>
+   - Installation: <one-line installer summary, platforms covered>
    - Step-by-Step: <n> steps
    - Best Practices: <n> items
    - Commands: <n> code examples
