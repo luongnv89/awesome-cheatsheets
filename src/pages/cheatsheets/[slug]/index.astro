@@ -30,32 +30,93 @@ const frontmatter = {
 </CheatsheetLayout>
 
 <style is:global>
-  .cheatsheet-body > *:not(h2):not(details) {
+  /*
+   * Cheatsheet body — markdown-rendered article content. Brand-aligned
+   * colors using the tokens defined in CheatsheetLayout.astro. Block code is
+   * left dark for syntax-highlighting contrast.
+   */
+  .cheatsheet-body > *:not(h2):not(h3):not(details):not(section) {
     margin-bottom: 1rem;
   }
 
   .cheatsheet-body h2 {
-    margin-top: 2rem;
+    font-family: var(--font-heading);
+    margin-top: 2.5rem;
     margin-bottom: 1rem;
     padding-bottom: 0.5rem;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 2px solid var(--color-amber);
+    color: var(--color-ink);
+    font-weight: 700;
+    display: inline-block;
+    padding-right: 1rem;
+  }
+
+  .cheatsheet-body h3 {
+    font-family: var(--font-heading);
+    margin-top: 1.75rem;
+    margin-bottom: 0.75rem;
+    color: var(--color-ink);
+    font-weight: 700;
+  }
+
+  .cheatsheet-body p,
+  .cheatsheet-body li {
+    color: var(--color-ink);
+    line-height: 1.65;
+  }
+
+  .cheatsheet-body a {
+    color: var(--color-ink);
+    text-decoration: underline;
+    text-decoration-color: var(--color-amber);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+  }
+  .cheatsheet-body a:hover {
+    color: var(--color-amber-deep);
+  }
+
+  .cheatsheet-body ul,
+  .cheatsheet-body ol {
+    padding-left: 1.5rem;
+  }
+
+  .cheatsheet-body blockquote {
+    border-left: 4px solid var(--color-amber);
+    background-color: var(--color-paper);
+    padding: 0.75rem 1rem;
+    margin: 1rem 0;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    color: var(--color-ink);
   }
 
   .cheatsheet-body details {
     margin-top: 1rem;
     padding: 1rem;
-    background-color: #f3f4f6;
-    border-radius: 0.5rem;
+    background-color: var(--color-paper);
+    border: 1px solid var(--color-rule);
+    border-radius: var(--radius-md);
   }
 
   .cheatsheet-body details summary {
     font-weight: 600;
     cursor: pointer;
     list-style: none;
+    color: var(--color-ink);
   }
 
   .cheatsheet-body details summary::-webkit-details-marker {
     display: none;
+  }
+  .cheatsheet-body details summary::before {
+    content: "▸";
+    display: inline-block;
+    margin-right: 0.5rem;
+    color: var(--color-amber-deep);
+    transition: transform 0.2s;
+  }
+  .cheatsheet-body details[open] summary::before {
+    transform: rotate(90deg);
   }
 
   .cheatsheet-body details[open] summary {
@@ -63,21 +124,47 @@ const frontmatter = {
   }
 
   .cheatsheet-body pre {
-    padding: 1rem;
-    background-color: #24292e;
-    border-radius: 0.5rem;
+    padding: 1rem 1.25rem;
+    background-color: var(--color-ink);
+    color: #F1ECE3;
+    border-radius: var(--radius-md);
     overflow-x: auto;
     margin: 1rem 0;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    border: 1px solid var(--color-ink-soft);
   }
 
   .cheatsheet-body code {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-family: var(--font-mono);
     font-size: 0.875rem;
   }
 
-  .cheatsheet-body p code {
-    background-color: #f3f4f6;
+  .cheatsheet-body p code,
+  .cheatsheet-body li code {
+    background-color: var(--color-paper-shade);
+    color: var(--color-ink);
     padding: 0.125rem 0.375rem;
     border-radius: 0.25rem;
+    border: 1px solid var(--color-rule);
+    font-size: 0.85em;
+  }
+
+  .cheatsheet-body table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 0.9375rem;
+  }
+  .cheatsheet-body th,
+  .cheatsheet-body td {
+    padding: 0.625rem 0.875rem;
+    text-align: left;
+    border-bottom: 1px solid var(--color-rule);
+  }
+  .cheatsheet-body th {
+    background-color: var(--color-paper-shade);
+    color: var(--color-ink);
+    font-weight: 700;
   }
 </style>

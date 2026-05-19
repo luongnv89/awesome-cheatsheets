@@ -63,17 +63,37 @@ const stale = isStale(lastUpdated, staleAfterDays);
 </article>
 
 <style is:global>
+  /*
+   * .catalog-card — stacked-card motif evoking the brand mark (front card +
+   * back card peeking out). The double box-shadow draws a subtle "second
+   * card" silhouette below and to the right; on hover the front card lifts
+   * with a brand-amber under-edge. Class names are asserted by
+   * `e2e/catalog.test.ts` — do not rename.
+   */
   .catalog-card {
-    border: 1px solid #e5e7eb;
-    border-radius: 0.75rem;
+    position: relative;
+    border: 1px solid var(--color-rule);
+    border-radius: var(--radius-lg);
     background-color: #fff;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
-    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+    /* Stacked-card silhouette: two offset shadow layers shaped like the
+       brand mark's back cards (deep navy, then a thinner amber accent). */
+    box-shadow:
+      6px 6px 0 -1px var(--color-paper-shade),
+      6px 6px 0 0 var(--color-rule),
+      0 1px 2px 0 rgba(27, 31, 58, 0.04);
+    transition:
+      transform 0.18s ease,
+      box-shadow 0.18s ease,
+      border-color 0.18s ease;
   }
 
   .catalog-card:hover {
-    border-color: #d1d5db;
-    box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.08);
+    border-color: var(--color-ink-soft);
+    transform: translate(-2px, -2px);
+    box-shadow:
+      8px 8px 0 -1px var(--color-paper-shade),
+      8px 8px 0 0 var(--color-amber),
+      0 6px 18px -6px rgba(27, 31, 58, 0.18);
   }
 
   .catalog-card-link {
@@ -81,12 +101,14 @@ const stale = isStale(lastUpdated, staleAfterDays);
     padding: 1.5rem;
     color: inherit;
     text-decoration: none;
+    border-radius: var(--radius-lg);
+    height: 100%;
   }
 
   .catalog-card-link:focus-visible {
-    outline: 2px solid #2563eb;
-    outline-offset: 2px;
-    border-radius: 0.75rem;
+    outline: 2px solid var(--color-coral);
+    outline-offset: 3px;
+    border-radius: var(--radius-lg);
   }
 
   .catalog-card-header {
@@ -99,48 +121,42 @@ const stale = isStale(lastUpdated, staleAfterDays);
   }
 
   .catalog-card-title {
+    font-family: var(--font-heading);
     font-size: 1.25rem;
-    font-weight: 600;
-    line-height: 1.4;
-    color: #111827;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--color-ink);
     margin: 0;
+    letter-spacing: -0.005em;
   }
 
+  /*
+   * Category pills — kept on the card AND used on detail pages (see
+   * CheatsheetLayout.astro). Brand-aware tones built from the palette;
+   * contrast verified against WCAG AA on the corresponding backgrounds.
+   */
   .catalog-category {
     display: inline-flex;
     align-items: center;
-    padding: 0.125rem 0.625rem;
+    padding: 0.1875rem 0.625rem;
     border-radius: 9999px;
     font-size: 0.75rem;
     font-weight: 600;
     text-transform: capitalize;
     border: 1px solid transparent;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
   }
-
-  .catalog-category-tool {
-    background-color: #dbeafe;
-    color: #1e40af;
-  }
-
-  .catalog-category-mcp {
-    background-color: #ede9fe;
-    color: #5b21b6;
-  }
-
-  .catalog-category-concept {
-    background-color: #dcfce7;
-    color: #166534;
-  }
-
-  .catalog-category-comparison {
-    background-color: #fef3c7;
-    color: #92400e;
-  }
+  .catalog-category-tool       { background-color: #FFF4CC; color: #6F5300; border-color: #F2DD8A; }
+  .catalog-category-mcp        { background-color: #E6E1FF; color: #2E2280; border-color: #C2B7F2; }
+  .catalog-category-concept    { background-color: #D9F3DE; color: #1B5B2B; border-color: #A8DAB1; }
+  .catalog-category-comparison { background-color: #FFE3DF; color: #8A2A1F; border-color: #F2A99F; }
 
   .catalog-card-summary {
     margin: 0 0 1rem 0;
-    color: #4b5563;
-    line-height: 1.5;
+    color: var(--color-muted);
+    line-height: 1.55;
+    font-size: 0.9375rem;
   }
 
   .catalog-tags {
@@ -157,22 +173,26 @@ const stale = isStale(lastUpdated, staleAfterDays);
     align-items: center;
     padding: 0.125rem 0.5rem;
     border-radius: 0.25rem;
-    background-color: #f3f4f6;
-    color: #4b5563;
+    background-color: var(--color-paper-shade);
+    color: var(--color-ink);
     font-size: 0.75rem;
+    font-family: var(--font-mono);
   }
 
   .catalog-card-footer {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.75rem;
+    gap: 0.5rem 0.75rem;
     align-items: center;
     justify-content: space-between;
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--color-rule);
   }
 
   .catalog-last-updated {
-    color: #6b7280;
+    color: var(--color-muted);
+    font-family: var(--font-mono);
   }
 
   .catalog-stale-badge {
@@ -184,6 +204,6 @@ const stale = isStale(lastUpdated, staleAfterDays);
     color: #92400e;
     border: 1px solid #fcd34d;
     font-size: 0.75rem;
-    font-weight: 500;
+    font-weight: 600;
   }
 </style>

@@ -32,6 +32,7 @@ const prdUrl = `${repoUrl}/blob/main/PRD.md`;
 <Layout title="About — Awesome AI Cheatsheets">
   <main class="catalog-main">
     <header class="catalog-hero">
+      <p class="catalog-hero-eyebrow" aria-hidden="true">About</p>
       <h1 class="catalog-hero-title">About this project</h1>
       <p class="catalog-hero-lede">
         Awesome AI Cheatsheets is a curated collection of standardized
@@ -122,7 +123,7 @@ const prdUrl = `${repoUrl}/blob/main/PRD.md`;
 </Layout>
 
 <style is:global>
-  /**
+  /*
    * Catalog hero typography — duplicated here intentionally so the about
    * page styles even when the catalog landing page's stylesheet isn't
    * loaded. (Astro scopes `is:global` stylesheets per route; the rules in
@@ -130,103 +131,166 @@ const prdUrl = `${repoUrl}/blob/main/PRD.md`;
    * `src/pages/index.astro` and `src/pages/404.astro`.
    */
   .catalog-main {
-    max-width: 1100px;
+    max-width: 880px;
     margin: 0 auto;
     padding: 3rem 1.25rem 4rem;
   }
 
   .catalog-hero {
-    margin-bottom: 3rem;
+    margin-bottom: 2.5rem;
+    padding: 1.5rem 0 0;
+  }
+
+  .catalog-hero-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-amber-deep);
+    margin: 0 0 0.75rem;
   }
 
   .catalog-hero-title {
-    font-size: 2.5rem;
-    font-weight: 700;
-    line-height: 1.15;
-    margin: 0 0 1rem 0;
-    color: #111827;
+    font-family: var(--font-heading);
+    font-size: clamp(2rem, 4.5vw, 3rem);
+    font-weight: 800;
+    line-height: 1.05;
+    margin: 0 0 1.25rem 0;
+    color: var(--color-ink);
+    letter-spacing: -0.015em;
   }
 
   .catalog-hero-lede {
     font-size: 1.125rem;
     line-height: 1.6;
-    color: #4b5563;
-    max-width: 60ch;
+    color: var(--color-muted);
+    max-width: 64ch;
     margin: 0;
   }
 
   .catalog-hero-lede strong {
-    color: #111827;
-    font-weight: 600;
+    color: var(--color-ink);
+    font-weight: 700;
   }
 
-  /* About-page rules below. */
+  /* About-page rules. */
   .about-section {
     margin-bottom: 2.5rem;
+    padding: 1.75rem;
+    background-color: #fff;
+    border: 1px solid var(--color-rule);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 1px 0 rgba(27, 31, 58, 0.04);
   }
 
   .about-section-title {
+    font-family: var(--font-heading);
     font-size: 1.5rem;
-    font-weight: 600;
-    color: #111827;
+    font-weight: 700;
+    color: var(--color-ink);
     margin: 0 0 1rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--color-amber);
+    display: inline-block;
+    padding-right: 1.25rem;
+    letter-spacing: -0.01em;
   }
 
   .about-paragraph {
     font-size: 1rem;
-    line-height: 1.6;
-    color: #374151;
+    line-height: 1.65;
+    color: var(--color-ink);
     margin: 0 0 1rem 0;
     max-width: 65ch;
   }
 
   .about-list {
-    list-style: disc;
-    padding-left: 1.5rem;
+    list-style: none;
+    padding-left: 0;
     margin: 0;
-    color: #374151;
-    line-height: 1.6;
+    color: var(--color-ink);
+    line-height: 1.65;
     max-width: 65ch;
   }
 
   .about-list li {
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.625rem;
+    padding-left: 1.25rem;
+    position: relative;
+  }
+  .about-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.7em;
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    background-color: var(--color-amber);
+  }
+
+  .about-list strong {
+    color: var(--color-ink);
+    font-weight: 700;
   }
 
   .about-list a,
   .about-paragraph a {
-    color: #2563eb;
+    color: var(--color-ink);
     text-decoration: underline;
+    text-decoration-color: var(--color-amber);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+    transition: color 0.12s ease;
+  }
+  .about-list a:hover,
+  .about-paragraph a:hover {
+    color: var(--color-amber-deep);
   }
 
   .about-list code,
   .about-paragraph code {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-family: var(--font-mono);
     font-size: 0.9em;
-    background: #f3f4f6;
+    background-color: var(--color-paper-shade);
+    color: var(--color-ink);
     padding: 0.1em 0.35em;
     border-radius: 3px;
   }
 
   .about-footer {
-    border-top: 1px solid #e5e7eb;
+    border-top: 1px solid var(--color-rule);
     padding-top: 1.5rem;
     margin-top: 2.5rem;
-    color: #6b7280;
+    color: var(--color-muted);
     font-size: 0.95rem;
   }
 
   .about-footer a {
-    color: #2563eb;
+    color: var(--color-ink);
     text-decoration: underline;
+    text-decoration-color: var(--color-amber);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
   }
 
   .about-back-link {
-    font-weight: 500;
+    font-weight: 600;
+    text-decoration: none !important;
+    border-bottom: 1px solid transparent !important;
+    transition: border-color 0.12s ease;
+  }
+  .about-back-link:hover {
+    border-bottom-color: var(--color-amber) !important;
   }
 
   .about-license {
     margin-top: 0.5rem;
     font-size: 0.875rem;
+  }
+
+  @media (max-width: 640px) {
+    .about-section { padding: 1.25rem 1rem; }
   }
 </style>

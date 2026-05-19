@@ -338,8 +338,21 @@ const { categories, tags } = Astro.props;
 </script>
 
 <style is:global>
+  /*
+   * Filter pills styling. The pill component's logic (URL-sync, aria-pressed
+   * toggling, multi-select semantics) lives in the <script> block above and
+   * is asserted by e2e/filters.test.ts — only restyle, do not rename any of
+   * the selectors below.
+   *
+   * Active pill = brand amber on ink (ink #1B1F3A on amber #F2B705 hits ~11:1
+   * contrast, comfortably above WCAG AA 4.5).
+   */
   .catalog-filter {
-    margin: 0 0 1.5rem 0;
+    margin: 0 0 1.75rem 0;
+    padding: 1rem 1.25rem;
+    background-color: #fff;
+    border: 1px solid var(--color-rule);
+    border-radius: var(--radius-lg);
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
@@ -357,11 +370,12 @@ const { categories, tags } = Astro.props;
   }
 
   .catalog-filter-label {
+    font-family: var(--font-mono);
     font-size: 0.75rem;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #6b7280;
+    letter-spacing: 0.08em;
+    color: var(--color-muted);
     min-width: 4.5rem;
   }
 
@@ -377,41 +391,44 @@ const { categories, tags } = Astro.props;
   .catalog-filter-pill {
     display: inline-flex;
     align-items: center;
-    padding: 0.25rem 0.75rem;
+    padding: 0.3125rem 0.75rem;
     font-size: 0.8125rem;
+    font-family: var(--font-mono);
     line-height: 1.4;
-    color: #374151;
-    background-color: #f3f4f6;
-    border: 1px solid #e5e7eb;
+    color: var(--color-ink);
+    background-color: var(--color-paper);
+    border: 1px solid var(--color-rule);
     border-radius: 9999px;
     cursor: pointer;
     transition:
       background-color 0.12s ease,
       border-color 0.12s ease,
-      color 0.12s ease;
+      color 0.12s ease,
+      transform 0.12s ease;
   }
 
   .catalog-filter-pill:hover {
-    background-color: #e5e7eb;
-    border-color: #d1d5db;
+    background-color: var(--color-paper-shade);
+    border-color: var(--color-ink-soft);
   }
 
   .catalog-filter-pill:focus-visible {
-    outline: 2px solid #2563eb;
+    outline: 2px solid var(--color-coral);
     outline-offset: 2px;
   }
 
   .catalog-filter-pill.is-active,
   .catalog-filter-pill[aria-pressed="true"] {
-    background-color: #2563eb;
-    border-color: #1d4ed8;
-    color: #fff;
-    font-weight: 600;
+    background-color: var(--color-amber);
+    border-color: var(--color-amber-deep);
+    color: var(--color-ink);
+    font-weight: 700;
   }
 
   .catalog-filter-pill.is-active:hover,
   .catalog-filter-pill[aria-pressed="true"]:hover {
-    background-color: #1d4ed8;
+    background-color: #FFCD3A;
+    border-color: var(--color-amber-deep);
   }
 
   .catalog-filter-controls {
@@ -424,25 +441,26 @@ const { categories, tags } = Astro.props;
   .catalog-filter-clear {
     display: inline-flex;
     align-items: center;
-    padding: 0.25rem 0.75rem;
+    padding: 0.3125rem 0.75rem;
     font-size: 0.8125rem;
-    color: #1f2937;
-    background-color: #fff;
-    border: 1px solid #d1d5db;
-    border-radius: 0.375rem;
+    font-weight: 600;
+    color: var(--color-ink);
+    background-color: transparent;
+    border: 1px solid var(--color-ink);
+    border-radius: var(--radius-sm);
     cursor: pointer;
     transition:
       background-color 0.12s ease,
-      border-color 0.12s ease;
+      color 0.12s ease;
   }
 
   .catalog-filter-clear:hover {
-    background-color: #f9fafb;
-    border-color: #9ca3af;
+    background-color: var(--color-ink);
+    color: #fff;
   }
 
   .catalog-filter-clear:focus-visible {
-    outline: 2px solid #2563eb;
+    outline: 2px solid var(--color-coral);
     outline-offset: 2px;
   }
 
@@ -453,7 +471,8 @@ const { categories, tags } = Astro.props;
   .catalog-filter-status {
     margin: 0;
     font-size: 0.8125rem;
-    color: #6b7280;
+    color: var(--color-muted);
+    font-family: var(--font-mono);
   }
 
   .catalog-list-item[hidden] {

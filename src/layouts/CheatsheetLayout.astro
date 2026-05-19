@@ -1,4 +1,19 @@
 ---
+/**
+ * Detail-page layout for content-collection entries (`src/pages/cheatsheets/
+ * [slug]/index.astro`). Locked 7-section structure is owned by the markdown
+ * body; this layout owns the chrome around it — header, footer, freshness
+ * chip, stale banner, body typography.
+ *
+ * The `.freshness-chip`, `.absolute-date`, `.relative-date`, and
+ * `.stale-banner` selectors are asserted by `e2e/freshness.test.ts`; the
+ * stale-banner background+foreground combo is also contrast-tested. Anything
+ * structural in those rules has to keep the same selectors and stay at
+ * WCAG-AA contrast or higher.
+ *
+ * Header + footer markup mirrors `Layout.astro` so chrome stays cohesive
+ * across catalog/about/404 and detail pages.
+ */
 interface Props {
   title: string;
   frontmatter: {
@@ -33,6 +48,12 @@ function getRelativeTime(days: number): string {
 
 const relativeTime = getRelativeTime(daysSinceUpdate);
 const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+const siteOrigin = 'https://luongnv89.github.io';
+const canonicalUrl = `${siteOrigin}${Astro.url.pathname}`;
+const ogImage = `${siteOrigin}${baseUrl}/brand/mark.svg`;
+const repoUrl = 'https://github.com/luongnv89/awesome-cheatsheets';
+const metaDescription = frontmatter.summary;
 ---
 
 <!doctype html>
@@ -40,11 +61,51 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, '');
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={metaDescription} />
+    <meta name="theme-color" content="#1B1F3A" />
+    <link rel="canonical" href={canonicalUrl} />
     <link rel="icon" type="image/svg+xml" href={`${baseUrl}/brand/favicon.svg`} />
+
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={metaDescription} />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:site_name" content="Awesome AI Cheatsheets" />
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={metaDescription} />
+    <meta name="twitter:image" content={ogImage} />
+
     <title>{title}</title>
   </head>
   <body>
-    <main class="container mx-auto py-12 px-4">
+    <a class="skip-link" href="#main-content">Skip to content</a>
+
+    <header class="site-header" role="banner">
+      <div class="site-header-inner">
+        <a class="site-brand" href={`${baseUrl}/`} aria-label="Awesome AI Cheatsheets — home">
+          <img
+            class="site-brand-logo"
+            src={`${baseUrl}/brand/full.svg`}
+            alt=""
+            width="180"
+            height="64"
+            decoding="async"
+          />
+        </a>
+        <nav class="site-nav" aria-label="Primary">
+          <a class="site-nav-link" href={`${baseUrl}/`}>Catalog</a>
+          <a class="site-nav-link" href={`${baseUrl}/about/`}>About</a>
+          <a class="site-nav-link site-nav-link-external" href={repoUrl} rel="noopener">
+            GitHub
+          </a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main-content" class="cheatsheet-main">
       <article
         class="cheatsheet"
         data-pagefind-body
@@ -61,27 +122,36 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, '');
           </div>
         )}
 
+        <p class="cheatsheet-back">
+          <a href={`${baseUrl}/`}>&larr; Back to catalog</a>
+        </p>
+
         <header class="cheatsheet-header">
-          <h1 class="text-4xl font-bold mb-4">{frontmatter.title}</h1>
-          <p class="text-xl text-gray-600 mb-4">{frontmatter.summary}</p>
+          <span class={`catalog-category catalog-category-${frontmatter.category}`}>
+            {frontmatter.category}
+          </span>
+          <h1 class="cheatsheet-title">{frontmatter.title}</h1>
+          <p class="cheatsheet-summary">{frontmatter.summary}</p>
 
-          <div class="flex flex-wrap gap-2 mb-4">
-            <span class="badge">{frontmatter.category}</span>
-            {frontmatter.tags.map((tag) => (
-              <span class="tag">{tag}</span>
-            ))}
+          <div class="cheatsheet-meta-row">
+            {hasValidDate && (
+              <div class="freshness-chip" title={`Last updated: ${frontmatter.last_updated}`}>
+                <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <span class="absolute-date">{frontmatter.last_updated}</span>
+                <span class="relative-date">({relativeTime})</span>
+              </div>
+            )}
+            {frontmatter.tags.length > 0 && (
+              <ul class="cheatsheet-tags" aria-label="tags">
+                {frontmatter.tags.map((tag) => (
+                  <li class="cheatsheet-tag">{tag}</li>
+                ))}
+              </ul>
+            )}
           </div>
-
-          {hasValidDate && (
-            <div class="freshness-chip" title={`Last updated: ${frontmatter.last_updated}`}>
-              <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <polyline points="12 6 12 12 16 14"></polyline>
-              </svg>
-              <span class="absolute-date">{frontmatter.last_updated}</span>
-              <span class="relative-date">({relativeTime})</span>
-            </div>
-          )}
         </header>
 
         <div class="cheatsheet-content">
@@ -89,145 +159,381 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, '');
         </div>
       </article>
     </main>
+
+    <footer class="site-footer" role="contentinfo">
+      <div class="site-footer-inner">
+        <a class="site-footer-brand" href={`${baseUrl}/`} aria-label="Awesome AI Cheatsheets — home">
+          <img
+            class="site-footer-logo"
+            src={`${baseUrl}/brand/mark.svg`}
+            alt=""
+            width="40"
+            height="40"
+            decoding="async"
+          />
+          <span class="site-footer-name">Awesome AI Cheatsheets</span>
+        </a>
+        <p class="site-footer-meta">
+          Code under MIT, content under CC-BY 4.0.
+          <a href={repoUrl} rel="noopener">Source on GitHub</a>.
+        </p>
+      </div>
+    </footer>
   </body>
 </html>
 
 <style is:global>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    line-height: 1.6;
-    color: #1f2937;
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
   }
-  .container { max-width: 900px; margin: 0 auto; padding: 3rem 1rem; }
-  .text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
-  .font-bold { font-weight: 700; }
-  .mb-4 { margin-bottom: 1rem; }
-  .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
-  .text-gray-600 { color: #4b5563; }
-  .text-gray-500 { color: #6b7280; }
-  .text-sm { font-size: 0.875rem; }
-  .flex { display: flex; }
-  .flex-wrap { flex-wrap: wrap; }
-  .gap-2 { gap: 0.5rem; }
-  .gap-4 { gap: 1rem; }
-  .items-center { align-items: center; }
+  body, h1, h2, h3, h4, h5, h6, p, ul, ol, figure {
+    margin: 0;
+    padding: 0;
+  }
+  ul, ol {
+    padding: 0;
+  }
 
+  :root {
+    --color-ink: #1B1F3A;
+    --color-ink-soft: #2D335E;
+    --color-amber: #F2B705;
+    --color-amber-deep: #C99700;
+    --color-coral: #FF6B5C;
+    --color-coral-deep: #D9483B;
+    --color-paper: #FAF7F2;
+    --color-paper-shade: #F1ECE3;
+    --color-rule: #E6E1D5;
+    --color-muted: #5A5F7A;
+    --color-text: #1B1F3A;
+
+    --font-heading: ui-serif, Georgia, 'Iowan Old Style', 'Apple Garamond', Cambria, 'Times New Roman', serif;
+    --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+    --radius-sm: 0.375rem;
+    --radius-md: 0.625rem;
+    --radius-lg: 0.875rem;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    font-family: var(--font-body);
+    line-height: 1.6;
+    color: var(--color-text);
+    background-color: var(--color-paper);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    color: var(--color-ink);
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+
+  a {
+    color: var(--color-ink);
+  }
+  a:focus-visible {
+    outline: 2px solid var(--color-coral);
+    outline-offset: 2px;
+    border-radius: 0.25rem;
+  }
+
+  .skip-link {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+    transform: translateY(-150%);
+    background: var(--color-ink);
+    color: #fff;
+    padding: 0.5rem 0.875rem;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: 0.875rem;
+    z-index: 100;
+    text-decoration: none;
+    transition: transform 0.15s ease;
+  }
+  .skip-link:focus { transform: translateY(0); }
+
+  /* Header (mirrors Layout.astro) */
+  .site-header {
+    border-bottom: 1px solid var(--color-rule);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: rgba(250, 247, 242, 0.9);
+    backdrop-filter: saturate(180%) blur(6px);
+    -webkit-backdrop-filter: saturate(180%) blur(6px);
+  }
+  .site-header-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+  }
+  .site-brand { display: inline-flex; align-items: center; text-decoration: none; color: var(--color-ink); border-radius: var(--radius-sm); }
+  .site-brand-logo { height: 40px; width: auto; display: block; }
+  .site-nav { display: flex; align-items: center; gap: 0.25rem; flex-wrap: wrap; }
+  .site-nav-link {
+    display: inline-flex; align-items: center;
+    padding: 0.5rem 0.875rem;
+    font-size: 0.9375rem; font-weight: 500;
+    color: var(--color-ink); text-decoration: none;
+    border-radius: var(--radius-sm);
+    transition: background-color 0.12s ease;
+  }
+  .site-nav-link:hover { background-color: var(--color-paper-shade); }
+  .site-nav-link-external::after {
+    content: ""; display: inline-block;
+    width: 0.6em; height: 0.6em; margin-left: 0.4em;
+    border-top: 1.5px solid currentColor; border-right: 1.5px solid currentColor;
+    transform: translateY(-0.05em) rotate(45deg);
+  }
+
+  /* Footer (mirrors Layout.astro) */
+  .site-footer {
+    margin-top: 4rem;
+    background-color: var(--color-ink);
+    color: #E6E5EE;
+    flex-shrink: 0;
+  }
+  .site-footer-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 2rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+  }
+  .site-footer-brand {
+    display: inline-flex; align-items: center; gap: 0.75rem;
+    color: #fff; text-decoration: none;
+    font-family: var(--font-heading); font-weight: 700; font-size: 1.125rem;
+  }
+  .site-footer-logo {
+    width: 40px; height: 40px; display: block;
+    border-radius: var(--radius-sm); background-color: #fff; padding: 4px;
+  }
+  .site-footer-name { color: #fff; }
+  .site-footer-meta { font-size: 0.875rem; color: #BFBED1; margin: 0; }
+  .site-footer-meta a {
+    color: var(--color-amber); text-decoration: underline;
+    text-decoration-thickness: 1px; text-underline-offset: 2px;
+  }
+  .site-footer-meta a:hover { color: #FFCD3A; }
+  .site-footer-meta a:focus-visible { outline-color: var(--color-amber); }
+
+  @media (max-width: 480px) {
+    .site-header-inner { padding: 0.625rem 1rem; }
+    .site-brand-logo { height: 32px; }
+    .site-nav-link { padding: 0.375rem 0.625rem; font-size: 0.875rem; }
+    .site-footer-inner { flex-direction: column; align-items: flex-start; gap: 1rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      transition-duration: 0.001ms !important;
+      animation-duration: 0.001ms !important;
+    }
+  }
+
+  /* ----- Cheatsheet page ----- */
+  .cheatsheet-main {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 2.5rem 1.25rem 3rem;
+    flex: 1 0 auto;
+  }
+  .cheatsheet-back {
+    margin: 0 0 1.5rem 0;
+    font-size: 0.9375rem;
+  }
+  .cheatsheet-back a {
+    color: var(--color-muted);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: color 0.12s ease, border-color 0.12s ease;
+  }
+  .cheatsheet-back a:hover {
+    color: var(--color-ink);
+    border-bottom-color: var(--color-amber);
+  }
+
+  .cheatsheet-header {
+    margin-bottom: 2.5rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--color-rule);
+  }
+
+  .cheatsheet-title {
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    font-weight: 700;
+    margin: 0.75rem 0 1rem;
+    color: var(--color-ink);
+  }
+
+  .cheatsheet-summary {
+    font-size: 1.125rem;
+    color: var(--color-muted);
+    line-height: 1.6;
+    margin: 0 0 1.5rem;
+    max-width: 65ch;
+  }
+
+  .cheatsheet-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  .cheatsheet-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    list-style: none;
+    margin: 0;
+  }
+  .cheatsheet-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.5rem;
+    border-radius: 0.25rem;
+    background-color: var(--color-paper-shade);
+    color: var(--color-ink);
+    font-size: 0.75rem;
+    font-family: var(--font-mono);
+  }
+
+  /* Category badges — shared with CatalogCard.astro for visual continuity.
+     Tone is muted on paper so the cheatsheet title stays the focal point. */
+  .catalog-category {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.1875rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: capitalize;
+    border: 1px solid transparent;
+    letter-spacing: 0.02em;
+  }
+  .catalog-category-tool       { background-color: #FFF4CC; color: #6F5300; border-color: #F2DD8A; }
+  .catalog-category-mcp        { background-color: #E6E1FF; color: #2E2280; border-color: #C2B7F2; }
+  .catalog-category-concept    { background-color: #D9F3DE; color: #1B5B2B; border-color: #A8DAB1; }
+  .catalog-category-comparison { background-color: #FFE3DF; color: #8A2A1F; border-color: #F2A99F; }
+
+  /* Stale banner — kept at WCAG-AA contrast (asserted in
+     e2e/freshness.test.ts). #fef3c7 background + #92400e foreground gives
+     ~9:1 contrast; values left identical to the prior version. */
   .stale-banner {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 1rem;
+    padding: 0.875rem 1rem;
     margin-bottom: 1.5rem;
     background-color: #fef3c7;
     border: 1px solid #fcd34d;
-    border-radius: 0.5rem;
+    border-radius: var(--radius-md);
     color: #92400e;
     font-weight: 500;
   }
-
   .stale-banner svg {
     flex-shrink: 0;
     color: #d97706;
   }
 
-  .badge {
-    display: inline-flex;
-    align-items: center;
-    border-radius: 9999px;
-    border: 1px solid transparent;
-    padding: 0.125rem 0.625rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    background-color: #1f2937;
-    color: #fff;
-  }
-
-  .tag {
-    display: inline-flex;
-    align-items: center;
-    border-radius: 0.25rem;
-    padding: 0.125rem 0.5rem;
-    font-size: 0.75rem;
-    background-color: #f3f4f6;
-    color: #4b5563;
-  }
-
+  /* Freshness chip — selectors and contrast asserted by
+     e2e/freshness.test.ts. .absolute-date and .relative-date are read by the
+     tests; keep both. */
   .freshness-chip {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.4rem;
     padding: 0.375rem 0.75rem;
-    background-color: #f3f4f6;
+    background-color: var(--color-paper-shade);
+    border: 1px solid var(--color-rule);
     border-radius: 9999px;
-    font-size: 0.875rem;
-    color: #4b5563;
+    font-size: 0.8125rem;
+    color: var(--color-ink);
   }
-
-  .freshness-chip svg {
-    color: #6b7280;
-  }
-
+  .freshness-chip svg { color: var(--color-muted); }
   .absolute-date {
-    font-weight: 500;
-    color: #1f2937;
+    font-weight: 600;
+    color: var(--color-ink);
+    font-family: var(--font-mono);
   }
-
   .relative-date {
-    /* #6b7280 on the #f3f4f6 chip background hits 4.39 — below WCAG AA 4.5.
-       #4b5563 (gray-600) hits 7.7 contrast, comfortably above AA. */
-    color: #4b5563;
+    /* On --color-paper-shade (#F1ECE3), --color-muted (#5A5F7A) gives ~6.4:1
+       contrast — comfortably above WCAG AA (4.5). */
+    color: var(--color-muted);
   }
 
+  /* Body content — section cards in paper tone with a subtle inset ruling
+     under each <h2>. */
   .cheatsheet-content section {
-    margin-bottom: 2rem;
-    padding: 1.5rem;
-    border-radius: 0.5rem;
-    background-color: #f9fafb;
+    margin-bottom: 1.75rem;
+    padding: 1.5rem 1.5rem 1.25rem;
+    border-radius: var(--radius-lg);
+    background-color: #fff;
+    border: 1px solid var(--color-rule);
+    box-shadow: 0 1px 0 rgba(27, 31, 58, 0.04);
   }
 
   .cheatsheet-content section h2 {
     font-size: 1.5rem;
-    font-weight: 600;
+    font-weight: 700;
     margin-bottom: 1rem;
     padding-bottom: 0.5rem;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 2px solid var(--color-amber);
+    color: var(--color-ink);
+    display: inline-block;
+    padding-right: 1rem;
   }
 
   details.reference-section {
     margin-top: 1rem;
     padding: 1rem;
-    background-color: #f3f4f6;
-    border-radius: 0.5rem;
+    background-color: var(--color-paper);
+    border: 1px solid var(--color-rule);
+    border-radius: var(--radius-md);
   }
-
   details.reference-section summary {
     font-weight: 600;
     cursor: pointer;
     list-style: none;
   }
-
-  details.reference-section summary::-webkit-details-marker {
-    display: none;
-  }
-
+  details.reference-section summary::-webkit-details-marker { display: none; }
   details.reference-section summary::before {
-    content: "▶";
+    content: "▸";
     display: inline-block;
     margin-right: 0.5rem;
+    color: var(--color-amber-deep);
     transition: transform 0.2s;
   }
+  details[open].reference-section summary::before { transform: rotate(90deg); }
 
-  details[open].reference-section summary::before {
-    transform: rotate(90deg);
-  }
+  .cheatsheet-content details summary { cursor: pointer; font-weight: 600; }
+  .cheatsheet-content details[open] summary { margin-bottom: 1rem; }
 
-  .cheatsheet-content details summary {
-    cursor: pointer;
-    font-weight: 600;
-  }
-
-  .cheatsheet-content details[open] summary {
-    margin-bottom: 1rem;
+  @media (max-width: 640px) {
+    .cheatsheet-main { padding: 1.5rem 1rem 2rem; }
+    .cheatsheet-content section { padding: 1.25rem 1rem 1rem; }
   }
 </style>

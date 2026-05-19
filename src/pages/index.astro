@@ -46,6 +46,7 @@ const filterTags = Array.from(
 <Layout title="Awesome AI Cheatsheets">
   <main class="catalog-main">
     <header class="catalog-hero">
+      <p class="catalog-hero-eyebrow" aria-hidden="true">Reference, refreshed.</p>
       <h1 class="catalog-hero-title">Awesome AI Cheatsheets</h1>
       <p class="catalog-hero-lede">
         Rich-format, visibly-dated, mutually-comparable references for terminal-native
@@ -53,6 +54,20 @@ const filterTags = Array.from(
         <strong>format + freshness + comparability</strong> — every cheatsheet ships
         with a last-updated date and is flagged when it goes stale.
       </p>
+      <div class="catalog-hero-pillars" role="list">
+        <span class="catalog-hero-pillar" role="listitem">
+          <span class="catalog-hero-pillar-dot" data-pillar="format"></span>
+          Format
+        </span>
+        <span class="catalog-hero-pillar" role="listitem">
+          <span class="catalog-hero-pillar-dot" data-pillar="freshness"></span>
+          Freshness
+        </span>
+        <span class="catalog-hero-pillar" role="listitem">
+          <span class="catalog-hero-pillar-dot" data-pillar="comparability"></span>
+          Comparability
+        </span>
+      </div>
     </header>
 
     <CatalogSearch />
@@ -94,54 +109,118 @@ const filterTags = Array.from(
 </Layout>
 
 <style is:global>
+  /*
+   * Catalog hero typography lives in three files (index.astro, about.astro,
+   * 404.astro) because Astro scopes `is:global` styles per route — keep these
+   * blocks in sync. Brand-color tokens (--color-ink / --color-amber etc.)
+   * come from Layout.astro's :root.
+   */
   .catalog-main {
-    max-width: 1100px;
+    max-width: 1180px;
     margin: 0 auto;
     padding: 3rem 1.25rem 4rem;
   }
 
   .catalog-hero {
-    margin-bottom: 3rem;
+    margin-bottom: 2.5rem;
+    padding: 2.5rem 0 1.5rem;
+    position: relative;
+  }
+  .catalog-hero::before {
+    content: "";
+    position: absolute;
+    left: -2rem;
+    top: 1.25rem;
+    width: 6px;
+    height: 3.5rem;
+    background-color: var(--color-amber);
+    border-radius: 4px;
+    display: none;
+  }
+  @media (min-width: 1024px) {
+    .catalog-hero::before { display: block; }
+  }
+
+  .catalog-hero-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-amber-deep);
+    margin: 0 0 0.75rem;
   }
 
   .catalog-hero-title {
-    font-size: 2.5rem;
-    font-weight: 700;
-    line-height: 1.15;
-    margin: 0 0 1rem 0;
-    color: #111827;
+    font-family: var(--font-heading);
+    font-size: clamp(2.25rem, 5vw, 3.25rem);
+    font-weight: 800;
+    line-height: 1.05;
+    margin: 0 0 1.25rem 0;
+    color: var(--color-ink);
+    letter-spacing: -0.015em;
   }
 
   .catalog-hero-lede {
     font-size: 1.125rem;
     line-height: 1.6;
-    color: #4b5563;
-    max-width: 60ch;
+    color: var(--color-muted);
+    max-width: 64ch;
     margin: 0;
   }
 
   .catalog-hero-lede strong {
-    color: #111827;
-    font-weight: 600;
+    color: var(--color-ink);
+    font-weight: 700;
   }
 
-  .catalog-section-title {
-    font-size: 1.5rem;
+  .catalog-hero-pillars {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+  }
+  .catalog-hero-pillar {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    background-color: #fff;
+    border: 1px solid var(--color-rule);
+    border-radius: 9999px;
+    font-size: 0.8125rem;
     font-weight: 600;
-    color: #111827;
-    margin: 0 0 1.5rem 0;
+    color: var(--color-ink);
+  }
+  .catalog-hero-pillar-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .catalog-hero-pillar-dot[data-pillar="format"]        { background-color: var(--color-ink); }
+  .catalog-hero-pillar-dot[data-pillar="freshness"]     { background-color: var(--color-amber); }
+  .catalog-hero-pillar-dot[data-pillar="comparability"] { background-color: var(--color-coral); }
+
+  .catalog-section-title {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-ink);
+    margin: 1rem 0 1.5rem 0;
+    letter-spacing: -0.01em;
   }
 
   .catalog-list {
     display: grid;
-    gap: 1rem;
+    gap: 1.25rem;
     list-style: none;
     padding: 0;
     margin: 0;
     grid-template-columns: 1fr;
   }
 
-  /**
+  /*
    * Honor the HTML `hidden` attribute when the catalog search toggles the
    * grid off — the explicit `display: grid` rule above otherwise wins over
    * the UA `[hidden] { display: none }` default. Same goes for the section
@@ -174,12 +253,19 @@ const filterTags = Array.from(
   }
 
   .catalog-empty {
-    color: #6b7280;
+    color: var(--color-muted);
     font-size: 1rem;
+    padding: 2rem 1.5rem;
+    background-color: #fff;
+    border: 1px dashed var(--color-rule);
+    border-radius: var(--radius-lg);
   }
 
   .catalog-empty a {
-    color: #2563eb;
+    color: var(--color-ink);
     text-decoration: underline;
+    text-decoration-color: var(--color-amber);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
   }
 </style>
