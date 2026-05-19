@@ -108,6 +108,12 @@ Generate a first draft incorporating:
 - Research from the tool's official docs
 - Best practices from the community
 
+**Pi retro heuristics (from the first non-Hermes run):**
+- If the issue or draft names a concrete slug/path, prefer that over an inferred slug and record the decision in Review Questions when it conflicts with fixture metadata.
+- If a draft offers two filenames or concepts (`AGENTS.md` vs `SYSTEM.md`, core feature vs extension), pick only the version verified by provided docs; otherwise flag it as a Review Question instead of blending both.
+- Extract every verified executable command from the draft, dedupe it, then group commands by goal in the Quick Command Reference table.
+- Keep the local loop fast with `pnpm cheatsheet:lint <file> --no-links`; run the full link check before PR creation when network conditions are reliable.
+
 ### Step 4: Validate against contract
 
 After drafting, call the validator to check conformance:

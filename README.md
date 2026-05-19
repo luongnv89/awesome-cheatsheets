@@ -39,6 +39,8 @@ Either way, you spend the first hour figuring out the shape of the thing instead
 
 A curated catalog of cheatsheets that hit the middle ground. Every entry follows the same locked structure, carries a visible last-updated date, and gets flagged when it goes stale — so you can skim it the same way every time and trust the freshness signal at a glance.
 
+**Early launch scope:** v1.0 launches with 2 cheatsheets — Hermes Agent and Pi — plus the authoring/validation tooling. The roadmap to v1.1 adds 9 more deferred cheatsheets with good-first-issue seeds for contributors.
+
 Our wedge: **format + freshness + comparability**.
 
 | Pillar | What it means |
@@ -55,14 +57,24 @@ Our wedge: **format + freshness + comparability**.
 
 ## What's inside
 
-The catalog covers four kinds of references:
+The v1.0 launch ships with:
 
-- **Tools** — terminal-native AI coding agents and adjacent CLIs (e.g. [Hermes Agent](./src/content/cheatsheets/hermes-agent/hermes-agent.md)).
+- **[Hermes Agent](./src/content/cheatsheets/hermes-agent/hermes-agent.md)** — persistent, cross-channel autonomous agent with skills, memory, gateways, and Kanban.
+- **[Pi](./src/content/cheatsheets/pi-dev/pi-dev.md)** — minimal-by-default coding-agent harness you shape with packages, skills, models, and project context.
+- **`cheatsheet-scribe`** — the authoring skill and template contract used to keep entries comparable.
+
+The broader catalog covers four kinds of references:
+
+- **Tools** — terminal-native AI coding agents and adjacent CLIs.
 - **MCPs** — Model Context Protocol servers and how to wire them.
 - **Concepts** — patterns, primitives, and mental models behind the tooling.
 - **Comparisons** — head-to-head diffs between mutually-relevant entries.
 
 See the live site for the up-to-date list. The catalog is built statically and search-indexed at build time via [Pagefind](https://pagefind.app) — no runtime API. The only third-party script is Google Analytics, and it is gated behind explicit cookie-consent (default-deny, no tracking until you click Accept).
+
+## Roadmap
+
+The immediate v1.1 contribution wave invites 9 deferred cheatsheets: Claude Code, Codex, OpenCode, OpenClaw, Harness Engineering, Agent Skills, Sub-agents, MCP, and Prompt Engineering / comparison. Each seed issue links back to the contributor tutorial and the scribe-friendly draft format.
 
 ## Quick start
 

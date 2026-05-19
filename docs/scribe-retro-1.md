@@ -21,13 +21,17 @@
 10. **Lint with `--no-links` locally; full link-check deferred to PR / CI.** The validator's HEAD probe is slow and flaky offline; we ran offline first, then the full check on PR creation. → Action: this matches Hermes' pattern; document it in the scribe SKILL as the recommended local loop.
 11. **npmjs.com URL fails Cloudflare bot check on HEAD probe.** Initial frontmatter included `links.npm: https://www.npmjs.com/package/@earendil-works/pi-coding-agent`; the validator's plain HEAD probe got HTTP 403 (Cloudflare bot challenge). The URL is reachable in a browser. Override: dropped `npm` from `links` and unlinked the npmjs URL in References (kept the package name and the install command). → Action: either upgrade the validator's link probe to send a real `User-Agent` (Hermes-style cheatsheets will hit this too), or add a documented "links must be reachable to HEAD requests from a vanilla `fetch`" rule and tell authors to drop bot-blocked URLs.
 
-## Patterns to fold back into SKILL.md / fixtures (high-level, for Task 5.3)
+## Patterns folded back into SKILL.md / fixtures (Task 5.3)
 
-> Captured here as a forward pointer, not as the retro's deliverable.
+The follow-up pass for issue #30 moved the highest-signal retro items into both published skill copies (`skills/cheatsheet-scribe/SKILL.md` and `.claude/skills/cheatsheet-scribe/SKILL.md`):
 
-- Add a worked example of the *draft-step → H2-section* re-grouping (item 6 above).
-- Document the local lint loop: `--no-links` first, full check at PR (item 10).
-- Strengthen the "ambiguity → review question" wording in SKILL.md Step 1 with concrete examples drawn from items 2–4 above.
+- Prefer an issue-specified slug/path over fixture metadata when they conflict (item 1).
+- Treat filename/feature ambiguity as a Review Question unless verified by provided docs (items 2–4).
+- Extract, dedupe, and group verified executable commands for the Quick Command Reference (item 8).
+- Document the local lint loop: `--no-links` first, full link check before PR when network is reliable (item 10).
+
+Still open for a later template-contract task:
+
 - Decide the issue-template-vs-template-contract drift (item 4) — pick one source of truth for "what sections are required".
 
 ## Did the scribe meet the bar?

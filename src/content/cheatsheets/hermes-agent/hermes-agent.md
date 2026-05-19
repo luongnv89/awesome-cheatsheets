@@ -295,6 +295,7 @@ Sets up a non-root user, firewall, Caddy reverse proxy, systemd units.
 - **Web workspace:** [outsourc-e/hermes-workspace](https://github.com/outsourc-e/hermes-workspace)
 - **Hermes WebUI:** [nesquena/hermes-webui](https://github.com/nesquena/hermes-webui)
 - **`AGENTS.md` contract:** [hermes-agent/AGENTS.md (main)](https://github.com/NousResearch/hermes-agent/blob/main/AGENTS.md)
+- **See also:** [Pi minimal coding-agent cheatsheet](/cheatsheets/pi-dev/) — a smaller, repo-focused CLI agent when you do not need Hermes' persistent cross-channel scope.
 
 </details>
 

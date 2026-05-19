@@ -7,7 +7,9 @@
       "url": [
         "http://127.0.0.1:4321/awesome-cheatsheets/",
         "http://127.0.0.1:4321/awesome-cheatsheets/about/",
-        "http://127.0.0.1:4321/awesome-cheatsheets/cheatsheets/hermes-agent/"
+        "http://127.0.0.1:4321/awesome-cheatsheets/404.html",
+        "http://127.0.0.1:4321/awesome-cheatsheets/cheatsheets/hermes-agent/",
+        "http://127.0.0.1:4321/awesome-cheatsheets/cheatsheets/pi-dev/"
       ],
       "numberOfRuns": 1,
       "settings": {
