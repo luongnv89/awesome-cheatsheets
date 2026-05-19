@@ -84,13 +84,33 @@ Generate a first draft incorporating:
 
 ### Step 4: Validate against contract
 
-Before presenting to the user, verify:
-- [ ] Frontmatter has all required fields
-- [ ] All 6 sections present in correct order
-- [ ] One-liner exists with `**One-line:**` prefix
-- [ ] Mental Model contains a Mermaid block
-- [ ] Reference section has `<details>` wrapper
-- [ ] No custom section names or reordering
+After drafting, call the validator to check conformance:
+
+```typescript
+import { validate } from "tools/validator";
+
+// After writing the draft to a temp file
+const result = await validate("/path/to/draft.md");
+
+if (!result.ok) {
+  // Surface every failure with its rule name
+  console.log("Validation failed:");
+  for (const e of result.errors) {
+    console.log(`  - ${e.rule}: ${e.message}${e.line ? ` (line ${e.line})` : ""}`);
+  }
+  // Ask contributor to fix before proceeding
+}
+```
+
+**Rules invoked by validator (single source of truth):**
+- `frontmatter-missing`, `frontmatter-yaml-invalid`, `frontmatter-schema`
+- `section-missing`, `section-out-of-order`
+- `one-liner-missing`, `one-liner-too-short`
+- `reference-details-missing`
+- `mermaid-missing-in-mental-model`, `mermaid-fence-broken`, `mermaid-empty`
+- `link-broken` (optional, skip via `skipLinks: true`)
+
+Do NOT duplicate validation logic in this skill — the validator decides, the skill orchestrates.
 
 ### Step 5: Output
 
@@ -106,5 +126,6 @@ See `examples/` for input/output pairs:
 
 ## Dependencies
 
-- Consumes `tools/template-contract.ts` for structural rules
+- Consumes `tools/validator` — the single source of truth for all validation rules
 - Output must pass `tools/validator` before merge
+- Section list in this skill MUST drift-test against `template-contract.md`
