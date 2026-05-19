@@ -119,6 +119,89 @@ Return the complete `.md` file content with:
 - Proper heading hierarchy
 - Code blocks with language hints where applicable
 
+### Step 6: Review Questions
+
+After validation passes, emit **2–4 specific review questions** tied to ambiguous or opinion-driven parts of the draft.
+
+**Requirements:**
+- Questions MUST be content-specific, not generic ("looks good?", "is this okay?" are DISALLOWED per PRD M2 bullet 1)
+- Each question should target a specific decision point where contributor input matters
+
+**Analyze the draft for these ambiguity types:**
+1. **Naming ambiguity** — unclear slug, title, or tag choices
+2. **Scope ambiguity** — whether a section covers too much or too little
+3. **Technical ambiguity** — command correctness, version currency, best practice validity
+4. **Audience ambiguity** — whether content assumes the right skill level
+5. **Completeness ambiguity** — missing edge cases, alternative workflows, or reference links
+
+**Example valid questions (NOT "looks good?"):**
+
+❌ "Does this look good?"
+❌ "Is the cheatsheet ready?"
+
+✅ "The slug `ollama-run` vs `ollama-cli` — which is more widely recognized in the community?"
+✅ "The Mental Model shows a sequential flow, but the tool supports parallel agents. Should I add an alternative branch?"
+✅ "The `run` commands reference v0.1.2 — should I note that v0.1.3 is the latest stable?"
+✅ "This cheatsheet assumes Linux. Should I add a note for macOS/Windows users?"
+
+**Output format:**
+```
+## Review Questions
+
+1. [specific question about naming/slug/tags]
+2. [specific question about technical accuracy]
+3. [specific question about scope/completeness]
+4. [specific question about audience/assumptions]
+
+Please confirm each item or suggest alternatives before I finalize.
+```
+
+Wait for contributor response before proceeding. If they request changes, iterate on the draft and re-validate before re-presenting questions.
+
+### Step 7: Commit Message & PR Title
+
+On contributor approval of all review questions, suggest:
+
+1. **Conventional commit message** (lower-case, imperative):
+   ```
+   docs(cheatsheet): add <slug> cheatsheet for <tool/concept>
+   ```
+
+   Examples:
+   - `docs(cheatsheet): add ollama-cli cheatsheet for local LLM inference`
+   - `docs(cheatsheet): add hermes-agent cheatsheet for autonomous AI agents`
+   - `docs(cheatsheet): add mcp-sequencer cheatsheet for MCP protocol workflows`
+
+2. **PR title** (same as commit message, can be more descriptive):
+   ```
+   docs(cheatsheet): add <slug> cheatsheet — <one-line summary>
+   ```
+
+   Example:
+   ```
+   docs(cheatsheet): add ollama-cli cheatsheet — local LLM inference from CLI
+   ```
+
+3. **PR description** (recommended, optional for contributor):
+   ```markdown
+   ## Summary
+   <summary from frontmatter>
+
+   ## Sections
+   - Mental Model: <brief description of flowchart>
+   - Step-by-Step: <n> steps
+   - Best Practices: <n> items
+   - Commands: <n> code examples
+
+   ## Validation
+   - [x] Passes template-contract.md validation
+   - [x] Review questions addressed
+   ```
+
+**DO NOT stage, commit, or push** — those steps stay with the human contributor.
+
+Output the commit message and PR title as a clearly formatted block the contributor can copy.
+
 ## Examples
 
 See `examples/` for input/output pairs:
