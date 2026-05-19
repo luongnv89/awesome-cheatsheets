@@ -1,0 +1,102 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Awesome Cheatsheets">
+  <main class="container mx-auto py-12 px-4">
+    <h1 class="text-4xl font-bold mb-8">Awesome AI Cheatsheets</h1>
+    <p class="text-xl text-gray-600 mb-8">Developer cheatsheets for AI-powered development</p>
+
+    <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div class="card">
+        <div class="p-6">
+          <h2 class="text-2xl font-semibold mb-2">Getting Started</h2>
+          <p class="text-gray-600 mb-4">Learn the basics of AI-assisted development</p>
+          <span class="badge">Featured</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="p-6">
+          <h2 class="text-2xl font-semibold mb-2">Tools &amp; Frameworks</h2>
+          <p class="text-gray-600 mb-4">Cheatsheets for popular AI tools and frameworks</p>
+          <button class="btn btn-sm">View</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="p-6">
+          <h2 class="text-2xl font-semibold mb-2">Best Practices</h2>
+          <p class="text-gray-600 mb-4">Tips and tricks for effective AI prompting</p>
+          <button class="btn btn-outline">Learn More</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</Layout>
+
+<style is:global>
+  .container { max-width: 1200px; }
+  .mx-auto { margin-left: auto; margin-right: auto; }
+  .py-12 { padding-top: 3rem; padding-bottom: 3rem; }
+  .px-4 { padding-left: 1rem; padding-right: 1rem; }
+  .text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
+  .font-bold { font-weight: 700; }
+  .mb-8 { margin-bottom: 2rem; }
+  .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+  .text-gray-600 { color: #4b5563; }
+  .grid { display: grid; }
+  .gap-4 { gap: 1rem; }
+  .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .lg\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .p-6 { padding: 1.5rem; }
+  .text-2xl { font-size: 1.5rem; line-height: 2rem; }
+  .font-semibold { font-weight: 600; }
+  .mb-2 { margin-bottom: 0.5rem; }
+  .mb-4 { margin-bottom: 1rem; }
+
+  .card {
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    background-color: #fff;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 9999px;
+    border: 1px solid transparent;
+    padding: 0.125rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background-color: #1f2937;
+    color: #fff;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.375rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    background-color: #1f2937;
+    color: #fff;
+    cursor: pointer;
+    border: none;
+  }
+
+  .btn:hover { background-color: rgba(31,41,55,0.9); }
+
+  .btn-sm { padding: 0.25rem 0.75rem; font-size: 0.875rem; }
+
+  .btn-outline {
+    background-color: transparent;
+    border: 1px solid #e5e7eb;
+    color: #1f2937;
+  }
+
+  .btn-outline:hover { background-color: #f3f4f6; }
+</style>
