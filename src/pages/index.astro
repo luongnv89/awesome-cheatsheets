@@ -14,6 +14,7 @@ import { getCollection } from 'astro:content';
 import Layout from '../layouts/Layout.astro';
 import CatalogCard from '../components/CatalogCard.astro';
 import CatalogSearch from '../components/CatalogSearch.astro';
+import FilterPills from '../components/FilterPills.astro';
 
 const entries = await getCollection('cheatsheets', ({ data }) => {
   // Hide cheatsheets explicitly marked deprecated from the catalog; PoCs and
@@ -28,6 +29,18 @@ const sorted = [...entries].sort((a, b) =>
 
 const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, '');
 const cheatsheetHref = (slug: string) => `${baseUrl}/cheatsheets/${slug}/`;
+
+// Unique facet sets for the filter pills (issue #22). Categories follow the
+// schema enum order so the UI stays stable as the corpus grows; tags are
+// emitted in alphabetical order for deterministic rendering and predictable
+// e2e selectors. Both lists are derived from the visible corpus only — no
+// pills for facets that have zero matching entries.
+const CATEGORY_ORDER = ['tool', 'mcp', 'concept', 'comparison'] as const;
+const categoriesInCorpus = new Set(sorted.map((e) => e.data.category));
+const filterCategories = CATEGORY_ORDER.filter((c) => categoriesInCorpus.has(c));
+const filterTags = Array.from(
+  new Set(sorted.flatMap((e) => e.data.tags)),
+).sort();
 ---
 
 <Layout title="Awesome AI Cheatsheets">
@@ -44,6 +57,8 @@ const cheatsheetHref = (slug: string) => `${baseUrl}/cheatsheets/${slug}/`;
 
     <CatalogSearch />
 
+    <FilterPills categories={filterCategories} tags={filterTags} />
+
     <section class="catalog-section" aria-labelledby="catalog-heading">
       <h2 id="catalog-heading" class="catalog-section-title">
         Cheatsheets ({sorted.length})
@@ -56,7 +71,11 @@ const cheatsheetHref = (slug: string) => `${baseUrl}/cheatsheets/${slug}/`;
       ) : (
         <ul class="catalog-list" role="list">
           {sorted.map((entry) => (
-            <li class="catalog-list-item">
+            <li
+              class="catalog-list-item"
+              data-category={entry.data.category}
+              data-tags={entry.data.tags.join(' ')}
+            >
               <CatalogCard
                 href={cheatsheetHref(entry.slug)}
                 title={entry.data.title}
