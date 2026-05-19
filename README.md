@@ -100,7 +100,7 @@ Cheatsheets are authored with [Claude Code](https://www.anthropic.com/claude-cod
 3. Answer the review questions; let it draft the 7-section file.
 4. Open a PR — CI runs type-check, build, the no-CDN gate, and Lighthouse.
 
-The full walkthrough is the **[30-minute contributor tutorial](./docs/contributing.md)**. All cheatsheets follow the [template contract](./.claude/skills/cheatsheet-scribe/template-contract.md) — required frontmatter, locked section order, copy-paste *Installation*, collapsed *Reference*.
+The full walkthrough is the **[30-minute contributor tutorial](./docs/contributing.md)**. All cheatsheets follow the [template contract](./skills/cheatsheet-scribe/template-contract.md) — required frontmatter, locked section order, copy-paste *Installation*, collapsed *Reference*.
 
 ## Brand and visual identity
 

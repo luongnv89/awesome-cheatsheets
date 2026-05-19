@@ -192,4 +192,4 @@ That's it — no branch, no `gh-pages`, no `peaceiris` fallback. The workflow ha
 
 ---
 
-*See also: [cheatsheet-scribe SKILL.md](/.claude/skills/cheatsheet-scribe/SKILL.md)*
+*See also: [cheatsheet-scribe SKILL.md](/skills/cheatsheet-scribe/SKILL.md)*
