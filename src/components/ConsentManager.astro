@@ -1,0 +1,193 @@
+---
+/**
+ * Cookie-consent banner + Google Analytics loader.
+ *
+ * Default is decline. GA is only injected when the visitor clicks Accept;
+ * decline persists in localStorage so the banner doesn't re-appear. A
+ * footer-injected "Cookie preferences" link lets the visitor change their
+ * mind — clicking it re-shows the banner.
+ *
+ * The gating script is `is:inline` so it runs synchronously in the head and
+ * the gtag globals stay reachable from page scripts that may dispatch
+ * custom events later.
+ */
+const GA_ID = "G-E82DZ04Y07";
+---
+
+{/* GA loader — gated. Runs on every page load and decides whether to
+    inject the tag based on stored consent. */}
+<script is:inline define:vars={{ GA_ID }}>
+  (function () {
+    const STORAGE_KEY = "analytics-consent";
+    function decision() {
+      try {
+        return localStorage.getItem(STORAGE_KEY);
+      } catch {
+        return null;
+      }
+    }
+
+    function loadGA() {
+      if (window.__gaLoaded) return;
+      window.__gaLoaded = true;
+      window.dataLayer = window.dataLayer || [];
+      function gtag() { window.dataLayer.push(arguments); }
+      window.gtag = gtag;
+      gtag("js", new Date());
+      gtag("config", GA_ID);
+      const s = document.createElement("script");
+      s.async = true;
+      s.src = "https://www.googletagmanager.com/gtag/js?id=" + GA_ID;
+      document.head.appendChild(s);
+    }
+
+    function showBanner() {
+      const banner = document.getElementById("consent-banner");
+      if (banner) banner.hidden = false;
+    }
+    function hideBanner() {
+      const banner = document.getElementById("consent-banner");
+      if (banner) banner.hidden = true;
+    }
+
+    function persist(value) {
+      try {
+        localStorage.setItem(STORAGE_KEY, value);
+      } catch {
+        /* storage disabled — banner will re-appear next visit */
+      }
+    }
+
+    // Expose a small API so the footer "Cookie preferences" link can
+    // re-open the banner without a full reload.
+    window.__consent = {
+      accept() {
+        persist("accept");
+        hideBanner();
+        loadGA();
+      },
+      decline() {
+        persist("decline");
+        hideBanner();
+      },
+      reopen() {
+        showBanner();
+      },
+    };
+
+    const current = decision();
+    if (current === "accept") {
+      loadGA();
+    } else if (current === null) {
+      // Run as soon as DOM is ready so we don't try to touch the banner
+      // before it exists.
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", showBanner);
+      } else {
+        showBanner();
+      }
+    }
+  })();
+</script>
+
+{/* Banner element. Hidden by default; the gating script un-hides it when
+    no decision has been made (or the user re-opens it via the footer
+    link). Aria roles match the WAI-ARIA "alertdialog" pattern. */}
+<div
+  id="consent-banner"
+  class="consent-banner"
+  role="region"
+  aria-label="Cookie consent"
+  hidden
+>
+  <div class="consent-banner-inner">
+    <p class="consent-banner-text">
+      We use Google Analytics to understand which cheatsheets are useful. No analytics
+      requests are sent until you accept. You can change your mind any time from the
+      footer.
+    </p>
+    <div class="consent-banner-actions">
+      <button type="button" class="consent-btn consent-btn-decline" onclick="window.__consent.decline()">
+        Decline
+      </button>
+      <button type="button" class="consent-btn consent-btn-accept" onclick="window.__consent.accept()">
+        Accept
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .consent-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background-color: var(--color-ink);
+    color: #DCFCE7;
+    border-top: 2px solid #4ADE80;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.25);
+  }
+  .consent-banner[hidden] {
+    display: none;
+  }
+  .consent-banner-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0.9rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+  }
+  .consent-banner-text {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    flex: 1 1 320px;
+  }
+  .consent-banner-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+  }
+  .consent-btn {
+    padding: 0.45rem 1rem;
+    font-family: var(--font-heading);
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    border: 1px solid;
+    transition: background-color 0.12s, color 0.12s;
+  }
+  .consent-btn-decline {
+    background-color: transparent;
+    color: #DCFCE7;
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+  .consent-btn-decline:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+  }
+  .consent-btn-accept {
+    background-color: #4ADE80;
+    color: var(--color-ink);
+    border-color: #4ADE80;
+  }
+  .consent-btn-accept:hover {
+    background-color: #22C55E;
+    border-color: #22C55E;
+  }
+  @media (max-width: 640px) {
+    .consent-banner-inner {
+      padding: 0.75rem 1rem;
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .consent-banner-actions {
+      justify-content: flex-end;
+    }
+  }
+</style>

@@ -14,6 +14,8 @@
  * Header + footer markup mirrors `Layout.astro` so chrome stays cohesive
  * across catalog/about/404 and detail pages.
  */
+import ConsentManager from '../components/ConsentManager.astro';
+
 interface Props {
   title: string;
   frontmatter: {
@@ -81,16 +83,7 @@ const metaDescription = frontmatter.summary;
 
     <title>{title}</title>
 
-    {/* Google Analytics — gtag.js. `is:inline` keeps Astro from bundling
-        the snippet so the global `gtag()` function is available to any
-        page script that wants to send custom events. */}
-    <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-E82DZ04Y07"></script>
-    <script is:inline>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-E82DZ04Y07');
-    </script>
+    <ConsentManager />
   </head>
   <body>
     <a class="skip-link" href="#main-content">Skip to content</a>
@@ -190,7 +183,10 @@ const metaDescription = frontmatter.summary;
         </a>
         <p class="site-footer-meta">
           Code under MIT, content under CC-BY 4.0.
-          <a href={repoUrl} rel="noopener">Source on GitHub</a>.
+          <a href={repoUrl} rel="noopener">Source on GitHub</a> ·
+          <button type="button" class="site-footer-link-button" onclick="window.__consent?.reopen()">
+            Cookie preferences
+          </button>.
         </p>
       </div>
     </footer>
@@ -540,12 +536,18 @@ const metaDescription = frontmatter.summary;
   }
   .site-footer-name { color: #fff; }
   .site-footer-meta { font-size: 0.875rem; color: #BFBED1; margin: 0; }
-  .site-footer-meta a {
+  .site-footer-meta a,
+  .site-footer-link-button {
     color: var(--color-amber); text-decoration: underline;
     text-decoration-thickness: 1px; text-underline-offset: 2px;
   }
-  .site-footer-meta a:hover { color: #FFCD3A; }
-  .site-footer-meta a:focus-visible { outline-color: var(--color-amber); }
+  .site-footer-link-button {
+    background: none; border: 0; padding: 0; font: inherit; cursor: pointer;
+  }
+  .site-footer-meta a:hover,
+  .site-footer-link-button:hover { color: #FFCD3A; }
+  .site-footer-meta a:focus-visible,
+  .site-footer-link-button:focus-visible { outline-color: var(--color-amber); }
 
   @media (max-width: 480px) {
     .site-header-inner { padding: 0.625rem 1rem; }
