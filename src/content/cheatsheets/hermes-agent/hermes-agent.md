@@ -4,7 +4,7 @@ title: Hermes Agent — Optimization Cheatsheet
 category: tool
 subcategory: autonomous-ai-agent
 summary: Step-by-step path to a high-leverage Hermes Agent install — diagnose, optimize cost + memory, unlock skills/self-evolution, gateways, multi-agent Kanban, and ongoing hygiene.
-last_updated: 2026-05-18
+last_updated: 2026-05-19
 stale_after_days: 90
 upstream_version: "v0.12 / v0.13 era"
 tags: [hermes-agent, nousresearch, autonomous-agent, cli, memory, skills, mcp, kanban]
@@ -27,58 +27,30 @@ links:
 
 **Read time:** ~6 min · **Apply Steps 1–3:** under 30 min
 
-## Mental Model
+## Installation
 
-```mermaid
-flowchart LR
-  subgraph Inputs["Inputs"]
-    User[User]
-    Cron[Cron / Schedules]
-    Gateways[Telegram / Slack / Discord / WhatsApp]
-  end
+One-line installers from the official repo. The script auto-detects your platform.
 
-  subgraph Core["Hermes Agent Core"]
-    Loop[Agent Loop]
-    Models[Model Router<br/>Frontier ↔ Fast/Cheap]
-  end
-
-  subgraph Memory["Persistent Memory"]
-    MEM[MEMORY.md<br/>~2,200 chars]
-    USR[USER.md<br/>~1,375 chars]
-    AGENTS[AGENTS.md per project]
-    SOUL[SOUL.md personality]
-    RAG[(Optional<br/>Honcho / LightRAG)]
-  end
-
-  subgraph Capabilities["Capabilities"]
-    Skills[Skills<br/>reusable procedures]
-    Tools[Tools / MCP]
-    Kanban[Kanban<br/>multi-agent board]
-  end
-
-  subgraph Outs["Outputs"]
-    TUI[TUI / CLI]
-    Chat[Chat reply]
-    Actions[Tool actions /<br/>code / files]
-  end
-
-  Inputs --> Loop
-  Loop --> Models
-  Loop <--> Memory
-  Loop --> Capabilities
-  Capabilities --> Outs
-  Loop --> Outs
-
-  Curator[Curator<br/>merges & archives skills] -.-> Skills
-  SelfEvo[Self-Evolution<br/>GEPA/DSPy] -.-> Skills
+**Linux / macOS / WSL2 / Android (Termux):**
+```bash
+curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash
 ```
 
-**Layers worth distinguishing:**
-- **Memory** = *what is true* (facts, preferences, project notes)
-- **Skills** = *how to do it* (multi-step procedures)
-- **Gateways/Cron** = *when and where it runs* (proactive + accessible)
-- **Kanban** = *who does it* (specialist roles, parallel work)
-- **Curator + Self-Evolution** = *how it improves itself*
+**Windows (native PowerShell — early beta):**
+```powershell
+iex (irm https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.ps1)
+```
+
+**First run — configure providers, memory, and tools:**
+```bash
+hermes setup           # interactive: pick model providers, memory backend, defaults
+hermes doctor          # verify install, providers, OAuth, tools, memory
+hermes status          # quick health check
+```
+
+**Optional terminal backends:** the agent can shell out via `local`, `Docker`, `SSH`, `Daytona`, `Singularity`, or `Modal` — install only what you need (Docker is the recommended sandbox before exposing gateways).
+
+> **Why a one-liner?** The installer pins the latest stable release, places `hermes` on your `PATH`, and creates `~/.hermes/` (config, memory, skills, sessions). Re-run anytime — it's idempotent.
 
 ## Step-by-Step Setup & Optimization
 
@@ -332,7 +304,7 @@ Sets up a non-root user, firewall, Caddy reverse proxy, systemd units.
 This file is the PoC for the v1 cheatsheet template. Sections it locks in:
 1. **Frontmatter** — slug, title, category, summary, `last_updated`, `stale_after_days`, `upstream_version`, tags, links
 2. **One-line + audience + read time**
-3. **Mental Model** with a Mermaid diagram
+3. **Installation** with copy-paste one-line installer(s)
 4. **Step-by-step setup / usage / optimize** with copy-paste blocks
 5. **Best Practices** — do / don't / when-to-use vs alternatives
 6. **Quick Command Reference** (tabular)
