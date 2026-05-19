@@ -43,6 +43,32 @@ Ask the user for:
 
 If the user provides just a topic with no draft, proceed to Step 2 with an empty canvas.
 
+**SAFETY: No Fabrication**
+
+The skill MUST NOT fabricate references, commands, or facts not present in:
+- The user's draft content
+- Official documentation the user has provided
+- Answers explicitly given by the user
+
+**Concrete examples of fabrication (NEVER do these):**
+- Inventing a CLI flag like `--force` that doesn't exist
+- Citing a source or URL that wasn't provided
+- Assuming a default value or behavior without confirmation
+- Creating a "Quick Command Reference" entry for a command you haven't verified
+
+**When in doubt, ASK the contributor** rather than guess. If the user cannot provide the information, mark the section as incomplete rather than inventing content.
+
+### Step 1.5: Check for existing cheatsheet
+
+Before proceeding to drafting, derive the slug from the topic (kebab-case). Check if `cheatsheets/<slug>/` already exists in the repository.
+
+**If the cheatsheet already exists:**
+- Ask for explicit confirmation: "A cheatsheet for '<slug>' already exists. Do you want to overwrite it? Type 'yes, overwrite' to confirm."
+- Do NOT proceed with Step 2 until explicit confirmation is received
+- If the user declines, abort gracefully
+
+**If the cheatsheet does not exist:** Proceed to Step 2.
+
 ### Step 2: Apply the template contract
 
 Every cheatsheet must follow `template-contract.md`:
