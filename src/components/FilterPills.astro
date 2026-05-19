@@ -1,0 +1,462 @@
+---
+/**
+ * Catalog filter pills (issue #22).
+ *
+ * Renders two rows of pills above the catalog grid: one per unique category
+ * and one per unique tag in the corpus. Clicking a pill toggles it in the
+ * active set; cards in `.catalog-list` are shown/hidden client-side based on
+ * the active filters. Filter state round-trips through the URL via
+ * `?category=` and `?tag=` (comma-separated for multi-select).
+ *
+ * Acceptance criteria (issue #22):
+ *  - Each unique category and tag in the corpus renders as a pill above the
+ *    catalog list.
+ *  - Clicking a pill filters the visible list to only entries containing
+ *    that tag/category.
+ *  - Active pills are visually distinct (selected state) and toggleable.
+ *  - Multi-select: OR within axis, AND across axes.
+ *  - URL state: `?tag=mcp` and `?category=tool` round-trip on static GH
+ *    Pages via `URLSearchParams` + History API (no SSR).
+ *  - Clear-all button to deselect everything in one click.
+ *  - Keyboard-accessible: each pill is a `<button>` with `aria-pressed`,
+ *    tabbable, Enter/Space toggles.
+ *  - Coexists with Pagefind search: pill bar is hidden when a search query
+ *    is active (simpler than dual filtering — see Decision Record in
+ *    PR body for issue #22).
+ *
+ * Selectors are scoped under `.catalog-filter-*` to stay disjoint from
+ * `.catalog-card` / `.catalog-search-*` / `.freshness-chip` selectors owned
+ * by sibling components.
+ */
+
+interface Props {
+  /** Unique category values present in the corpus, in display order. */
+  categories: readonly string[];
+  /** Unique tag values present in the corpus, in display order. */
+  tags: readonly string[];
+}
+
+const { categories, tags } = Astro.props;
+---
+
+<div
+  class="catalog-filter"
+  data-pagefind-ignore
+  aria-label="Filter cheatsheets"
+>
+  {categories.length > 0 && (
+    <div class="catalog-filter-row" role="group" aria-label="Filter by category">
+      <span class="catalog-filter-label">Category</span>
+      <ul class="catalog-filter-pills" role="list">
+        {categories.map((value) => (
+          <li>
+            <button
+              type="button"
+              class="catalog-filter-pill"
+              data-filter-axis="category"
+              data-filter-value={value}
+              aria-pressed="false"
+            >
+              {value}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )}
+
+  {tags.length > 0 && (
+    <div class="catalog-filter-row" role="group" aria-label="Filter by tag">
+      <span class="catalog-filter-label">Tag</span>
+      <ul class="catalog-filter-pills" role="list">
+        {tags.map((value) => (
+          <li>
+            <button
+              type="button"
+              class="catalog-filter-pill"
+              data-filter-axis="tag"
+              data-filter-value={value}
+              aria-pressed="false"
+            >
+              {value}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )}
+
+  <div class="catalog-filter-controls">
+    <button
+      type="button"
+      class="catalog-filter-clear"
+      data-filter-clear
+      hidden
+    >
+      Clear filters
+    </button>
+    <p
+      class="catalog-filter-status"
+      role="status"
+      aria-live="polite"
+    ></p>
+  </div>
+</div>
+
+<script>
+  /**
+   * Wire up the filter pills. Pure client-side — no SSR, no network. Reads
+   * the URL's `?category=` and `?tag=` params on load, applies them, then
+   * registers click handlers that toggle pills, update the URL via
+   * `history.replaceState`, and re-filter the `.catalog-list` cards.
+   *
+   * Multi-select semantics:
+   *  - Within an axis (e.g., two tag pills): OR — a card matches if it has
+   *    ANY of the selected tags.
+   *  - Across axes (category AND tag): AND — a card must match in both axes.
+   *
+   * Coexistence with Pagefind search:
+   *  - When a search query is non-empty, `.catalog-search` hides the static
+   *    grid via the `hidden` attribute. We mirror that by hiding the filter
+   *    bar itself so it can't be operated against a non-existent grid.
+   *  - When the search clears, the grid (and the filter bar) come back, and
+   *    the active filters from the URL still apply to the restored grid.
+   */
+  const root = document.querySelector<HTMLDivElement>(".catalog-filter");
+  const list = document.querySelector<HTMLElement>(".catalog-list");
+  const searchInput = document.querySelector<HTMLInputElement>(
+    ".catalog-search-input",
+  );
+  const sectionTitle = document.querySelector<HTMLElement>(
+    ".catalog-section-title",
+  );
+
+  if (root && list) {
+    const pills = Array.from(
+      root.querySelectorAll<HTMLButtonElement>(".catalog-filter-pill"),
+    );
+    const clearBtn = root.querySelector<HTMLButtonElement>(
+      ".catalog-filter-clear",
+    );
+    const statusEl = root.querySelector<HTMLParagraphElement>(
+      ".catalog-filter-status",
+    );
+    const items = Array.from(
+      list.querySelectorAll<HTMLElement>(".catalog-list-item"),
+    );
+
+    /**
+     * Parse a URLSearchParams value into a Set: empty string → empty set;
+     * "a,b,c" → {"a","b","c"}. Used for both reading and writing the URL.
+     */
+    function paramToSet(value: string | null): Set<string> {
+      if (!value) return new Set();
+      return new Set(
+        value
+          .split(",")
+          .map((s) => s.trim())
+          .filter((s) => s.length > 0),
+      );
+    }
+
+    function setToParam(set: Set<string>): string {
+      return Array.from(set).join(",");
+    }
+
+    /** Read the URL state at any moment. */
+    function readUrl(): {
+      categories: Set<string>;
+      tags: Set<string>;
+    } {
+      const params = new URLSearchParams(window.location.search);
+      return {
+        categories: paramToSet(params.get("category")),
+        tags: paramToSet(params.get("tag")),
+      };
+    }
+
+    /** Push the active filters back into the URL via `replaceState`. */
+    function writeUrl(active: {
+      categories: Set<string>;
+      tags: Set<string>;
+    }): void {
+      const params = new URLSearchParams(window.location.search);
+      if (active.categories.size > 0) {
+        params.set("category", setToParam(active.categories));
+      } else {
+        params.delete("category");
+      }
+      if (active.tags.size > 0) {
+        params.set("tag", setToParam(active.tags));
+      } else {
+        params.delete("tag");
+      }
+      const qs = params.toString();
+      const url =
+        window.location.pathname + (qs ? `?${qs}` : "") + window.location.hash;
+      window.history.replaceState(null, "", url);
+    }
+
+    /** Update each pill's `aria-pressed` to reflect the active set. */
+    function syncPillStates(active: {
+      categories: Set<string>;
+      tags: Set<string>;
+    }): void {
+      for (const pill of pills) {
+        const axis = pill.dataset.filterAxis;
+        const value = pill.dataset.filterValue ?? "";
+        const isActive =
+          axis === "category"
+            ? active.categories.has(value)
+            : axis === "tag"
+              ? active.tags.has(value)
+              : false;
+        pill.setAttribute("aria-pressed", isActive ? "true" : "false");
+        if (isActive) {
+          pill.classList.add("is-active");
+        } else {
+          pill.classList.remove("is-active");
+        }
+      }
+      const anyActive =
+        active.categories.size > 0 || active.tags.size > 0;
+      if (clearBtn) clearBtn.hidden = !anyActive;
+    }
+
+    /**
+     * Show/hide `.catalog-list-item` rows based on active filters.
+     * Returns the number of visible items.
+     */
+    function applyFilter(active: {
+      categories: Set<string>;
+      tags: Set<string>;
+    }): number {
+      const filterCategories = active.categories.size > 0;
+      const filterTags = active.tags.size > 0;
+      let visible = 0;
+      for (const item of items) {
+        const itemCategory = item.dataset.category ?? "";
+        const itemTags = (item.dataset.tags ?? "")
+          .split(" ")
+          .filter((s) => s.length > 0);
+        const categoryMatch =
+          !filterCategories || active.categories.has(itemCategory);
+        const tagMatch =
+          !filterTags || itemTags.some((t) => active.tags.has(t));
+        const show = categoryMatch && tagMatch;
+        item.hidden = !show;
+        if (show) visible += 1;
+      }
+      if (statusEl) {
+        if (!filterCategories && !filterTags) {
+          statusEl.textContent = "";
+        } else {
+          statusEl.textContent = `${visible} cheatsheet${visible === 1 ? "" : "s"} match.`;
+        }
+      }
+      return visible;
+    }
+
+    function refresh(): void {
+      const active = readUrl();
+      syncPillStates(active);
+      applyFilter(active);
+    }
+
+    function togglePill(pill: HTMLButtonElement): void {
+      const axis = pill.dataset.filterAxis;
+      const value = pill.dataset.filterValue ?? "";
+      if (!value) return;
+      const active = readUrl();
+      const target =
+        axis === "category"
+          ? active.categories
+          : axis === "tag"
+            ? active.tags
+            : null;
+      if (!target) return;
+      if (target.has(value)) {
+        target.delete(value);
+      } else {
+        target.add(value);
+      }
+      writeUrl(active);
+      syncPillStates(active);
+      applyFilter(active);
+      root!.dispatchEvent(
+        new CustomEvent("catalog-filter:changed", {
+          detail: {
+            categories: Array.from(active.categories),
+            tags: Array.from(active.tags),
+          },
+        }),
+      );
+    }
+
+    function clearAll(): void {
+      const empty = { categories: new Set<string>(), tags: new Set<string>() };
+      writeUrl(empty);
+      syncPillStates(empty);
+      applyFilter(empty);
+      root!.dispatchEvent(
+        new CustomEvent("catalog-filter:changed", {
+          detail: { categories: [], tags: [] },
+        }),
+      );
+    }
+
+    for (const pill of pills) {
+      pill.addEventListener("click", () => togglePill(pill));
+    }
+    if (clearBtn) {
+      clearBtn.addEventListener("click", () => clearAll());
+    }
+
+    /**
+     * Coexistence with Pagefind: when the search input has a non-empty
+     * query, hide the filter bar entirely so users don't try to operate it
+     * against a hidden grid. When the query clears, restore the bar and
+     * re-apply the current filter state.
+     */
+    function syncWithSearch(): void {
+      if (!searchInput) return;
+      const hasQuery = searchInput.value.trim().length > 0;
+      root!.hidden = hasQuery;
+      if (sectionTitle) {
+        // The search component already toggles the title; we don't fight it.
+      }
+    }
+    if (searchInput) {
+      searchInput.addEventListener("input", syncWithSearch);
+      syncWithSearch();
+    }
+
+    // Reflect URL on initial load (and on history navigation).
+    refresh();
+    window.addEventListener("popstate", refresh);
+  }
+</script>
+
+<style is:global>
+  .catalog-filter {
+    margin: 0 0 1.5rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .catalog-filter[hidden] {
+    display: none;
+  }
+
+  .catalog-filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .catalog-filter-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6b7280;
+    min-width: 4.5rem;
+  }
+
+  .catalog-filter-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .catalog-filter-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: #374151;
+    background-color: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 9999px;
+    cursor: pointer;
+    transition:
+      background-color 0.12s ease,
+      border-color 0.12s ease,
+      color 0.12s ease;
+  }
+
+  .catalog-filter-pill:hover {
+    background-color: #e5e7eb;
+    border-color: #d1d5db;
+  }
+
+  .catalog-filter-pill:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+  }
+
+  .catalog-filter-pill.is-active,
+  .catalog-filter-pill[aria-pressed="true"] {
+    background-color: #2563eb;
+    border-color: #1d4ed8;
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .catalog-filter-pill.is-active:hover,
+  .catalog-filter-pill[aria-pressed="true"]:hover {
+    background-color: #1d4ed8;
+  }
+
+  .catalog-filter-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 1.5rem;
+  }
+
+  .catalog-filter-clear {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.8125rem;
+    color: #1f2937;
+    background-color: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition:
+      background-color 0.12s ease,
+      border-color 0.12s ease;
+  }
+
+  .catalog-filter-clear:hover {
+    background-color: #f9fafb;
+    border-color: #9ca3af;
+  }
+
+  .catalog-filter-clear:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+  }
+
+  .catalog-filter-clear[hidden] {
+    display: none;
+  }
+
+  .catalog-filter-status {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: #6b7280;
+  }
+
+  .catalog-list-item[hidden] {
+    display: none;
+  }
+</style>
