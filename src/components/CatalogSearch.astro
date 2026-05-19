@@ -1,0 +1,330 @@
+---
+/**
+ * Catalog search box (issue #21).
+ *
+ * Renders a search input + results region on the catalog landing page. On
+ * mount, dynamically imports the Pagefind runtime that the build script
+ * (`astro build && pagefind --site dist`) emits to `dist/pagefind/`. The
+ * import URL is constructed from `import.meta.env.BASE_URL` so it honors the
+ * configured Astro `base` (`/awesome-cheatsheets`).
+ *
+ * Acceptance criteria (issue #21):
+ *  - Search box visible on the catalog page.
+ *  - Typing filters live; p95 keystroke-to-render <= 100 ms.
+ *  - Results show: title + excerpt + link, with empty state.
+ *  - Honors `base: '/awesome-cheatsheets'` — no hardcoded `/pagefind/`.
+ *  - Works without JS: this component starts hidden via `hidden` attribute
+ *    and is revealed only after the Pagefind runtime loads successfully.
+ *    If JS is disabled or Pagefind fails to load, the static catalog grid
+ *    underneath remains the canonical, accessible UI.
+ *
+ * Selectors are scoped under `.catalog-search-*` to stay disjoint from the
+ * `.catalog-card` / `.freshness-chip` / `.stale-banner` selectors owned by
+ * `CatalogCard.astro` and `CheatsheetLayout.astro` (asserted in the existing
+ * `e2e/catalog.test.ts` and `e2e/freshness.test.ts`).
+ */
+
+// Trailing-slash-normalized base path for runtime URL construction. Falls
+// back to "/" so the component still works at a root deployment.
+const baseUrl = (import.meta.env.BASE_URL || "/").replace(/\/$/, "") + "/";
+---
+
+<div
+  class="catalog-search"
+  data-pagefind-ignore
+  data-base-url={baseUrl}
+  hidden
+>
+  <label class="catalog-search-label" for="catalog-search-input">
+    Search cheatsheets
+  </label>
+  <input
+    id="catalog-search-input"
+    class="catalog-search-input"
+    type="search"
+    autocomplete="off"
+    spellcheck="false"
+    placeholder="Search cheatsheets…"
+    aria-controls="catalog-search-results"
+    aria-describedby="catalog-search-status"
+  />
+  <p
+    id="catalog-search-status"
+    class="catalog-search-status"
+    role="status"
+    aria-live="polite"
+  ></p>
+  <ul
+    id="catalog-search-results"
+    class="catalog-search-results"
+    role="list"
+  ></ul>
+</div>
+
+<script>
+  /**
+   * Wire up Pagefind on the catalog page. Loads asynchronously so missing
+   * Pagefind assets (e.g., when running `astro dev` without a build) just
+   * leave the static catalog grid intact — graceful degradation by design.
+   */
+  type PagefindSubResult = {
+    url: string;
+    title: string;
+    excerpt: string;
+  };
+  type PagefindResultData = {
+    url: string;
+    excerpt: string;
+    meta: Record<string, string | undefined> & { title?: string };
+    sub_results?: PagefindSubResult[];
+  };
+  type PagefindResult = {
+    id: string;
+    data: () => Promise<PagefindResultData>;
+  };
+  type PagefindSearchResponse = {
+    results: PagefindResult[];
+  };
+  type PagefindRuntime = {
+    search: (query: string) => Promise<PagefindSearchResponse>;
+  };
+
+  const root = document.querySelector<HTMLDivElement>(".catalog-search");
+  if (root) {
+    const baseUrl = root.dataset.baseUrl ?? "/";
+    const input = root.querySelector<HTMLInputElement>(
+      "#catalog-search-input",
+    );
+    const results = root.querySelector<HTMLUListElement>(
+      "#catalog-search-results",
+    );
+    const status = root.querySelector<HTMLParagraphElement>(
+      "#catalog-search-status",
+    );
+    // Hide the static grid only when a query is active; show it back on
+    // empty / cleared input so the no-JS fallback path stays correct.
+    const staticGrid = document.querySelector<HTMLElement>(".catalog-list");
+    const staticEmpty = document.querySelector<HTMLElement>(".catalog-empty");
+    const sectionTitle = document.querySelector<HTMLElement>(
+      ".catalog-section-title",
+    );
+
+    let pagefind: PagefindRuntime | null = null;
+    let pendingTimer: ReturnType<typeof setTimeout> | null = null;
+    let lastQuery = "";
+
+    // Debounce ~120 ms before issuing a search to avoid spamming Pagefind
+    // mid-keystroke. Per-keystroke render time (the perf budget) is measured
+    // separately from the moment the input event fires.
+    const DEBOUNCE_MS = 120;
+
+    function setStatus(message: string): void {
+      if (status) status.textContent = message;
+    }
+
+    function setStaticGridVisible(visible: boolean): void {
+      if (staticGrid) staticGrid.hidden = !visible;
+      if (staticEmpty) staticEmpty.hidden = !visible;
+      if (sectionTitle) sectionTitle.hidden = !visible;
+    }
+
+    function renderResults(hits: PagefindResultData[]): void {
+      if (!results) return;
+      results.innerHTML = "";
+      if (hits.length === 0) {
+        const empty = document.createElement("li");
+        empty.className = "catalog-search-empty";
+        empty.textContent = "No matches.";
+        results.appendChild(empty);
+        return;
+      }
+      for (const hit of hits) {
+        const li = document.createElement("li");
+        li.className = "catalog-search-result";
+        const a = document.createElement("a");
+        a.className = "catalog-search-result-link";
+        a.href = hit.url;
+        const titleText =
+          hit.meta?.title ||
+          hit.sub_results?.[0]?.title ||
+          hit.url;
+        const titleEl = document.createElement("h3");
+        titleEl.className = "catalog-search-result-title";
+        titleEl.textContent = titleText;
+        const excerpt = document.createElement("p");
+        excerpt.className = "catalog-search-result-excerpt";
+        // hit.excerpt is HTML with <mark> wrappers — Pagefind sanitizes it.
+        excerpt.innerHTML = hit.excerpt;
+        a.appendChild(titleEl);
+        a.appendChild(excerpt);
+        li.appendChild(a);
+        results.appendChild(li);
+      }
+    }
+
+    async function runSearch(rawQuery: string): Promise<void> {
+      const query = rawQuery.trim();
+      lastQuery = query;
+      if (!pagefind) return;
+      // Empty query → restore the static catalog grid.
+      if (query === "") {
+        if (results) results.innerHTML = "";
+        setStatus("");
+        setStaticGridVisible(true);
+        // Custom event for tests / instrumentation: signals one full render
+        // cycle has completed for the current keystroke.
+        root!.dispatchEvent(
+          new CustomEvent("catalog-search:rendered", {
+            detail: { query: "", count: 0 },
+          }),
+        );
+        return;
+      }
+      setStaticGridVisible(false);
+      const response = await pagefind.search(query);
+      // Race guard — if the user has typed again between the await and now,
+      // bail rather than overwriting the more recent render.
+      if (query !== lastQuery) return;
+      const hits = await Promise.all(response.results.slice(0, 10).map((r) => r.data()));
+      if (query !== lastQuery) return;
+      renderResults(hits);
+      setStatus(
+        hits.length === 0
+          ? `No results for "${query}"`
+          : `${hits.length} result${hits.length === 1 ? "" : "s"} for "${query}"`,
+      );
+      root!.dispatchEvent(
+        new CustomEvent("catalog-search:rendered", {
+          detail: { query, count: hits.length },
+        }),
+      );
+    }
+
+    function scheduleSearch(value: string): void {
+      if (pendingTimer !== null) clearTimeout(pendingTimer);
+      pendingTimer = setTimeout(() => {
+        void runSearch(value);
+      }, DEBOUNCE_MS);
+    }
+
+    async function init(): Promise<void> {
+      try {
+        // Dynamic import via base-aware URL — Pagefind ships its own bundled
+        // JS/wasm under `dist/pagefind/`, so no external CDN is involved.
+        // The `/* @vite-ignore */` hint silences Vite's static-analysis
+        // warning since this URL is computed at runtime.
+        const moduleUrl = `${baseUrl}pagefind/pagefind.js`;
+        const mod = (await import(/* @vite-ignore */ moduleUrl)) as PagefindRuntime;
+        pagefind = mod;
+        root!.hidden = false;
+        if (input) {
+          input.addEventListener("input", (event) => {
+            const value = (event.target as HTMLInputElement).value;
+            scheduleSearch(value);
+          });
+        }
+      } catch (err) {
+        // Pagefind assets missing (dev mode or build failure). Keep the
+        // search UI hidden and let the static catalog grid carry the page.
+        // eslint-disable-next-line no-console
+        console.warn("[catalog-search] Pagefind unavailable, falling back to static grid.", err);
+      }
+    }
+
+    void init();
+  }
+</script>
+
+<style is:global>
+  .catalog-search {
+    margin-bottom: 2rem;
+  }
+
+  .catalog-search-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.5rem;
+  }
+
+  .catalog-search-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: #111827;
+    background-color: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .catalog-search-input:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  }
+
+  .catalog-search-status {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: #6b7280;
+    min-height: 1.25rem;
+  }
+
+  .catalog-search-results {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0 0 0;
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .catalog-search-result {
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    background-color: #fff;
+  }
+
+  .catalog-search-result-link {
+    display: block;
+    padding: 1rem 1.25rem;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .catalog-search-result-link:hover,
+  .catalog-search-result-link:focus-visible {
+    background-color: #f9fafb;
+    outline: none;
+  }
+
+  .catalog-search-result-title {
+    margin: 0 0 0.375rem 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #111827;
+  }
+
+  .catalog-search-result-excerpt {
+    margin: 0;
+    font-size: 0.9375rem;
+    color: #4b5563;
+    line-height: 1.5;
+  }
+
+  .catalog-search-result-excerpt mark {
+    background-color: #fef3c7;
+    color: #92400e;
+    padding: 0 0.125rem;
+    border-radius: 0.125rem;
+  }
+
+  .catalog-search-empty {
+    color: #6b7280;
+    font-size: 0.9375rem;
+    padding: 0.5rem 0;
+  }
+</style>
