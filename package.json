@@ -29,10 +29,12 @@
     "remark-parse": "^11.0.0",
     "tailwindcss": "^3.4.19",
     "unified": "^11.0.5",
+    "unist-util-visit": "^5.1.0",
     "yaml": "^2.9.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.60.0",
     "@types/mdast": "^4.0.4",
     "@types/node": "^25.9.0",

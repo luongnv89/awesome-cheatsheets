@@ -1,6 +1,4 @@
 import { visit } from 'unist-util-visit';
-import { unified } from 'unified';
-import { markdown } from 'vite';
 import { execSync } from 'child_process';
 import path from 'path';
 import fs from 'fs';
