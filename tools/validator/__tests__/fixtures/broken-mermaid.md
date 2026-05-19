@@ -14,13 +14,10 @@ links:
 
 **One-line:** Closes every fence except the trailing Mermaid one, exercising the mermaid-fence-broken rule path.
 
-## Mental Model
+## Installation
 
-Initial prose so the missing-fence test for Mental Model does not also fire here.
-
-```mermaid
-flowchart LR
-  A --> B
+```bash
+curl -fsSL https://example.com/install.sh | bash
 ```
 
 ## Step-by-Step Setup & Optimization

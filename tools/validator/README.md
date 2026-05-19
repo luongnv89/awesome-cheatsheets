@@ -28,7 +28,7 @@ re-exports what the contract declares; no rule is defined inline here.
 
 ## Hermes is the contract-anchor fixture
 
-`cheatsheets/hermes-agent/hermes-agent.md` is the PoC cheatsheet the template
+`src/content/cheatsheets/hermes-agent/hermes-agent.md` is the PoC cheatsheet the template
 contract was derived from. It is treated as the canonical fixture: any change
 to the contract, the validator orchestrator, or any individual rule MUST keep
 Hermes lint-clean.
@@ -39,7 +39,7 @@ This invariant is gated by:
   asserts `validate(hermes, { skipLinks: true })` returns
   `{ ok: true, errors: [] }`. Vitest re-runs it on every commit.
 - `.github/workflows/lint.yml` — CI step that additionally runs
-  `pnpm cheatsheet:lint cheatsheets/hermes-agent/hermes-agent.md --no-links`
+  `pnpm cheatsheet:lint src/content/cheatsheets/hermes-agent/hermes-agent.md --no-links`
   on every PR and push to `main`.
 
 If the snapshot ever fails, do **not** regenerate it with `-u` reflexively.
@@ -52,7 +52,7 @@ needs to be edited to match, or whether the rule has a bug.
 import { validate } from "tools/validator";
 
 const result = await validate(
-  "cheatsheets/hermes-agent/hermes-agent.md",
+  "src/content/cheatsheets/hermes-agent/hermes-agent.md",
   { skipLinks: true }, // or { linkTimeoutMs: 10_000 } in production
 );
 

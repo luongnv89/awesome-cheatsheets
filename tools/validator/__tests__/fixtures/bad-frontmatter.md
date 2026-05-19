@@ -14,11 +14,10 @@ links:
 
 **One-line:** This fixture intentionally violates many fields in the frontmatter schema to exercise the frontmatter-schema rule.
 
-## Mental Model
+## Installation
 
-```mermaid
-flowchart LR
-  A --> B
+```bash
+curl -fsSL https://example.com/install.sh | bash
 ```
 
 ## Step-by-Step Setup & Optimization

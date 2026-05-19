@@ -72,7 +72,7 @@ Copy this — it's your conventional commit and PR title.
 
 ```bash
 git checkout -b feature/add-hermes-agent-cheatsheet
-git add cheatsheets/hermes-agent/hermes-agent.md
+git add src/content/cheatsheets/hermes-agent/hermes-agent.md
 git commit -m "docs(cheatsheet): add hermes-agent cheatsheet..."
 git push -u origin feature/add-hermes-agent-cheatsheet
 gh pr create --title "docs(cheatsheet): add hermes-agent cheatsheet" --body "..."

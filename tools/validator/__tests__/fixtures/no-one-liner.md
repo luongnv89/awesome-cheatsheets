@@ -14,11 +14,10 @@ links:
 
 Just a regular paragraph here, no bolded one-line marker.
 
-## Mental Model
+## Installation
 
-```mermaid
-flowchart LR
-  A --> B
+```bash
+curl -fsSL https://example.com/install.sh | bash
 ```
 
 ## Step-by-Step Setup & Optimization

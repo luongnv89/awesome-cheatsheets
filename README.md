@@ -57,7 +57,7 @@ Our wedge: **format + freshness + comparability**.
 
 The catalog covers four kinds of references:
 
-- **Tools** — terminal-native AI coding agents and adjacent CLIs (e.g. [Hermes Agent](./cheatsheets/hermes-agent/hermes-agent.md)).
+- **Tools** — terminal-native AI coding agents and adjacent CLIs (e.g. [Hermes Agent](./src/content/cheatsheets/hermes-agent/hermes-agent.md)).
 - **MCPs** — Model Context Protocol servers and how to wire them.
 - **Concepts** — patterns, primitives, and mental models behind the tooling.
 - **Comparisons** — head-to-head diffs between mutually-relevant entries.
@@ -88,7 +88,7 @@ pnpm freshness:scan      # surface entries past their stale budget
 Lint a single cheatsheet against the template contract.
 
 ```bash
-pnpm cheatsheet:lint cheatsheets/<slug>/<slug>.md
+pnpm cheatsheet:lint src/content/cheatsheets/<slug>/<slug>.md
 ```
 
 ## Contribute
@@ -100,7 +100,7 @@ Cheatsheets are authored with [Claude Code](https://www.anthropic.com/claude-cod
 3. Answer the review questions; let it draft the 7-section file.
 4. Open a PR — CI runs type-check, build, the no-CDN gate, and Lighthouse.
 
-The full walkthrough is the **[30-minute contributor tutorial](./docs/contributing.md)**. All cheatsheets follow the [template contract](./.claude/skills/cheatsheet-scribe/template-contract.md) — required frontmatter, locked section order, Mermaid diagram in *Mental Model*, collapsed *Reference*.
+The full walkthrough is the **[30-minute contributor tutorial](./docs/contributing.md)**. All cheatsheets follow the [template contract](./.claude/skills/cheatsheet-scribe/template-contract.md) — required frontmatter, locked section order, copy-paste *Installation*, collapsed *Reference*.
 
 ## Brand and visual identity
 
@@ -116,7 +116,7 @@ The mark is a stack of cards with a folded corner — layered, ready-to-grab kno
 
 ```
 awesome-cheatsheets/
-├── cheatsheets/          Published entries (one folder per slug)
+├── src/content/cheatsheets/  Published entries (one folder per slug)
 ├── src/                  Astro site (catalog, detail pages, layouts)
 ├── public/brand/         Logo set, favicons, color tokens
 ├── docs/                 Contributor tutorial, PRD

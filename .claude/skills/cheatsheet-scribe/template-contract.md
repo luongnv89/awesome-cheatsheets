@@ -60,7 +60,7 @@ links:
 Sections MUST appear in this exact order:
 
 1. **One-liner** (bold paragraph, not an H2): `**One-line:** <summary>`
-2. `## Mental Model` — MUST contain at least one Mermaid block
+2. `## Installation` — copy-paste one-line installer(s) + first-run flow
 3. `## Step-by-Step Setup & Optimization`
 4. `## Best Practices`
 5. `## Quick Command Reference`
@@ -94,10 +94,9 @@ An H2 heading conforms if it equals the canonical name OR starts with the canoni
 
 | Section | Requirement |
 |---------|-------------|
-| `Mental Model` | **REQUIRED** — must have at least one ` ```mermaid ` block |
-| Other sections | Allowed but optional |
+| Any section | Allowed but optional |
 
-Mermaid blocks must parse successfully (valid syntax).
+No section currently mandates a Mermaid block. Any Mermaid block that does appear must parse successfully (valid syntax).
 
 ---
 
@@ -146,4 +145,4 @@ Changes to `tools/template-contract.ts` MUST be reflected here. Add a CI check o
 - PRD §3 M3 (Catalog)
 - PRD §3 M4 (References section)
 - PRD §6.3 (Authoring layer)
-- PRD §6.6 (Repo layout: `cheatsheets/<slug>/<slug>.md`)
+- PRD §6.6 (Repo layout: `src/content/cheatsheets/<slug>/<slug>.md`)

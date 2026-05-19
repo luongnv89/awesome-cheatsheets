@@ -23,7 +23,7 @@ describe("section structure rule", () => {
 
   it("passes on the Hermes PoC (including the en-dash qualifier)", async () => {
     const result = await validate(
-      resolve(import.meta.dirname, "../../../cheatsheets/hermes-agent/hermes-agent.md"),
+      resolve(import.meta.dirname, "../../../src/content/cheatsheets/hermes-agent/hermes-agent.md"),
       { skipLinks: true },
     );
     const sectionErrors = result.errors.filter((e) =>

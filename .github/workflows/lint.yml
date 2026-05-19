@@ -19,14 +19,14 @@ on:
       - ".claude/skills/cheatsheet-scribe/**"
       - "tools/**"
       - "scribe-fixtures/**"
-      - "cheatsheets/hermes-agent/**"
+      - "src/content/cheatsheets/hermes-agent/**"
   push:
     branches: [main]
     paths:
       - ".claude/skills/cheatsheet-scribe/**"
       - "tools/**"
       - "scribe-fixtures/**"
-      - "cheatsheets/hermes-agent/**"
+      - "src/content/cheatsheets/hermes-agent/**"
 
 jobs:
   lint:
@@ -51,7 +51,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Lint Hermes contract-anchor fixture
-        run: pnpm cheatsheet:lint cheatsheets/hermes-agent/hermes-agent.md --no-links
+        run: pnpm cheatsheet:lint src/content/cheatsheets/hermes-agent/hermes-agent.md --no-links
 
       - name: Run test suite
         run: pnpm test

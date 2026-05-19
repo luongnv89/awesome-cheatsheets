@@ -14,7 +14,7 @@
  *           via the integration in `package.json` and the QA smoke checks.
  *
  * Also exercises:
- *  - Glob expansion (`cheatsheets/**\/*.md`) finds the Hermes file.
+ *  - Glob expansion (`src/content/cheatsheets/**\/*.md`) finds the Hermes file.
  *  - Usage errors exit 2.
  */
 import { describe, expect, it } from "vitest";
@@ -24,7 +24,7 @@ import { Writable } from "node:stream";
 import { main } from "../lint.js";
 
 const repoRoot = resolve(import.meta.dirname, "../../..");
-const hermes = resolve(repoRoot, "cheatsheets/hermes-agent/hermes-agent.md");
+const hermes = resolve(repoRoot, "src/content/cheatsheets/hermes-agent/hermes-agent.md");
 const fixtureRoot = resolve(repoRoot, "tools/validator/__tests__/fixtures");
 
 /**
@@ -169,7 +169,7 @@ describe("cheatsheet:lint CLI", () => {
   it("exits 2 when a glob matches zero files", async () => {
     const { io, err } = makeIo();
     const code = await main([
-      resolve(repoRoot, "cheatsheets/**/no-such-thing-*.md"),
+      resolve(repoRoot, "src/content/cheatsheets/**/no-such-thing-*.md"),
       "--no-links",
     ], io);
     expect(code).toBe(2);
@@ -179,7 +179,7 @@ describe("cheatsheet:lint CLI", () => {
   it("expands globs to find cheatsheet files", async () => {
     const { io, out } = makeIo();
     const code = await main([
-      resolve(repoRoot, "cheatsheets/**/*.md"),
+      resolve(repoRoot, "src/content/cheatsheets/**/*.md"),
       "--no-links",
     ], io);
     expect(code).toBe(0);

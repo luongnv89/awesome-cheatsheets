@@ -19,8 +19,10 @@
  *    broken fences in the AST, so a raw-source pass is the durable check).
  *  - `mermaid-empty`                       — fence opens and closes but the
  *    body is empty/whitespace-only.
- *  - `mermaid-missing-in-mental-model`    — section requires at least one
- *    Mermaid code block but none is present.
+ *  - `mermaid-missing-in-required-section` — section listed in
+ *    `MERMAID_RULES.requiredIn` is present but has no Mermaid block.
+ *    Currently no section requires one (`requiredIn: []`), so this is only
+ *    exercised if the contract repopulates the list.
  *
  * @see ../../template-contract.ts (`MERMAID_RULES`)
  * @see ../../../2026_05_18_awesome_ai_cheatsheets/prd.md §3 M1, §3 M4
@@ -168,7 +170,7 @@ function checkRequiredSectionMermaids(tree: Root): ValidationError[] {
       const line = heading?.position?.start.line;
       errors.push(
         makeError(
-          "mermaid-missing-in-mental-model",
+          "mermaid-missing-in-required-section",
           `section "${requiredName}" must contain at least one \`\`\`mermaid block`,
           line,
         ),

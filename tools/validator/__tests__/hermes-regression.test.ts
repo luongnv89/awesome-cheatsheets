@@ -3,7 +3,7 @@
  * contract-anchor fixture.
  *
  * Issue #4 / AC #2: a snapshot test that captures the current validator
- * output for `cheatsheets/hermes-agent/hermes-agent.md` and fails if the
+ * output for `src/content/cheatsheets/hermes-agent/hermes-agent.md` and fails if the
  * shape changes. Hermes is the cheatsheet the contract was derived from
  * (PoC PR ba85ed5 → ba80b27 "lock template contract"); any future change to
  * the contract, validator, or rules MUST keep Hermes passing or be a
@@ -29,7 +29,7 @@ describe("Hermes regression snapshot", () => {
     const result = await validate(
       resolve(
         import.meta.dirname,
-        "../../../cheatsheets/hermes-agent/hermes-agent.md",
+        "../../../src/content/cheatsheets/hermes-agent/hermes-agent.md",
       ),
       { skipLinks: true },
     );

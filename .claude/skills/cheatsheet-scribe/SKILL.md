@@ -60,7 +60,7 @@ The skill MUST NOT fabricate references, commands, or facts not present in:
 
 ### Step 1.5: Check for existing cheatsheet
 
-Before proceeding to drafting, derive the slug from the topic (kebab-case). Check if `cheatsheets/<slug>/` already exists in the repository.
+Before proceeding to drafting, derive the slug from the topic (kebab-case). Check if `src/content/cheatsheets/<slug>/` already exists in the repository.
 
 **If the cheatsheet already exists:**
 - Ask for explicit confirmation: "A cheatsheet for '<slug>' already exists. Do you want to overwrite it? Type 'yes, overwrite' to confirm."
@@ -88,7 +88,7 @@ Every cheatsheet must follow `template-contract.md`:
 
 **Section structure (locked order):**
 1. **One-liner**: `**One-line:** <summary>` (bold, before first H2)
-2. `## Mental Model` — MUST contain a Mermaid flowchart
+2. `## Installation` — copy-paste one-line installer(s) + first-run flow
 3. `## Step-by-Step Setup & Optimization` — numbered steps
 4. `## Best Practices` — bullets
 5. `## Quick Command Reference` — code blocks

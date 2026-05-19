@@ -4,8 +4,8 @@
  *
  * Single source of truth for the structural rules every cheatsheet in this
  * repository must obey. The contract is lifted from the hand-authored Hermes
- * Agent PoC at `cheatsheets/hermes-agent/hermes-agent.md`, which is the
- * canonical reference implementation.
+ * Agent PoC at `src/content/cheatsheets/hermes-agent/hermes-agent.md`, which
+ * is the canonical reference implementation.
  *
  * Three exports compose the contract:
  *
@@ -21,7 +21,7 @@
  * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §3 M1 ("Standardized cheatsheet template + validator")
  * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §6.3 ("Authoring layer")
  * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §10.2 ("Cheatsheet" glossary entry)
- * @see ../cheatsheets/hermes-agent/hermes-agent.md (PoC reference)
+ * @see ../src/content/cheatsheets/hermes-agent/hermes-agent.md (PoC reference)
  */
 
 import { z } from "zod";
@@ -131,15 +131,16 @@ export type Status = (typeof STATUSES)[number];
 export const frontmatterSchema = z.object({
   /**
    * URL-safe identifier; also the directory and filename under
-   * `cheatsheets/<slug>/<slug>.md`. PoC: `slug: hermes-agent`.
+   * `src/content/cheatsheets/<slug>/<slug>.md`. PoC: `slug: hermes-agent`.
    *
    * Lowercase letters, digits, and single hyphens only — no leading/trailing
    * hyphen, no consecutive hyphens. This matches the PRD §10.2 glossary
    * definition ("a single template-compliant `.md` file in
-   * `cheatsheets/<slug>/`") and lets us reuse the slug as a stable web path.
+   * `src/content/cheatsheets/<slug>/`") and lets us reuse the slug as a
+   * stable web path.
    *
    * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §10.2
-   * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §6.6 (repo layout: `cheatsheets/<slug>/<slug>.md`)
+   * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §6.6 (repo layout)
    */
   slug: z
     .string()
@@ -296,23 +297,23 @@ export type FrontmatterInput = z.input<typeof frontmatterSchema>;
 
 /**
  * Canonical names of the required top-level (`##`, H2) sections, in the
- * order they must appear. Lifted directly from the Hermes PoC headings.
+ * order they must appear. Lifted from the Hermes PoC headings; the Mental
+ * Model section was retired and replaced with `Installation` (copy-paste
+ * one-line installer + first-run flow).
  *
- * Locking the order is what Task 1.1 AC #1 calls for: "required section
- * names in locked order (one-liner, mental model, setup, best practices,
- * references)". The PoC expands "setup" to "Step-by-Step Setup &
- * Optimization" and adds "Quick Command Reference" and "Expected Outcomes"
- * — those names are now part of the locked contract.
+ * The PoC expands "setup" to "Step-by-Step Setup & Optimization" and adds
+ * "Quick Command Reference" and "Expected Outcomes" — those names are part
+ * of the locked contract.
  *
  * Note: the "one-liner" is a bolded paragraph (`**One-line:** ...`) above
  * the first H2 — it is not an H2 heading. See {@link ONE_LINER_RULE}.
  *
  * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §3 M1 (Acceptance: required sections in locked order)
  * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §3 M4 (locked 8-section structure per page)
- * @see ../cheatsheets/hermes-agent/hermes-agent.md (PoC source)
+ * @see ../src/content/cheatsheets/hermes-agent/hermes-agent.md (PoC source)
  */
 export const REQUIRED_SECTIONS = [
-  "Mental Model",
+  "Installation",
   "Step-by-Step Setup & Optimization",
   "Best Practices",
   "Quick Command Reference",
@@ -333,7 +334,7 @@ export type RequiredSection = (typeof REQUIRED_SECTIONS)[number];
  * fails the contract if it renames the section (e.g., `## Results`) or
  * reorders it.
  *
- * @see ../cheatsheets/hermes-agent/hermes-agent.md (`## Expected Outcomes (after Steps 1–5)`)
+ * @see ../src/content/cheatsheets/hermes-agent/hermes-agent.md (`## Expected Outcomes (after Steps 1–5)`)
  * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §3 M1 (linter validates required section names)
  */
 export const SECTION_MATCH_RULE = {
@@ -403,22 +404,21 @@ export const REFERENCE_RULE = {
 /**
  * Where Mermaid diagrams are required vs allowed.
  *
- * PRD §3 M1 calls out "Mermaid block syntax" validation; PRD §3 M4 makes the
- * Mental Model section a Mermaid block ("mental model (Mermaid)"). The
- * Hermes PoC ships a `flowchart LR` under `## Mental Model`. The linter
- * (Task 1.2) must:
+ * PRD §3 M1 calls out "Mermaid block syntax" validation. The Mental Model
+ * section was retired from the locked template, so no section currently
+ * mandates a Mermaid block — but any Mermaid block that appears must parse.
+ * The linter (Task 1.2) must:
  *
- *  1. Require at least one ` ```mermaid ` fenced block inside the
- *     `Mental Model` section.
- *  2. Allow Mermaid blocks anywhere else (e.g., flow diagrams inside a
- *     setup step) but parse them all to catch broken fences.
+ *  1. Allow Mermaid blocks anywhere (e.g., flow diagrams inside a setup
+ *     step) and parse them all to catch broken fences.
+ *  2. Enforce required-section Mermaid blocks for any section listed in
+ *     `requiredIn` (currently empty).
  *
  * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §3 M1 (Mermaid block syntax check)
- * @see ../2026_05_18_awesome_ai_cheatsheets/prd.md §3 M4 ("mental model (Mermaid)")
  */
 export const MERMAID_RULES = {
   /** Sections that MUST contain at least one Mermaid block. */
-  requiredIn: ["Mental Model"] as const satisfies readonly RequiredSection[],
+  requiredIn: [] as const satisfies readonly RequiredSection[],
   /** Fence marker for a Mermaid block (the opening line). */
   fenceOpen: "```mermaid",
   /** Fence marker for the closing line of any fenced block. */

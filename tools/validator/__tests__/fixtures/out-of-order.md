@@ -14,11 +14,10 @@ links:
 
 **One-line:** Swaps Best Practices in front of Setup to exercise the section-out-of-order rule path.
 
-## Mental Model
+## Installation
 
-```mermaid
-flowchart LR
-  A --> B
+```bash
+curl -fsSL https://example.com/install.sh | bash
 ```
 
 ## Best Practices

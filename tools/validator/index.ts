@@ -5,7 +5,7 @@
  *
  *  ```ts
  *  import { validate } from "tools/validator";
- *  const result = await validate("cheatsheets/hermes-agent/hermes-agent.md");
+ *  const result = await validate("src/content/cheatsheets/hermes-agent/hermes-agent.md");
  *  if (!result.ok) {
  *    for (const e of result.errors) console.error(`${e.rule}: ${e.message}`);
  *  }

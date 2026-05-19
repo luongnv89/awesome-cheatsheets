@@ -4,7 +4,7 @@
  * PRD M2 bullet 3 hard gate: given `scribe-fixtures/inputs/hermes-agent.md`,
  * running the scribe must produce a file that:
  *   1. Passes `pnpm cheatsheet:lint` with zero errors
- *   2. Matches the section structure of `cheatsheets/hermes-agent/hermes-agent.md`
+ *   2. Matches the section structure of `src/content/cheatsheets/hermes-agent/hermes-agent.md`
  *
  * This test verifies both conditions using the validator and section rules.
  * The scribe is the cheatsheet-scribe skill - we verify the output would be valid.
@@ -20,7 +20,7 @@ import { REQUIRED_SECTIONS } from "../../template-contract.js";
 
 const REPO_ROOT = resolve(import.meta.dirname, "../../..");
 const SCRIBE_INPUT = resolve(REPO_ROOT, "scribe-fixtures/inputs/hermes-agent.md");
-const HERMES_CHEATSHEET = resolve(REPO_ROOT, "cheatsheets/hermes-agent/hermes-agent.md");
+const HERMES_CHEATSHEET = resolve(REPO_ROOT, "src/content/cheatsheets/hermes-agent/hermes-agent.md");
 
 describe("Hermes regeneration acceptance test (Issue #13)", () => {
   it("scribe-fixtures input exists", () => {

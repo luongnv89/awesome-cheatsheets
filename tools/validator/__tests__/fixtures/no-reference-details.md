@@ -14,11 +14,10 @@ links:
 
 **One-line:** Reference section is present but lacks the required collapsed <details>...</details> block.
 
-## Mental Model
+## Installation
 
-```mermaid
-flowchart LR
-  A --> B
+```bash
+curl -fsSL https://example.com/install.sh | bash
 ```
 
 ## Step-by-Step Setup & Optimization

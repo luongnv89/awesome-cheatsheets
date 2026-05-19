@@ -13,7 +13,7 @@ import { validate } from "../index.js";
 describe("validate() aggregate", () => {
   it("returns ok=true for the Hermes PoC with skipLinks", async () => {
     const result = await validate(
-      resolve(import.meta.dirname, "../../../cheatsheets/hermes-agent/hermes-agent.md"),
+      resolve(import.meta.dirname, "../../../src/content/cheatsheets/hermes-agent/hermes-agent.md"),
       { skipLinks: true },
     );
     expect(result.ok).toBe(true);

@@ -74,7 +74,7 @@ interface CliIo {
 const USAGE = `Usage: pnpm cheatsheet:lint <path-or-glob>... [options]
 
 Validates one or more cheatsheet Markdown files against the template
-contract. Accepts literal file paths or glob patterns (e.g. cheatsheets/**/*.md).
+contract. Accepts literal file paths or glob patterns (e.g. src/content/cheatsheets/**/*.md).
 
 Options:
   --format=<human|json>     Output format. Default: human.
@@ -88,9 +88,9 @@ Exit codes:
   2   Usage error (bad flag, no inputs, zero matches).
 
 Examples:
-  pnpm cheatsheet:lint cheatsheets/hermes-agent/hermes-agent.md
-  pnpm cheatsheet:lint 'cheatsheets/**/*.md' --no-links
-  pnpm --silent cheatsheet:lint cheatsheets/foo.md --format=json
+  pnpm cheatsheet:lint src/content/cheatsheets/hermes-agent/hermes-agent.md
+  pnpm cheatsheet:lint 'src/content/cheatsheets/**/*.md' --no-links
+  pnpm --silent cheatsheet:lint src/content/cheatsheets/foo.md --format=json
                                                   # --silent suppresses pnpm's
                                                   # script preamble so the
                                                   # JSON is parseable as-is.

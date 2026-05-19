@@ -34,7 +34,7 @@ export const RULE_IDS = [
   "reference-details-missing",
 
   // Mermaid block rules — MERMAID_RULES.
-  "mermaid-missing-in-mental-model",
+  "mermaid-missing-in-required-section",
   "mermaid-fence-broken",
   "mermaid-empty",
 

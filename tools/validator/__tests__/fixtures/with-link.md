@@ -14,11 +14,10 @@ links:
 
 **One-line:** Has a single external link used by the link-rule tests to exercise both pass and fail paths.
 
-## Mental Model
+## Installation
 
-```mermaid
-flowchart LR
-  A --> B
+```bash
+curl -fsSL https://example.com/install.sh | bash
 ```
 
 See [example homepage](https://example.com/test-url) for more.

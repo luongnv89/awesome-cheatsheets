@@ -2,11 +2,10 @@
 
 **One-line:** A cheatsheet with no YAML frontmatter, used to exercise the frontmatter-missing rule.
 
-## Mental Model
+## Installation
 
-```mermaid
-flowchart LR
-  A --> B
+```bash
+curl -fsSL https://example.com/install.sh | bash
 ```
 
 ## Step-by-Step Setup & Optimization

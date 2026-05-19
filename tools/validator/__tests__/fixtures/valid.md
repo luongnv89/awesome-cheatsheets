@@ -15,14 +15,18 @@ links:
 
 **One-line:** Minimal cheatsheet fixture covering every locked section so the validator can return ok=true on a known-good document.
 
-## Mental Model
+## Installation
 
-```mermaid
-flowchart LR
-  A --> B
+```bash
+curl -fsSL https://example.com/install.sh | bash
 ```
 
-A short paragraph explaining the diagram.
+First-run flow:
+
+```bash
+example setup
+example doctor
+```
 
 ## Step-by-Step Setup & Optimization
 
