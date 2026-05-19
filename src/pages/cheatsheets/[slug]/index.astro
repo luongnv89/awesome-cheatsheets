@@ -1,0 +1,78 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../../../layouts/Layout.astro';
+
+export async function getStaticPaths() {
+  const cheatsheets = await getCollection('cheatsheets');
+  return cheatsheets.map((entry) => ({
+    params: { slug: entry.slug },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await entry.render();
+---
+
+<Layout title={entry.data.title}>
+  <main class="container mx-auto py-12 px-4">
+    <article class="prose max-w-none">
+      <header class="mb-8">
+        <h1 class="text-4xl font-bold mb-4">{entry.data.title}</h1>
+        <p class="text-xl text-gray-600 mb-4">{entry.data.summary}</p>
+        <div class="flex flex-wrap gap-2 mb-4">
+          <span class="badge">{entry.data.category}</span>
+          {entry.data.tags.map((tag) => (
+            <span class="tag">{tag}</span>
+          ))}
+        </div>
+        <p class="text-sm text-gray-500">
+          Last updated: {entry.data.last_updated}
+        </p>
+      </header>
+      <Content />
+    </article>
+  </main>
+</Layout>
+
+<style is:global>
+  .container { max-width: 900px; }
+  .mx-auto { margin-left: auto; margin-right: auto; }
+  .py-12 { padding-top: 3rem; padding-bottom: 3rem; }
+  .px-4 { padding-left: 1rem; padding-right: 1rem; }
+  .prose { max-width: 65ch; }
+  .max-w-none { max-width: none; }
+  .text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
+  .font-bold { font-weight: 700; }
+  .mb-4 { margin-bottom: 1rem; }
+  .mb-8 { margin-bottom: 2rem; }
+  .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+  .text-gray-600 { color: #4b5563; }
+  .text-gray-500 { color: #6b7280; }
+  .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+  .flex { display: flex; }
+  .flex-wrap { flex-wrap: wrap; }
+  .gap-2 { gap: 0.5rem; }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 9999px;
+    border: 1px solid transparent;
+    padding: 0.125rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background-color: #1f2937;
+    color: #fff;
+  }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 0.25rem;
+    padding: 0.125rem 0.5rem;
+    font-size: 0.75rem;
+    background-color: #f3f4f6;
+    color: #4b5563;
+  }
+</style>
