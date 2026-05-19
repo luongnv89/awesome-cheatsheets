@@ -158,7 +158,7 @@ const metaDescription = frontmatter.summary;
           )}
         </header>
 
-        <div class="cheatsheet-content">
+        <div class="cheatsheet-content" data-slug={slug}>
           <slot />
         </div>
       </article>
@@ -205,28 +205,133 @@ const metaDescription = frontmatter.summary;
 
     {/*
      * Step heading enhancer. Rewrites `### Step N — Title (qualifier)` H3s
-     * into a pill badge ("STEP N") on its own row above the bare title, so
-     * setup steps are visually distinct from regular H3s. The pattern only
-     * matches the literal `Step <digits>` prefix; other H3s are left alone.
+     * into a checkbox + pill badge ("STEP N") + bare title, so setup steps
+     * are visually distinct from regular H3s. The pattern only matches the
+     * literal `Step <digits>` prefix; other H3s are left alone.
+     *
+     * Checkbox state persists per-cheatsheet via localStorage. Checking a
+     * step strikes through its title and all sibling nodes up to (but not
+     * including) the next Step H3 or the next H2 — i.e., the visual span
+     * the user just completed.
      */}
     <script>
-      const stepHeadings = document.querySelectorAll('.cheatsheet-content h3');
-      const STEP_RE = /^Step\s+(\d+)\s*[—–-]\s*(.+)$/;
-      stepHeadings.forEach((h3) => {
-        const match = h3.textContent?.trim().match(STEP_RE);
-        if (!match) return;
-        const [, n, title] = match;
-        h3.classList.add('step-heading');
-        h3.innerHTML = '';
-        const badge = document.createElement('span');
-        badge.className = 'step-badge';
-        badge.textContent = `STEP ${n}`;
-        const titleEl = document.createElement('span');
-        titleEl.className = 'step-title';
-        titleEl.textContent = title ?? '';
-        h3.appendChild(badge);
-        h3.appendChild(titleEl);
-      });
+      const container = document.querySelector('.cheatsheet-content');
+      if (container) {
+        const slug = container.getAttribute('data-slug') ?? 'unknown';
+        const storageKey = `cheatsheet-progress:${slug}`;
+        /** @type {Record<string, boolean>} */
+        let state = {};
+        try {
+          state = JSON.parse(localStorage.getItem(storageKey) ?? '{}') ?? {};
+        } catch {
+          state = {};
+        }
+        const persist = () => {
+          try {
+            localStorage.setItem(storageKey, JSON.stringify(state));
+          } catch {
+            /* storage disabled — silent no-op */
+          }
+        };
+
+        const STEP_RE = /^Step\s+(\d+)\s*[—–-]\s*(.+)$/;
+        const stepHeadings = container.querySelectorAll('h3');
+
+        /**
+         * Collect the sibling element nodes that belong to a Step heading:
+         * everything between this H3 and the next Step H3 / any H2.
+         * @param {Element} h3
+         */
+        const collectBody = (h3) => {
+          /** @type {Element[]} */
+          const nodes = [];
+          let sib = h3.nextElementSibling;
+          while (sib) {
+            if (sib.tagName === 'H2') break;
+            if (sib.tagName === 'H3' && STEP_RE.test(sib.textContent?.trim() ?? '')) break;
+            nodes.push(sib);
+            sib = sib.nextElementSibling;
+          }
+          return nodes;
+        };
+
+        /** @type {string[]} */
+        const stepKeys = [];
+        /** @type {Element | null} */
+        let sectionH2 = null;
+
+        stepHeadings.forEach((h3) => {
+          const match = h3.textContent?.trim().match(STEP_RE);
+          if (!match) return;
+          const [, n, title] = match;
+          const stepKey = `step-${n}`;
+          stepKeys.push(stepKey);
+
+          if (!sectionH2) {
+            let prev = h3.previousElementSibling;
+            while (prev) {
+              if (prev.tagName === 'H2') {
+                sectionH2 = prev;
+                break;
+              }
+              prev = prev.previousElementSibling;
+            }
+          }
+
+          h3.classList.add('step-heading');
+          h3.innerHTML = '';
+
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.className = 'step-checkbox';
+          checkbox.setAttribute('aria-label', `Mark Step ${n} done`);
+          checkbox.checked = state[stepKey] === true;
+
+          const badge = document.createElement('span');
+          badge.className = 'step-badge';
+          badge.textContent = `STEP ${n}`;
+
+          const titleEl = document.createElement('span');
+          titleEl.className = 'step-title';
+          titleEl.textContent = title ?? '';
+
+          h3.appendChild(checkbox);
+          h3.appendChild(badge);
+          h3.appendChild(titleEl);
+
+          const body = collectBody(h3);
+          const applyDone = (done) => {
+            h3.classList.toggle('is-done', done);
+            for (const node of body) node.classList.toggle('step-done-body', done);
+          };
+          applyDone(checkbox.checked);
+
+          checkbox.addEventListener('change', () => {
+            state[stepKey] = checkbox.checked;
+            persist();
+            applyDone(checkbox.checked);
+            updateProgress();
+          });
+        });
+
+        /** @type {HTMLElement | null} */
+        let progressChip = null;
+        if (sectionH2 && stepKeys.length > 0) {
+          progressChip = document.createElement('span');
+          progressChip.className = 'step-progress';
+          progressChip.setAttribute('aria-live', 'polite');
+          sectionH2.appendChild(progressChip);
+        }
+
+        function updateProgress() {
+          if (!progressChip) return;
+          const done = stepKeys.filter((k) => state[k] === true).length;
+          const total = stepKeys.length;
+          progressChip.textContent = `${done} / ${total} done`;
+          progressChip.classList.toggle('is-complete', done === total && total > 0);
+        }
+        updateProgress();
+      }
     </script>
 
     {/*

@@ -56,7 +56,8 @@ const frontmatter = {
   .cheatsheet-body > h3,
   .cheatsheet-body > h4 { margin-bottom: 0.5rem; }
 
-  /* Solid dark-bar h2 — the signature MAG section header. */
+  /* Solid dark-bar h2 — the signature MAG section header. Switches to flex
+     so an injected progress chip (Step section only) sits on the right. */
   .cheatsheet-body h2 {
     font-family: var(--font-heading);
     font-size: 1.0625rem;
@@ -67,8 +68,32 @@ const frontmatter = {
     background-color: var(--color-ink);
     border-radius: var(--radius-sm);
     border-bottom: 3px solid var(--color-amber);
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
     page-break-after: avoid;
+  }
+
+  /* Progress chip on the Setup H2 — injected by the step-heading enhancer
+     when at least one Step is present. Reads against the dark bar; flips to
+     neon green fill when all steps are checked. */
+  .cheatsheet-body h2 .step-progress {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: 0.15rem 0.55rem;
+    color: #DCFCE7;
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+  }
+  .cheatsheet-body h2 .step-progress.is-complete {
+    color: var(--color-ink);
+    background-color: #4ADE80;
+    border-color: #4ADE80;
   }
   .cheatsheet-body > h2:first-child { margin-top: 0; }
 
@@ -81,21 +106,33 @@ const frontmatter = {
     page-break-after: avoid;
   }
 
-  /* Step headings (rewritten client-side from `### Step N — Title`). Pill
-     badge sits above a thin rule, then the title on its own row. Gives
-     scannable "newspaper section break" separation between setup steps
-     without the bulk of a full card. */
+  /* Step headings (rewritten client-side from `### Step N — Title`).
+     Checkbox, pill badge, and bare title in one row above the body. Gives
+     scannable "newspaper section break" separation between setup steps,
+     plus a one-click way to mark a step as done — checked state persists
+     per-cheatsheet via localStorage. */
   .cheatsheet-body h3.step-heading {
-    display: block;
+    display: grid;
+    grid-template-columns: auto auto 1fr;
+    align-items: center;
+    column-gap: 0.55rem;
+    row-gap: 0.2rem;
     margin-top: 1.6rem;
     padding-top: 0.6rem;
     border-top: 1px solid var(--color-rule);
     font-size: 1.0625rem;
     line-height: 1.3;
   }
+  .cheatsheet-body h3.step-heading .step-checkbox {
+    grid-row: 1;
+    width: 1.1rem;
+    height: 1.1rem;
+    margin: 0;
+    accent-color: #4ADE80;
+    cursor: pointer;
+  }
   .cheatsheet-body h3.step-heading .step-badge {
-    display: inline-block;
-    margin-bottom: 0.35rem;
+    grid-row: 1;
     padding: 0.1rem 0.55rem;
     font-family: var(--font-mono);
     font-size: 0.7rem;
@@ -104,11 +141,32 @@ const frontmatter = {
     color: var(--color-ink);
     background-color: #4ADE80;
     border-radius: var(--radius-sm);
-    vertical-align: middle;
   }
   .cheatsheet-body h3.step-heading .step-title {
-    display: block;
+    grid-column: 2 / -1;
+    grid-row: 2;
     color: var(--color-ink);
+  }
+
+  /* Done state — strike the title and fade the body, but keep things
+     readable (lower opacity, not invisible) so the user can still re-check
+     what they completed. */
+  .cheatsheet-body h3.step-heading.is-done .step-title {
+    text-decoration: line-through;
+    text-decoration-thickness: 2px;
+    text-decoration-color: var(--color-ink-soft);
+    color: var(--color-ink-soft);
+  }
+  .cheatsheet-body h3.step-heading.is-done .step-badge {
+    background-color: var(--color-rule);
+    color: var(--color-ink-soft);
+  }
+  .cheatsheet-body .step-done-body {
+    opacity: 0.45;
+    transition: opacity 0.15s;
+  }
+  .cheatsheet-body .step-done-body:hover {
+    opacity: 1;
   }
 
   .cheatsheet-body h4 {
