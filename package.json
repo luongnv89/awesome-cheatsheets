@@ -12,7 +12,7 @@
     "type-check": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "astro build && playwright test",
+    "test:e2e": "INCLUDE_E2E_FIXTURES=1 astro build && playwright test",
     "cheatsheet:lint": "tsx tools/cli/lint.ts"
   },
   "engines": {

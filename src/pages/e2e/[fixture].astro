@@ -1,0 +1,50 @@
+---
+import CheatsheetLayout from '../../layouts/CheatsheetLayout.astro';
+
+export async function getStaticPaths() {
+  if (process.env.INCLUDE_E2E_FIXTURES !== '1') {
+    return [];
+  }
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  return [
+    {
+      params: { fixture: 'stale' },
+      props: {
+        frontmatter: {
+          title: 'Test Stale Cheatsheet',
+          summary:
+            'A test cheatsheet with a stale last_updated date to verify banner rendering.',
+          category: 'tool' as const,
+          tags: ['test'],
+          last_updated: '2020-01-01',
+          stale_after_days: 1,
+        },
+      },
+    },
+    {
+      params: { fixture: 'fresh' },
+      props: {
+        frontmatter: {
+          title: 'Test Fresh Cheatsheet',
+          summary:
+            'A test cheatsheet with a recent last_updated date to verify chip rendering.',
+          category: 'tool' as const,
+          tags: ['test'],
+          last_updated: today,
+          stale_after_days: 90,
+        },
+      },
+    },
+  ];
+}
+
+const { frontmatter } = Astro.props;
+---
+
+<CheatsheetLayout title={frontmatter.title} frontmatter={frontmatter}>
+  <div class="cheatsheet-body">
+    <p>Test content for {frontmatter.title}.</p>
+  </div>
+</CheatsheetLayout>
