@@ -7,6 +7,11 @@ dist/
 build/
 .astro/
 
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+
 # Editor / OS
 .DS_Store
 *.swp
