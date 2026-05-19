@@ -17,6 +17,18 @@ const today = new Date();
 const lastUpdated = new Date(frontmatter.last_updated);
 const daysSinceUpdate = Math.floor((today.getTime() - lastUpdated.getTime()) / (1000 * 60 * 60 * 24));
 const isStale = daysSinceUpdate > frontmatter.stale_after_days;
+
+function getRelativeTime(days: number): string {
+  if (days === 0) return "today";
+  if (days === 1) return "yesterday";
+  if (days < 7) return `${days} days ago`;
+  if (days < 14) return "1 week ago";
+  if (days < 30) return `${Math.floor(days / 7)} weeks ago`;
+  if (days < 60) return "1 month ago";
+  return `${Math.floor(days / 30)} months ago`;
+}
+
+const relativeTime = getRelativeTime(daysSinceUpdate);
 ---
 
 <!doctype html>
@@ -29,6 +41,17 @@ const isStale = daysSinceUpdate > frontmatter.stale_after_days;
   <body>
     <main class="container mx-auto py-12 px-4">
       <article class="cheatsheet">
+        {isStale && (
+          <div class="stale-banner" role="alert">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            <span>This cheatsheet may be stale (last updated {frontmatter.last_updated})</span>
+          </div>
+        )}
+
         <header class="cheatsheet-header">
           <h1 class="text-4xl font-bold mb-4">{frontmatter.title}</h1>
           <p class="text-xl text-gray-600 mb-4">{frontmatter.summary}</p>
@@ -40,11 +63,13 @@ const isStale = daysSinceUpdate > frontmatter.stale_after_days;
             ))}
           </div>
 
-          <div class="flex items-center gap-4 text-sm text-gray-500">
-            <span>Last updated: {frontmatter.last_updated}</span>
-            {isStale && (
-              <span class="stale-badge">Stale</span>
-            )}
+          <div class="freshness-chip" title={`Last updated: ${frontmatter.last_updated}`}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            <span class="absolute-date">{frontmatter.last_updated}</span>
+            <span class="relative-date">({relativeTime})</span>
           </div>
         </header>
 
@@ -77,6 +102,24 @@ const isStale = daysSinceUpdate > frontmatter.stale_after_days;
   .gap-4 { gap: 1rem; }
   .items-center { align-items: center; }
 
+  .stale-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    background-color: #fef3c7;
+    border: 1px solid #fcd34d;
+    border-radius: 0.5rem;
+    color: #92400e;
+    font-weight: 500;
+  }
+
+  .stale-banner svg {
+    flex-shrink: 0;
+    color: #d97706;
+  }
+
   .badge {
     display: inline-flex;
     align-items: center;
@@ -99,15 +142,28 @@ const isStale = daysSinceUpdate > frontmatter.stale_after_days;
     color: #4b5563;
   }
 
-  .stale-badge {
+  .freshness-chip {
     display: inline-flex;
     align-items: center;
-    border-radius: 0.25rem;
-    padding: 0.125rem 0.5rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    background-color: #fef3c7;
-    color: #92400e;
+    gap: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    background-color: #f3f4f6;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    color: #4b5563;
+  }
+
+  .freshness-chip svg {
+    color: #6b7280;
+  }
+
+  .absolute-date {
+    font-weight: 500;
+    color: #1f2937;
+  }
+
+  .relative-date {
+    color: #6b7280;
   }
 
   .cheatsheet-content section {
