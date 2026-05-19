@@ -1,0 +1,232 @@
+---
+/**
+ * About page (issue #27).
+ *
+ * Top-level chrome page that explains *why* this project exists: cites the
+ * wedge (format + freshness + comparability) per PRD §1, summarizes how the
+ * catalog works, and points contributors to the 30-minute tutorial.
+ *
+ * Uses `Layout.astro` (the base shell), NOT `CheatsheetLayout.astro` — the
+ * latter is reserved for content-collection entries with the locked 7-section
+ * structure. Catalog hero typography classes (`.catalog-main`,
+ * `.catalog-hero`, `.catalog-hero-title`, `.catalog-hero-lede`) are reused
+ * inline rather than extracted to a partial: for two small chrome pages,
+ * inline keeps the call graph flat and avoids premature abstraction.
+ *
+ * All internal links honor `import.meta.env.BASE_URL` so the page works on
+ * GitHub Pages (base `/awesome-cheatsheets`). External links go to the source
+ * repository on GitHub.
+ */
+import Layout from '../layouts/Layout.astro';
+
+const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, '');
+const catalogHref = `${baseUrl}/`;
+
+// Repo URL kept as a constant so the value is reviewable in one place. If the
+// project ever moves, this is the only string to change.
+const repoUrl = 'https://github.com/luongnv89/awesome-cheatsheets';
+const contributingUrl = `${repoUrl}/blob/main/docs/contributing.md`;
+const prdUrl = `${repoUrl}/blob/main/PRD.md`;
+---
+
+<Layout title="About — Awesome AI Cheatsheets">
+  <main class="catalog-main">
+    <header class="catalog-hero">
+      <h1 class="catalog-hero-title">About this project</h1>
+      <p class="catalog-hero-lede">
+        Awesome AI Cheatsheets is a curated collection of standardized
+        references for terminal-native AI coding agents and the concepts behind
+        them. Our wedge: <strong>format + freshness + comparability</strong> —
+        every cheatsheet ships with a last-updated date, is flagged when it
+        goes stale, and follows the same 7-section structure so you can
+        compare tools head-to-head.
+      </p>
+    </header>
+
+    <section class="about-section" aria-labelledby="about-wedge">
+      <h2 id="about-wedge" class="about-section-title">The wedge</h2>
+      <p class="about-paragraph">
+        We sit between shallow READMEs that skip the nuance and exhaustive
+        reference docs that bury the lede. Three properties make a cheatsheet
+        worth landing on:
+      </p>
+      <ul class="about-list">
+        <li>
+          <strong>Format.</strong> Every entry follows the same locked
+          7-section template — one-liner, mental model, quickstart, recipes,
+          gotchas, reference, links — so you can skim it the same way every
+          time.
+        </li>
+        <li>
+          <strong>Freshness.</strong> Each cheatsheet carries a
+          <code>last_updated</code> date and a <code>stale_after_days</code>
+          budget. When a cheatsheet drifts past its budget, the catalog and
+          detail pages flag it as <em>may be stale</em> in plain sight.
+        </li>
+        <li>
+          <strong>Comparability.</strong> Because the structure is fixed,
+          mutually-relevant entries (e.g. two CLI agents) can be diffed
+          section-by-section without re-learning each one's layout.
+        </li>
+      </ul>
+    </section>
+
+    <section class="about-section" aria-labelledby="about-how">
+      <h2 id="about-how" class="about-section-title">How it works</h2>
+      <ul class="about-list">
+        <li>
+          The <a href={catalogHref}>catalog</a> lists every published
+          cheatsheet with its category, tags, and last-updated date.
+        </li>
+        <li>
+          A built-in <strong>search</strong> (Pagefind) indexes every entry at
+          build time — no third-party JavaScript, no runtime API.
+        </li>
+        <li>
+          <strong>Filter pills</strong> let you narrow by category (tool, mcp,
+          concept, comparison) or by tag.
+        </li>
+        <li>
+          A <strong>freshness chip</strong> on each detail page surfaces the
+          last-updated date and a stale banner when the entry is past its
+          budget.
+        </li>
+      </ul>
+    </section>
+
+    <section class="about-section" aria-labelledby="about-contribute">
+      <h2 id="about-contribute" class="about-section-title">Contribute</h2>
+      <p class="about-paragraph">
+        Cheatsheets are authored with <a href={repoUrl}>Claude Code</a> and the
+        <code>/cheatsheet-scribe</code> skill. The
+        <a href={contributingUrl}>30-minute contributor tutorial</a> walks
+        through the full flow — from raw notes to a merged PR.
+      </p>
+      <ul class="about-list">
+        <li><a href={contributingUrl}>Contributor tutorial</a> (docs/contributing.md)</li>
+        <li><a href={prdUrl}>Project requirements document</a> (PRD.md)</li>
+        <li><a href={repoUrl}>Source repository on GitHub</a></li>
+      </ul>
+    </section>
+
+    <footer class="about-footer">
+      <p>
+        <a class="about-back-link" href={catalogHref}>← Back to the catalog</a>
+      </p>
+      <p class="about-license">
+        Code under MIT, content under CC-BY 4.0. Source on
+        <a href={repoUrl}>GitHub</a>.
+      </p>
+    </footer>
+  </main>
+</Layout>
+
+<style is:global>
+  /**
+   * Catalog hero typography — duplicated here intentionally so the about
+   * page styles even when the catalog landing page's stylesheet isn't
+   * loaded. (Astro scopes `is:global` stylesheets per route; the rules in
+   * `index.astro` ship only with `dist/index.html`.) Keep these in sync with
+   * `src/pages/index.astro` and `src/pages/404.astro`.
+   */
+  .catalog-main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 3rem 1.25rem 4rem;
+  }
+
+  .catalog-hero {
+    margin-bottom: 3rem;
+  }
+
+  .catalog-hero-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1.15;
+    margin: 0 0 1rem 0;
+    color: #111827;
+  }
+
+  .catalog-hero-lede {
+    font-size: 1.125rem;
+    line-height: 1.6;
+    color: #4b5563;
+    max-width: 60ch;
+    margin: 0;
+  }
+
+  .catalog-hero-lede strong {
+    color: #111827;
+    font-weight: 600;
+  }
+
+  /* About-page rules below. */
+  .about-section {
+    margin-bottom: 2.5rem;
+  }
+
+  .about-section-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0 0 1rem 0;
+  }
+
+  .about-paragraph {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #374151;
+    margin: 0 0 1rem 0;
+    max-width: 65ch;
+  }
+
+  .about-list {
+    list-style: disc;
+    padding-left: 1.5rem;
+    margin: 0;
+    color: #374151;
+    line-height: 1.6;
+    max-width: 65ch;
+  }
+
+  .about-list li {
+    margin-bottom: 0.5rem;
+  }
+
+  .about-list a,
+  .about-paragraph a {
+    color: #2563eb;
+    text-decoration: underline;
+  }
+
+  .about-list code,
+  .about-paragraph code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.9em;
+    background: #f3f4f6;
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+  }
+
+  .about-footer {
+    border-top: 1px solid #e5e7eb;
+    padding-top: 1.5rem;
+    margin-top: 2.5rem;
+    color: #6b7280;
+    font-size: 0.95rem;
+  }
+
+  .about-footer a {
+    color: #2563eb;
+    text-decoration: underline;
+  }
+
+  .about-back-link {
+    font-weight: 500;
+  }
+
+  .about-license {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+  }
+</style>
