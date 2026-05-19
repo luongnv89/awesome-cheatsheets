@@ -1,76 +1,24 @@
 import { visit } from 'unist-util-visit';
-import { execSync } from 'child_process';
-import path from 'path';
-import fs from 'fs';
 
-interface MermaidPluginOptions {
-  outputDir?: string;
-}
-
-export function remarkMermaid(options: MermaidPluginOptions = {}) {
+/**
+ * Replace ```mermaid code fences with <div class="mermaid">…escaped source…</div>
+ * so the client-side mermaid loader (CheatsheetLayout.astro) can render them
+ * into SVG. Sync — no build-time CLI dependency.
+ *
+ * The mermaid source is HTML-escaped on emit so syntax like `<br/>` in node
+ * labels survives the round-trip: the browser stores it as literal text in the
+ * div, and mermaid reads it back via textContent.
+ */
+export function remarkMermaid() {
   return function (tree: any) {
-    const warnings: string[] = [];
-
-    visit(tree, 'code', async (node: any, index: number) => {
-      if (node.lang !== 'mermaid') return;
-
-      const mermaidCode = node.value;
-
-      try {
-        const svg = await renderMermaid(mermaidCode);
-        const svgNode = {
-          type: 'html',
-          value: `<div class="mermaid">${svg}</div>`,
-        };
-
-        tree.children[index] = svgNode;
-      } catch (error: any) {
-        warnings.push(`Mermaid rendering failed: ${error.message}`);
-        const fallbackNode = {
-          type: 'html',
-          value: `<pre class="mermaid-fallback"><code>${escapeHtml(mermaidCode)}</code></pre>`,
-        };
-        tree.children[index] = fallbackNode;
-      }
+    visit(tree, 'code', (node: any, index: number | null, parent: any) => {
+      if (node.lang !== 'mermaid' || parent == null || index == null) return;
+      parent.children[index] = {
+        type: 'html',
+        value: `<div class="mermaid">${escapeHtml(node.value)}</div>`,
+      };
     });
-
-    if (warnings.length > 0) {
-      console.warn('Mermaid processing warnings:', warnings.join('; '));
-    }
   };
-}
-
-async function renderMermaid(code: string): Promise<string> {
-  const tempDir = '/tmp/mermaid-render';
-  if (!fs.existsSync(tempDir)) {
-    fs.mkdirSync(tempDir, { recursive: true });
-  }
-
-  const inputFile = path.join(tempDir, `input-${Date.now()}.mmd`);
-  const outputFile = path.join(tempDir, `output-${Date.now()}.svg`);
-
-  try {
-    fs.writeFileSync(inputFile, code);
-
-    const result = execSync(`npx mermaid -p -i ${inputFile} -o ${tempDir} 2>&1`, {
-      encoding: 'utf-8',
-      timeout: 30000,
-    });
-
-    const files = fs.readdirSync(tempDir);
-    const svgFile = files.find(f => f.endsWith('.svg'));
-
-    if (svgFile) {
-      const svgContent = fs.readFileSync(path.join(tempDir, svgFile), 'utf-8');
-      return svgContent.replace(/<svg/, '<svg class="mermaid-diagram"');
-    }
-
-    throw new Error('SVG not generated');
-  } finally {
-    try {
-      if (fs.existsSync(inputFile)) fs.unlinkSync(inputFile);
-    } catch {}
-  }
 }
 
 function escapeHtml(text: string): string {

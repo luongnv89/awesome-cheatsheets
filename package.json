@@ -26,6 +26,7 @@
     "astro": "^4.16.19",
     "fast-glob": "^3.3.3",
     "mdast-util-to-string": "^4.0.0",
+    "mermaid": "^11.15.0",
     "remark-frontmatter": "^5.0.0",
     "remark-parse": "^11.0.0",
     "tailwindcss": "^3.4.19",

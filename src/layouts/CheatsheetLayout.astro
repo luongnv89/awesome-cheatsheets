@@ -183,6 +183,25 @@ const metaDescription = frontmatter.summary;
         </p>
       </div>
     </footer>
+
+    {/*
+     * Lazy mermaid renderer — only loads the (~3 MB) library when a cheatsheet
+     * actually contains a <div class="mermaid"> emitted by remark-mermaid.ts.
+     * Bundled from node_modules by Astro, so the no-cdn-check gate stays
+     * green. `securityLevel: 'loose'` is required to allow inline `<br/>` in
+     * node labels (the strict default strips them).
+     */}
+    <script>
+      if (document.querySelector('.mermaid')) {
+        const { default: mermaid } = await import('mermaid');
+        mermaid.initialize({
+          startOnLoad: false,
+          theme: 'neutral',
+          securityLevel: 'loose',
+        });
+        await mermaid.run({ querySelector: '.mermaid' });
+      }
+    </script>
   </body>
 </html>
 
