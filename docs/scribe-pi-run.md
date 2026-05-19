@@ -41,7 +41,7 @@ Validator source of truth: `tools/template-contract.ts` + `tools/validator/rules
 - 6 required H2 sections (locked order): `Installation`, `Step-by-Step Setup & Optimization`, `Best Practices`, `Quick Command Reference`, `Expected Outcomes`, `Reference`.
 - `Reference` MUST be wrapped in `<details>`.
 - One-liner: `**One-line:**` marker, ≥20 chars, between H1 and first H2.
-- No section currently requires a Mermaid block (`MERMAID_RULES.requiredIn` is empty).
+- No section currently requires a Mermaid block (`MERMAID_RULES.requiredIn` is empty), but this run includes an optional `Mental Model` Mermaid to satisfy issue #28 AC#2 without changing the live contract.
 - Frontmatter Zod schema: `slug`, `title`, `category`, `summary`, `last_updated`, `stale_after_days`, `tags`, `status`, `links.homepage`. `subcategory`, `authors`, `upstream_version` optional. Every `links.<key>` must be a valid URL.
 
 ## Step 3 — Draft the cheatsheet
@@ -55,6 +55,7 @@ The draft's 12 numbered steps had mixed granularity (prerequisites, install, aut
 | 1. Prerequisites | Installation (preamble) |
 | 2. Install Pi | Installation (one-liner + npm) |
 | 3. Launch and Authenticate | Installation (first run) |
+| Overall Pi workflow | Optional Mental Model Mermaid (issue #28 AC#2) |
 | 4. First Session | Step-by-Step Step 1 |
 | 5. Add Project Context | Step-by-Step Step 2 |
 | 6. Reference Files & Media + 7. Switch Models/Providers | Step-by-Step Step 3 |
@@ -110,14 +111,14 @@ pnpm --silent cheatsheet:lint src/content/cheatsheets/pi-dev/pi-dev.md
 
 ## Step 5 — Output
 
-File written to `src/content/cheatsheets/pi-dev/pi-dev.md`. All 6 required H2s present in the locked order; `Reference` wrapped in `<details>`; one-liner directly under H1; frontmatter passes the Zod schema.
+File written to `src/content/cheatsheets/pi-dev/pi-dev.md`. All 6 required H2s present in the locked order, plus the optional issue-requested `Mental Model` Mermaid; `Reference` wrapped in `<details>`; one-liner directly under H1; frontmatter passes the Zod schema.
 
 ## Step 6 — Review questions (resolved up-front)
 
 The scribe normally pauses here for contributor approval. Because this run is the *resolver* of issue #28 (no live contributor in the loop), the four ambiguities were resolved up-front via the resolver's `AskUserQuestion` tool and via the conflict-surfacing notes above. Questions that would have been asked:
 
 1. **Slug — `pi` vs `pi-dev`?** Resolved: `pi-dev` (issue AC is gating).
-2. **Mermaid Mental Model — include or skip?** Resolved: **skip** — the live validator does not require Mermaid in any section and the Hermes reference does not include one. Issue #28 AC#2 wording (*"mental-model Mermaid renders correctly"*) was raised in the user dialog; the user chose to align with the validator and the Hermes reference. Recorded in retro as a contract-vs-issue drift to fold back.
+2. **Mermaid Mental Model — include or skip?** Resolved: **include as optional** — the live validator does not require Mermaid in any section, but issue #28 AC#2 explicitly asks for a mental-model Mermaid. The diagram is kept outside the required-section contract so the live 6-section validator remains authoritative while the issue AC is satisfied. Recorded in retro as a contract-vs-issue drift to fold back.
 3. **`AGENTS.md` or `SYSTEM.md`?** Resolved: `AGENTS.md` (see above).
 4. **Sub-agents / plan mode — feature or extension?** Resolved: extension (per draft's explicit wording).
 

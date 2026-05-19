@@ -61,6 +61,23 @@ Keys live at `~/.pi/agent/auth.json`.
 
 > **Why a one-liner?** It pins the upstream-published version and avoids unofficial channels (Pi does not publish a Homebrew formula — install only from `pi.dev` or the official npm package).
 
+## Mental Model
+
+```mermaid
+flowchart TD
+  Draft["Draft / repo task"] --> Core["Pi core: read, write, edit, bash"]
+  Core --> Context["Project context: AGENTS.md + /reload"]
+  Core --> Sessions["Tree sessions: /tree, /fork, /resume"]
+  Core --> Models["Model routing: /model, Ctrl+L, Ctrl+P"]
+  Core --> Packages["Optional packages: sub-agents, plan mode, memory, guardrails"]
+  Context --> Outcome["Minimal coding agent shaped per project"]
+  Sessions --> Outcome
+  Models --> Outcome
+  Packages --> Outcome
+```
+
+Pi starts intentionally small: first make the four core tools useful in your repository, then branch sessions, switch models, and install packages only when the workflow repeats.
+
 ## Step-by-Step Setup & Optimization
 
 ### Step 1 — First session: prompt, default tools, shell escapes
@@ -252,5 +269,3 @@ Skills are Markdown files you author yourself — drop them under `~/.pi/skills/
 - **See also:** [Hermes Agent cheatsheet](/cheatsheets/hermes-agent/) — persistent, cross-channel agent for when Pi's coding-CLI scope is too narrow.
 
 </details>
-</content>
-</invoke>
