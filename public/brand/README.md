@@ -4,10 +4,10 @@
 
 A stack of three cards with a folded corner on the front card: the metaphor for
 a cheatsheet is layered, ready-to-grab knowledge — flip a card, scan the lines,
-move on. The fold (coral) is the "open and use it now" cue. Warm amber on deep
-ink reads like highlighter on a notebook page — distinctive enough to avoid the
-sea of generic dev-tool blues, and warm enough to feel human rather than
-corporate.
+move on. The fold (light green) is the "open and use it now" cue. Neon green on
+deep ink reads like a terminal highlight on a dark editor — distinctive enough
+to avoid the sea of generic dev-tool blues, and electric enough to signal
+"hacker-grade reference, ready to grab."
 
 ## Variants
 
@@ -25,10 +25,11 @@ corporate.
 
 | Token | Hex | Role |
 |-------|-----|------|
-| Ink | `#1B1F3A` | Text on light, card shadow, content lines |
-| Amber | `#F2B705` | Primary brand color — the front card |
-| Coral | `#FF6B5C` | Accent — the folded corner |
-| Paper | `#FAF7F2` | Optional warm background |
+| Ink | `#0A1410` | Text on light, card shadow, content lines |
+| Amber | `#39FF14` | Primary brand color (neon green) — the front card |
+| Coral | `#00C853` | Accent (forest green) — focus rings, deep accents |
+| Fold | `#A8FF8A` | Light green — the folded corner highlight |
+| Paper | `#F0FFF4` | Optional mint background |
 
 ## Showcase
 

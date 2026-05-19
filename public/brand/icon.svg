@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Awesome AI Cheatsheets icon">
   <title>Awesome AI Cheatsheets icon</title>
-  <rect x="7" y="9" width="19" height="20" rx="3" fill="#1B1F3A"/>
-  <path d="M4 6 H21 L26 11 V25 a3 3 0 0 1 -3 3 H4 a3 3 0 0 1 -3 -3 V9 a3 3 0 0 1 3 -3 Z" fill="#F2B705"/>
-  <path d="M21 6 L26 11 H23 a2 2 0 0 1 -2 -2 Z" fill="#FF6B5C"/>
-  <rect x="5" y="13" width="13" height="2" rx="1" fill="#1B1F3A"/>
-  <rect x="5" y="17" width="16" height="2" rx="1" fill="#1B1F3A"/>
-  <rect x="5" y="21" width="10" height="2" rx="1" fill="#1B1F3A"/>
+  <rect x="7" y="9" width="19" height="20" rx="3" fill="#0D1A14"/>
+  <path d="M4 6 H21 L26 11 V25 a3 3 0 0 1 -3 3 H4 a3 3 0 0 1 -3 -3 V9 a3 3 0 0 1 3 -3 Z" fill="#39FF14"/>
+  <path d="M21 6 L26 11 H23 a2 2 0 0 1 -2 -2 Z" fill="#A8FF8A"/>
+  <rect x="5" y="13" width="13" height="2" rx="1" fill="#0A1410"/>
+  <rect x="5" y="17" width="16" height="2" rx="1" fill="#0A1410"/>
+  <rect x="5" y="21" width="10" height="2" rx="1" fill="#0A1410"/>
 </svg>
