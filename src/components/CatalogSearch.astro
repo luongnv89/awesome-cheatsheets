@@ -236,15 +236,22 @@ const baseUrl = (import.meta.env.BASE_URL || "/").replace(/\/$/, "") + "/";
 </script>
 
 <style is:global>
+  /*
+   * Pagefind search — all class names and the runtime logic (script block
+   * above) are asserted by e2e/search.test.ts. CSS only.
+   */
   .catalog-search {
-    margin-bottom: 2rem;
+    margin-bottom: 1.75rem;
   }
 
   .catalog-search-label {
     display: block;
-    font-size: 0.875rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
     font-weight: 600;
-    color: #374151;
+    color: var(--color-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
     margin-bottom: 0.5rem;
   }
 
@@ -253,24 +260,29 @@ const baseUrl = (import.meta.env.BASE_URL || "/").replace(/\/$/, "") + "/";
     padding: 0.75rem 1rem;
     font-size: 1rem;
     line-height: 1.5;
-    color: #111827;
+    color: var(--color-ink);
     background-color: #fff;
-    border: 1px solid #d1d5db;
-    border-radius: 0.5rem;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+    border: 1px solid var(--color-rule);
+    border-radius: var(--radius-md);
+    box-shadow: 0 1px 2px 0 rgba(27, 31, 58, 0.04);
+    font-family: var(--font-body);
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .catalog-search-input::placeholder {
+    color: var(--color-muted);
   }
 
   .catalog-search-input:focus {
     outline: none;
-    border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    border-color: var(--color-amber-deep);
+    box-shadow: 0 0 0 3px rgba(242, 183, 5, 0.25);
   }
 
   .catalog-search-status {
     margin-top: 0.5rem;
     font-size: 0.875rem;
-    color: #6b7280;
+    color: var(--color-muted);
     min-height: 1.25rem;
   }
 
@@ -283,9 +295,13 @@ const baseUrl = (import.meta.env.BASE_URL || "/").replace(/\/$/, "") + "/";
   }
 
   .catalog-search-result {
-    border: 1px solid #e5e7eb;
-    border-radius: 0.5rem;
+    border: 1px solid var(--color-rule);
+    border-radius: var(--radius-md);
     background-color: #fff;
+    transition: border-color 0.12s ease, transform 0.12s ease;
+  }
+  .catalog-search-result:hover {
+    border-color: var(--color-ink-soft);
   }
 
   .catalog-search-result-link {
@@ -293,38 +309,48 @@ const baseUrl = (import.meta.env.BASE_URL || "/").replace(/\/$/, "") + "/";
     padding: 1rem 1.25rem;
     color: inherit;
     text-decoration: none;
+    border-radius: var(--radius-md);
   }
 
   .catalog-search-result-link:hover,
   .catalog-search-result-link:focus-visible {
-    background-color: #f9fafb;
+    background-color: var(--color-paper-shade);
     outline: none;
+  }
+  .catalog-search-result-link:focus-visible {
+    box-shadow: inset 0 0 0 2px var(--color-coral);
   }
 
   .catalog-search-result-title {
     margin: 0 0 0.375rem 0;
+    font-family: var(--font-heading);
     font-size: 1.125rem;
-    font-weight: 600;
-    color: #111827;
+    font-weight: 700;
+    color: var(--color-ink);
   }
 
   .catalog-search-result-excerpt {
     margin: 0;
     font-size: 0.9375rem;
-    color: #4b5563;
+    color: var(--color-muted);
     line-height: 1.5;
   }
 
   .catalog-search-result-excerpt mark {
-    background-color: #fef3c7;
-    color: #92400e;
-    padding: 0 0.125rem;
+    background-color: var(--color-amber);
+    color: var(--color-ink);
+    padding: 0 0.2em;
     border-radius: 0.125rem;
+    font-weight: 600;
   }
 
   .catalog-search-empty {
-    color: #6b7280;
+    color: var(--color-muted);
     font-size: 0.9375rem;
-    padding: 0.5rem 0;
+    padding: 1rem;
+    background-color: #fff;
+    border: 1px dashed var(--color-rule);
+    border-radius: var(--radius-md);
+    text-align: center;
   }
 </style>
