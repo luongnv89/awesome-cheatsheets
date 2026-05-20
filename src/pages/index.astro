@@ -17,9 +17,13 @@ import CatalogSearch from '../components/CatalogSearch.astro';
 import FilterPills from '../components/FilterPills.astro';
 
 const entries = await getCollection('cheatsheets', ({ data }) => {
-  // Hide cheatsheets explicitly marked deprecated from the catalog; PoCs and
-  // published entries both render. The schema defaults `status` to "published".
-  return data.status !== 'deprecated';
+  // Only "published" cheatsheets surface in the catalog grid, the search
+  // index, and the filter facet counts (issue #90). Drafts and PoCs stay
+  // out of the listing but their detail pages still render at
+  // /cheatsheets/<slug>/ so reviewers can read them by direct URL.
+  // Deprecated entries are also hidden. The schema defaults `status` to
+  // "published" so omitting the field keeps an entry visible.
+  return data.status === 'published';
 });
 
 // Sort newest first by last_updated (ISO-8601 strings sort lexicographically).

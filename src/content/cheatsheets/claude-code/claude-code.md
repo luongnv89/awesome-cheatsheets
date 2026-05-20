@@ -8,7 +8,7 @@ last_updated: 2026-05-19
 stale_after_days: 90
 upstream_version: "Claude Code current"
 tags: [claude-code, anthropic, coding-agent, cli, hooks, memory, mcp]
-status: poc
+status: draft
 authors:
   - name: luongnv89
 links:

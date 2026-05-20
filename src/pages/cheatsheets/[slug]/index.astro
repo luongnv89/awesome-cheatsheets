@@ -21,9 +21,15 @@ const frontmatter = {
   last_updated: entry.data.last_updated,
   stale_after_days: entry.data.stale_after_days,
 };
+
+// Draft cheatsheets render at the canonical URL for review but stay out
+// of the Pagefind search index (issue #90). The catalog filter in
+// `src/pages/index.astro` already keeps them off the grid; the layout
+// handles the `data-pagefind-body` omission when `isDraft` is true.
+const isDraft = entry.data.status === 'draft';
 ---
 
-<CheatsheetLayout title={entry.data.title} frontmatter={frontmatter}>
+<CheatsheetLayout title={entry.data.title} frontmatter={frontmatter} isDraft={isDraft}>
   <div class="cheatsheet-body">
     <Content />
   </div>

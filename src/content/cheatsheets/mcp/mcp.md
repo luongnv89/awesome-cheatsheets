@@ -7,7 +7,7 @@ summary: "Practical guide to Model Context Protocol: understand hosts, clients, 
 last_updated: 2026-05-19
 stale_after_days: 90
 tags: [mcp, model-context-protocol, tools, resources, prompts, servers, debugging]
-status: poc
+status: draft
 authors:
   - name: luongnv89
 links:

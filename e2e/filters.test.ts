@@ -20,14 +20,23 @@ import { test, expect } from "@playwright/test";
  * `.catalog-search-*`, `.freshness-chip`, and `.stale-banner`.
  */
 
-const HERMES_TAGS = [
+// Tags from every cheatsheet currently visible in the catalog
+// (status === "published"; see issue #90). The catalog publishes
+// `hermes-agent` and `pi-dev`; their tag union — alphabetized to match
+// the source iteration order in `src/pages/index.astro` — drives the
+// expected pill count below.
+const PUBLISHED_TAGS = [
   "autonomous-agent",
   "cli",
+  "coding-agent",
+  "extensions",
   "hermes-agent",
   "kanban",
   "mcp",
   "memory",
   "nousresearch",
+  "pi",
+  "pi-dev",
   "skills",
 ];
 
@@ -57,7 +66,7 @@ test.describe("Catalog filter pills", () => {
     const tagPills = page.locator(
       '.catalog-filter-pill[data-filter-axis="tag"]',
     );
-    await expect(tagPills).toHaveCount(HERMES_TAGS.length);
+    await expect(tagPills).toHaveCount(PUBLISHED_TAGS.length);
     // Sample a few values to confirm rendering — we don't need to match
     // exact order since the source iterates a Set sorted alphabetically.
     for (const tag of ["mcp", "cli", "memory"]) {

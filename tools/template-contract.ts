@@ -106,13 +106,16 @@ const linksSchema = z
  * Lifecycle status of a cheatsheet entry.
  *
  * - `poc`        — proof-of-concept; may exercise template rules under construction.
+ * - `draft`      — work-in-progress; hidden from the catalog grid and search
+ *                  index, but the detail page still renders at the canonical
+ *                  URL so reviewers can read it (issue #90).
  * - `published`  — passes lint cleanly, eligible for the catalog (PRD §3 M3).
  * - `deprecated` — kept for history; surfaced as such in the catalog.
  *
  * The PoC declares `status: poc`. Required so the catalog (PRD §3 M3) can
  * hide or badge entries appropriately.
  */
-export const STATUSES = ["poc", "published", "deprecated"] as const;
+export const STATUSES = ["poc", "draft", "published", "deprecated"] as const;
 export type Status = (typeof STATUSES)[number];
 
 /**

@@ -7,7 +7,7 @@ summary: "Practical guide to agent skills: structure reusable instructions, inst
 last_updated: 2026-05-19
 stale_after_days: 90
 tags: [agent-skills, skills, workflows, instructions, safety, reuse]
-status: poc
+status: draft
 authors:
   - name: luongnv89
 links:

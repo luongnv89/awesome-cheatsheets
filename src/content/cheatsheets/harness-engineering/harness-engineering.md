@@ -7,7 +7,7 @@ summary: "Practical guide to harness engineering: design the context, tools, fee
 last_updated: 2026-05-19
 stale_after_days: 120
 tags: [harness-engineering, agents, evaluations, context, feedback-loops, operations]
-status: poc
+status: draft
 authors:
   - name: luongnv89
 links:
