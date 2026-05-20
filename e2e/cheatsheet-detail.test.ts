@@ -1,17 +1,14 @@
 import { test, expect } from "@playwright/test";
 
 /**
- * Cheatsheet detail page — full-viewport width.
+ * Cheatsheet detail page — centered article container.
  *
- * `.cheatsheet-main` previously capped the article at 960px; the redesign
- * drops that cap so dense reference content (tables, code, callouts) can
- * breathe on wide screens. Header/footer keep their own centered 1180px
- * container in `CheatsheetLayout.astro`, so only the article body stretches.
+ * `.cheatsheet-main` is capped at 1180px to match the site header, footer,
+ * and catalog containers, keeping a comfortable reading width on wide
+ * screens instead of stretching edge-to-edge.
  */
-test.describe("Cheatsheet detail page — full-width article", () => {
-  test("article expands beyond the legacy 960px cap at wide viewports", async ({
-    page,
-  }) => {
+test.describe("Cheatsheet detail page — centered article", () => {
+  test("article is capped at 1180px on wide viewports", async ({ page }) => {
     await page.setViewportSize({ width: 1600, height: 900 });
     await page.goto("e2e/fresh/");
     const main = page.locator(".cheatsheet-main");
@@ -19,7 +16,7 @@ test.describe("Cheatsheet detail page — full-width article", () => {
     const width = await main.evaluate(
       (el) => (el as HTMLElement).getBoundingClientRect().width,
     );
-    expect(width).toBeGreaterThan(1300);
+    expect(width).toBeLessThanOrEqual(1180);
   });
 
   test("header keeps its centered 1180px container", async ({ page }) => {
