@@ -15,6 +15,7 @@
  * across catalog/about/404 and detail pages.
  */
 import ConsentManager from '../components/ConsentManager.astro';
+import ShareButtons from '../components/ShareButtons.astro';
 
 interface Props {
   title: string;
@@ -160,6 +161,9 @@ const metaDescription = frontmatter.summary;
               ))}
             </ul>
           )}
+          <div class="share-buttons-row">
+            <ShareButtons title={frontmatter.title} url={canonicalUrl} />
+          </div>
         </header>
 
         <div class="cheatsheet-content" data-slug={slug}>
@@ -592,7 +596,8 @@ const metaDescription = frontmatter.summary;
     grid-template-columns: 1fr auto;
     grid-template-areas:
       "main meta"
-      "tags tags";
+      "tags tags"
+      "share share";
     align-items: end;
     gap: 0.75rem 2rem;
     margin-bottom: 1.5rem;
@@ -642,6 +647,13 @@ const metaDescription = frontmatter.summary;
     gap: 0.375rem;
     list-style: none;
     margin: 0.25rem 0 0;
+  }
+  .share-buttons-row {
+    grid-area: share;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-top: 0.5rem;
   }
   .cheatsheet-tag {
     display: inline-flex;
@@ -722,7 +734,7 @@ const metaDescription = frontmatter.summary;
     .cheatsheet-main { padding: 1.5rem 1rem 2rem; }
     .cheatsheet-header {
       grid-template-columns: 1fr;
-      grid-template-areas: "main" "meta" "tags";
+      grid-template-areas: "main" "meta" "tags" "share";
     }
     .cheatsheet-header-meta { text-align: left; align-items: flex-start; }
   }
