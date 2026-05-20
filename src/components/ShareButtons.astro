@@ -1,23 +1,12 @@
 ---
 /**
- * Social-share button row — X, LinkedIn, Facebook.
+ * Social-share button row — X, LinkedIn.
  *
  * Each button opens a native share dialog via a platform-specific URL with
  * the cheatsheet title and canonical URL pre-filled.
  *
- * **Facebook opt-out handling:** Users who have opted out of Facebook platform
- * integrations see a dead-end error when clicking the Facebook button
- * (`/sharer/sharer.php`). This component intercepts the click and:
- *   1. Attempts the Web Share API (native share sheet on mobile devices)
- *   2. Falls back to an inline message offering X and LinkedIn as alternatives
- *   3. Still opens Facebook in a new tab if neither option is available
- *
  * Accessible: aria-labels describe the target platform + action. Buttons use
  * the same neon-green accent tokens as the rest of the cheatsheet chrome.
- *
- * On desktop (no Web Share API), the click is intercepted and the fallback
- * banner is shown immediately — preventing navigation to the Facebook
- * opt-out error page entirely. See issue #83.
  */
 interface Props {
   title: string;
@@ -55,22 +44,6 @@ const encodedUrl = encodeURIComponent(url);
       <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
     </svg>
   </a>
-  <a
-    class="share-button share-button-facebook"
-    href={`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`}
-    target="_blank"
-    rel="noopener noreferrer"
-    aria-label="Share on Facebook"
-    title="Share on Facebook"
-    data-share-target="facebook"
-  >
-    <svg aria-hidden="true" viewBox="0 0 24 24">
-      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-    </svg>
-  </a>
-  <div class="share-fallback" role="status" aria-live="polite" hidden>
-    <span>Facebook sharing unavailable — try <a href={`https://x.com/intent/tweet?text=${encodedTitle}%20${encodedUrl}`} target="_blank" rel="noopener noreferrer">X</a> or <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`} target="_blank" rel="noopener noreferrer">LinkedIn</a> instead.</span>
-  </div>
 </div>
 
 <style>
@@ -107,69 +80,4 @@ const encodedUrl = encodeURIComponent(url);
     height: 16px;
     fill: currentColor;
   }
-
-  /* Fallback message — shown when Facebook share is unavailable */
-  .share-fallback {
-    font-size: 0.8125rem;
-    color: var(--color-muted);
-    padding-top: 0.375rem;
-    border-top: 1px solid var(--color-rule);
-    margin-top: 0.5rem;
-    max-width: 100%;
-    overflow-wrap: break-word;
-  }
-  .share-fallback a {
-    color: var(--color-ink);
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 2px;
-  }
-  .share-fallback a:hover {
-    color: var(--color-amber);
-  }
 </style>
-
-<script>
-  /**
-   * Intercept Facebook share button clicks to handle opt-out gracefully.
-   *
-   * Strategy:
-   * 1. Mobile (Web Share API available): open the native share sheet, show
-   *    fallback if the user cancels
-   * 2. Desktop (no Web Share API): show the inline fallback immediately
-   *    and prevent navigation to the Facebook error page
-   *
-   * This prevents all users — regardless of platform — from hitting the
-   * Facebook opt-out dead-end when the native share path fails.
-   */
-  const fbButton = document.querySelector('[data-share-target="facebook"]');
-  const fallback = document.querySelector('.share-fallback');
-
-  if (fbButton && fallback) {
-    fbButton.addEventListener('click', async (e) => {
-      // If fallback already shown, allow default navigation
-      if (fbButton.dataset.shareAttempted === 'true') return;
-
-      if (navigator.share) {
-        // Mobile: try native share sheet
-        e.preventDefault();
-        try {
-          await navigator.share({
-            title: fbButton.closest('.share-buttons')?.getAttribute('aria-label') ?? 'Share',
-            url: fbButton.href,
-          });
-        } catch {
-          // User cancelled — show fallback with alternatives
-          fbButton.dataset.shareAttempted = 'true';
-          fallback.hidden = false;
-        }
-      } else {
-        // Desktop: no Share API — show alternatives and block navigation
-        // to the Facebook opt-out error page
-        e.preventDefault();
-        fbButton.dataset.shareAttempted = 'true';
-        fallback.hidden = false;
-      }
-    });
-  }
-</script>
