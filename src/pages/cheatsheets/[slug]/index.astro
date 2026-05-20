@@ -51,6 +51,44 @@ const frontmatter = {
     color: var(--color-ink);
   }
 
+  /*
+   * Newspaper-column layout — content flows top-to-bottom, then wraps into
+   * the next column, packing more sections into a single view on wide
+   * screens. Section bars (h2) span all columns; code blocks, tables,
+   * callouts, lists, and figures keep their internal integrity via
+   * `break-inside: avoid`.
+   */
+  @media (min-width: 1024px) {
+    .cheatsheet-body {
+      column-count: 2;
+      column-gap: 2rem;
+      column-rule: 1px solid var(--color-rule);
+    }
+  }
+  @media (min-width: 1600px) {
+    .cheatsheet-body {
+      column-count: 3;
+    }
+  }
+  .cheatsheet-body > h2 {
+    column-span: all;
+  }
+  .cheatsheet-body pre,
+  .cheatsheet-body table,
+  .cheatsheet-body blockquote,
+  .cheatsheet-body .callout,
+  .cheatsheet-body .ascii,
+  .cheatsheet-body figure,
+  .cheatsheet-body ul,
+  .cheatsheet-body ol,
+  .cheatsheet-body .mermaid {
+    break-inside: avoid;
+  }
+  .cheatsheet-body > h3,
+  .cheatsheet-body > h4 {
+    break-after: avoid;
+  }
+
   .cheatsheet-body > * { margin-bottom: 0.85rem; }
   .cheatsheet-body > h2,
   .cheatsheet-body > h3,
