@@ -568,11 +568,28 @@ const metaDescription = frontmatter.summary;
   }
 
   /* ----- Cheatsheet page ----- */
+  /*
+   * The cheatsheet article fills the full viewport so dense reference
+   * content (tables, code blocks, callouts) can breathe on wide screens.
+   * Header and footer keep their own centered 1180px container above/below,
+   * so only the article body stretches. Side padding scales with viewport.
+   */
   .cheatsheet-main {
-    max-width: 960px;
-    margin: 0 auto;
+    margin: 0;
     padding: 2rem 1.25rem 3rem;
     flex: 1 0 auto;
+  }
+  @media (min-width: 1024px) {
+    .cheatsheet-main {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+  }
+  @media (min-width: 1600px) {
+    .cheatsheet-main {
+      padding-left: 3rem;
+      padding-right: 3rem;
+    }
   }
   .cheatsheet-back {
     margin: 0 0 1rem 0;
