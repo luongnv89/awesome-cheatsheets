@@ -68,3 +68,76 @@ test.describe("Catalog landing page", () => {
     await expect(page.locator(".stale-banner")).toHaveCount(0);
   });
 });
+
+/**
+ * Issue #86 — catalog uses full viewport width and a 1→2→3 responsive grid.
+ *
+ * `.catalog-main` previously capped the grid at 1180px; the redesign drops
+ * that cap so cards pack into a single scroll view. Header/footer keep their
+ * own centered 1180px container in Layout.astro, so only the card grid
+ * stretches.
+ */
+test.describe("Full-width responsive grid (issue #86)", () => {
+  const cardSelector = ".catalog-card";
+
+  async function visibleColumns(page: import("@playwright/test").Page) {
+    // Group cards by their bounding-box `y` coordinate (rounded) — every card
+    // in the same row shares a `y`. The largest row size is the column count.
+    const ys = await page.locator(cardSelector).evaluateAll((els) =>
+      els.map((el) => Math.round((el as HTMLElement).getBoundingClientRect().top)),
+    );
+    const counts = new Map<number, number>();
+    for (const y of ys) counts.set(y, (counts.get(y) ?? 0) + 1);
+    return Math.max(...counts.values());
+  }
+
+  test("renders 3 columns at large viewport (≥1024px)", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("./");
+    await expect(page.locator(cardSelector).first()).toBeVisible();
+    expect(await visibleColumns(page)).toBe(3);
+  });
+
+  test("renders 2 columns at medium viewport (640px–1023px)", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 800, height: 900 });
+    await page.goto("./");
+    await expect(page.locator(cardSelector).first()).toBeVisible();
+    expect(await visibleColumns(page)).toBe(2);
+  });
+
+  test("renders 1 column at small viewport (<640px)", async ({ page }) => {
+    await page.setViewportSize({ width: 480, height: 900 });
+    await page.goto("./");
+    await expect(page.locator(cardSelector).first()).toBeVisible();
+    expect(await visibleColumns(page)).toBe(1);
+  });
+
+  test("catalog grid expands beyond the legacy 1180px cap at wide viewports", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1600, height: 900 });
+    await page.goto("./");
+    const list = page.locator(".catalog-list");
+    await expect(list).toBeVisible();
+    const width = await list.evaluate(
+      (el) => (el as HTMLElement).getBoundingClientRect().width,
+    );
+    // Without the cap, the grid should be substantially wider than the old
+    // 1180px constraint (allowing for outer page padding).
+    expect(width).toBeGreaterThan(1300);
+  });
+
+  test("header keeps its centered 1180px container", async ({ page }) => {
+    await page.setViewportSize({ width: 1600, height: 900 });
+    await page.goto("./");
+    const headerInner = page.locator(".site-header-inner");
+    await expect(headerInner).toBeVisible();
+    const width = await headerInner.evaluate(
+      (el) => (el as HTMLElement).getBoundingClientRect().width,
+    );
+    // Header inner stays within its declared max-width (1180px).
+    expect(width).toBeLessThanOrEqual(1180);
+  });
+});

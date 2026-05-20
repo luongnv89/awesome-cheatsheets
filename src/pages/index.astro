@@ -115,10 +115,28 @@ const filterTags = Array.from(
    * blocks in sync. Brand-color tokens (--color-ink / --color-amber etc.)
    * come from Layout.astro's :root.
    */
+  /*
+   * Issue #86 — the catalog uses the full viewport width so the responsive
+   * 1→2→3 column grid below can pack more cards into a single scroll view.
+   * Header and footer keep their 1180px centered container in Layout.astro,
+   * so only the card grid expands. Side padding scales with viewport: tight
+   * on phones, generous on ultrawide so cards don't kiss the screen edge.
+   */
   .catalog-main {
-    max-width: 1180px;
-    margin: 0 auto;
+    margin: 0;
     padding: 3rem 1.25rem 4rem;
+  }
+  @media (min-width: 1024px) {
+    .catalog-main {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+  }
+  @media (min-width: 1600px) {
+    .catalog-main {
+      padding-left: 3rem;
+      padding-right: 3rem;
+    }
   }
 
   .catalog-hero {
