@@ -70,14 +70,10 @@ test.describe("Catalog landing page", () => {
 });
 
 /**
- * Issue #86 — catalog uses full viewport width and a 1→2→3 responsive grid.
- *
- * `.catalog-main` previously capped the grid at 1180px; the redesign drops
- * that cap so cards pack into a single scroll view. Header/footer keep their
- * own centered 1180px container in Layout.astro, so only the card grid
- * stretches.
+ * Catalog is a centered 1180px container with a 1→2→3 responsive grid.
+ * Header and footer share the same 1180px cap from Layout.astro.
  */
-test.describe("Full-width responsive grid (issue #86)", () => {
+test.describe("Centered responsive grid", () => {
   const cardSelector = ".catalog-card";
 
   async function visibleColumns(page: import("@playwright/test").Page) {
@@ -114,19 +110,17 @@ test.describe("Full-width responsive grid (issue #86)", () => {
     expect(await visibleColumns(page)).toBe(1);
   });
 
-  test("catalog grid expands beyond the legacy 1180px cap at wide viewports", async ({
+  test("catalog main stays within its centered 1180px container at wide viewports", async ({
     page,
   }) => {
     await page.setViewportSize({ width: 1600, height: 900 });
     await page.goto("./");
-    const list = page.locator(".catalog-list");
-    await expect(list).toBeVisible();
-    const width = await list.evaluate(
+    const main = page.locator(".catalog-main");
+    await expect(main).toBeVisible();
+    const width = await main.evaluate(
       (el) => (el as HTMLElement).getBoundingClientRect().width,
     );
-    // Without the cap, the grid should be substantially wider than the old
-    // 1180px constraint (allowing for outer page padding).
-    expect(width).toBeGreaterThan(1300);
+    expect(width).toBeLessThanOrEqual(1180);
   });
 
   test("header keeps its centered 1180px container", async ({ page }) => {
