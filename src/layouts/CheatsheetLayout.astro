@@ -141,6 +141,21 @@ const metaDescription = frontmatter.summary;
           <a href={`${baseUrl}/`}>&larr; Back to catalog</a>
         </p>
 
+        {/*
+         * Sentinel + sticky header band.
+         *
+         * Issue #91 — the cheatsheet title must stay pinned at the top of
+         * the viewport once the user scrolls past the full in-flow header.
+         * We render the title twice (full + compact-sticky) — but only the
+         * compact band is `position: sticky`, and it stays
+         * `aria-hidden`/visually hidden until the IntersectionObserver
+         * watching `.cheatsheet-header-sentinel` reports the full header
+         * has scrolled out. This avoids any double-up at the top of the
+         * page and keeps the compact band a single, dedicated DOM node
+         * (no jank from animating an already-large header to compact).
+         */}
+        <div class="cheatsheet-header-sentinel" aria-hidden="true"></div>
+
         <header class="cheatsheet-header">
           <div class="cheatsheet-header-main">
             <span class={`catalog-category catalog-category-${frontmatter.category}`}>
@@ -175,7 +190,50 @@ const metaDescription = frontmatter.summary;
           </div>
         </header>
 
+        {/*
+         * Sticky compact title band — issue #91.
+         *
+         * Sits below the site header (`top: var(--site-header-h)`) so the
+         * two sticky bars stack cleanly instead of fighting. The band is
+         * invisible (visually hidden, aria-hidden, pointer-events:none)
+         * until the IntersectionObserver on `.cheatsheet-header-sentinel`
+         * flips `.is-active` on, at which point it slides into view.
+         *
+         * On wide viewports the band also carries an inline section
+         * indicator on the right ("Section: <name>") synced to the
+         * currently-visible h2 — a low-noise way to tell the reader where
+         * they are in the article when the TOC aside is scrolled out.
+         */}
+        <div class="cheatsheet-sticky-header" aria-hidden="true">
+          <div class="cheatsheet-sticky-header-inner">
+            <span class={`catalog-category catalog-category-${frontmatter.category}`}>
+              {frontmatter.category}
+            </span>
+            <h2 class="cheatsheet-sticky-title">{frontmatter.title}</h2>
+            <span class="cheatsheet-sticky-section" data-section-indicator></span>
+          </div>
+        </div>
+
         <div class="cheatsheet-content" data-slug={slug}>
+          {/*
+           * TOC aside — issue #92.
+           *
+           * Built client-side from the h2 headings in `.cheatsheet-body`
+           * after the markdown content renders. Sits in the grid gutter at
+           * ≥1024px and stays sticky alongside the reading column; on
+           * narrow viewports the aside is removed from layout (CSS
+           * `display: none` until 1024px) so the body has the full width.
+           *
+           * The script populates the <ol> on mount, or sets `hidden` on
+           * the aside if the page has fewer than two h2s (a TOC of one
+           * item is noise, not navigation). Rendered WITHOUT `hidden`
+           * by default so the grid claim its 2-column shape on first
+           * paint — avoids a CLS jump when JS finishes building the list.
+           */}
+          <aside class="cheatsheet-toc" aria-label="On this page">
+            <p class="cheatsheet-toc-title">On this page</p>
+            <ol class="cheatsheet-toc-list"></ol>
+          </aside>
           <slot />
         </div>
       </article>
@@ -351,6 +409,135 @@ const metaDescription = frontmatter.summary;
           progressChip.classList.toggle('is-complete', done === total && total > 0);
         }
         updateProgress();
+      }
+    </script>
+
+    {/*
+     * Table of contents + sticky-header coordinator — issues #91 and #92.
+     *
+     * - Builds a TOC from h2 headings in `.cheatsheet-body` and inserts it
+     *   into the `.cheatsheet-toc` aside. If the article has fewer than two
+     *   h2s the aside is left hidden (a single-item TOC is noise).
+     *
+     * - Watches `.cheatsheet-header-sentinel` with IntersectionObserver to
+     *   toggle `.cheatsheet-sticky-header.is-active` once the in-flow
+     *   header has scrolled out. No scroll listener — IntersectionObserver
+     *   is the right tool here: it fires only on threshold crossings, so
+     *   the band can't flicker mid-scroll.
+     *
+     * - Watches each h2 with a second IntersectionObserver to:
+     *     a) highlight the current section in the TOC,
+     *     b) populate the inline section indicator in the sticky band.
+     *
+     * Reduced motion is respected via CSS (no transitions if the user has
+     * `prefers-reduced-motion: reduce`).
+     */}
+    <script>
+      const body = document.querySelector('.cheatsheet-body');
+      const tocAside = document.querySelector('.cheatsheet-toc');
+      const tocList = tocAside?.querySelector('.cheatsheet-toc-list');
+      const stickyHeader = document.querySelector('.cheatsheet-sticky-header');
+      const sentinel = document.querySelector('.cheatsheet-header-sentinel');
+      const sectionIndicator = document.querySelector('[data-section-indicator]');
+
+      // -- TOC build --------------------------------------------------------
+      /** @type {HTMLHeadingElement[]} */
+      const h2s = body
+        ? Array.from(body.querySelectorAll(':scope > h2'))
+        : [];
+
+      if (tocAside && tocList) {
+        if (h2s.length >= 2) {
+          for (const h2 of h2s) {
+            if (!h2.id) continue;
+            const text = (h2.textContent ?? '').replace(/\s*\d+\s*\/\s*\d+\s*done\s*$/i, '').trim();
+            if (!text) continue;
+            const li = document.createElement('li');
+            li.className = 'cheatsheet-toc-item';
+            const a = document.createElement('a');
+            a.href = `#${h2.id}`;
+            a.className = 'cheatsheet-toc-link';
+            a.textContent = text;
+            a.dataset.tocTarget = h2.id;
+            li.appendChild(a);
+            tocList.appendChild(li);
+          }
+        }
+        // Hide the aside if we ended up with <2 entries — keeps the grid
+        // collapsed to a single column via `:has(.cheatsheet-toc[hidden])`
+        // when there's nothing useful to show.
+        if (tocList.children.length < 2) {
+          tocAside.setAttribute('hidden', '');
+        }
+      }
+
+      // -- Sticky-header toggle (issue #91) --------------------------------
+      if (stickyHeader && sentinel) {
+        const stickyObserver = new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              // Sentinel sits where the full header used to be. When it
+              // leaves the top of the viewport (intersectionRatio drops to
+              // 0 while boundingClientRect.top < 0), the compact band
+              // takes over.
+              const rect = entry.boundingClientRect;
+              const active = !entry.isIntersecting && rect.top < 0;
+              stickyHeader.classList.toggle('is-active', active);
+              stickyHeader.setAttribute('aria-hidden', active ? 'false' : 'true');
+            }
+          },
+          { rootMargin: '0px', threshold: [0, 1] },
+        );
+        stickyObserver.observe(sentinel);
+      }
+
+      // -- Section indicator + TOC active-link (issue #92) ------------------
+      if (h2s.length > 0) {
+        /** @type {Map<string, HTMLAnchorElement | null>} */
+        const linkByTarget = new Map();
+        if (tocList) {
+          for (const a of tocList.querySelectorAll('a.cheatsheet-toc-link')) {
+            linkByTarget.set(a.dataset.tocTarget ?? '', a);
+          }
+        }
+
+        /** @type {Set<Element>} */
+        const visible = new Set();
+        const setCurrent = () => {
+          // Pick the topmost visible h2 — that's the section the reader is
+          // currently in. If none are visible (between sections), fall back
+          // to the last one we saw above the fold.
+          let current = null;
+          for (const h2 of h2s) {
+            const rect = h2.getBoundingClientRect();
+            if (rect.top <= window.innerHeight * 0.35) current = h2;
+            else break;
+          }
+          for (const a of linkByTarget.values()) {
+            if (a) a.classList.remove('is-current');
+          }
+          if (current) {
+            const text = (current.textContent ?? '').replace(/\s*\d+\s*\/\s*\d+\s*done\s*$/i, '').trim();
+            if (sectionIndicator) sectionIndicator.textContent = text;
+            const link = linkByTarget.get(current.id);
+            if (link) link.classList.add('is-current');
+          } else if (sectionIndicator) {
+            sectionIndicator.textContent = '';
+          }
+        };
+
+        const sectionObserver = new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              if (entry.isIntersecting) visible.add(entry.target);
+              else visible.delete(entry.target);
+            }
+            setCurrent();
+          },
+          { rootMargin: '-15% 0px -50% 0px', threshold: 0 },
+        );
+        for (const h2 of h2s) sectionObserver.observe(h2);
+        setCurrent();
       }
     </script>
 
@@ -756,6 +943,207 @@ const metaDescription = frontmatter.summary;
     color: var(--color-muted);
   }
 
+  /* ----- Sticky compact header (issue #91) -----
+     Sits below the site header so the two sticky bands stack cleanly.
+     Hidden by default (visually + a11y); the JS toggles `.is-active` once
+     the in-flow `.cheatsheet-header` scrolls past the top of the viewport,
+     watched by an IntersectionObserver on `.cheatsheet-header-sentinel`. */
+  .cheatsheet-header-sentinel {
+    /* Zero-height sentinel parked at the top of the article. Once it scrolls
+       out of view, the sticky band takes over — see the script in
+       CheatsheetLayout.astro. */
+    height: 1px;
+    margin: 0;
+  }
+  .cheatsheet-sticky-header {
+    position: sticky;
+    /* `64px` is the rough site-header height (set on the host page via
+       `--site-header-h` if needed); the value is enough to clear the
+       blurred site nav band without overlapping it. */
+    top: 64px;
+    z-index: 9;
+    background-color: rgba(240, 255, 244, 0.94);
+    backdrop-filter: saturate(180%) blur(6px);
+    -webkit-backdrop-filter: saturate(180%) blur(6px);
+    border-bottom: 2px solid var(--color-amber);
+    /* Invisible by default — flipped on by JS once the in-flow header has
+       scrolled past. Uses opacity + transform rather than display:none so
+       the band has a real height for layout measurement and respects
+       prefers-reduced-motion via the global rule near the top of the file. */
+    opacity: 0;
+    transform: translateY(-100%);
+    pointer-events: none;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    /* Pull the band flush with the page chrome — the article's side
+       padding still sits inside `.cheatsheet-main`. Negative margin
+       matches `.cheatsheet-main` side padding per breakpoint. */
+    margin-left: -1.25rem;
+    margin-right: -1.25rem;
+  }
+  @media (min-width: 1024px) {
+    .cheatsheet-sticky-header {
+      margin-left: -2rem;
+      margin-right: -2rem;
+    }
+  }
+  @media (min-width: 1600px) {
+    .cheatsheet-sticky-header {
+      margin-left: -3rem;
+      margin-right: -3rem;
+    }
+  }
+  .cheatsheet-sticky-header.is-active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  .cheatsheet-sticky-header-inner {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.55rem 1.25rem;
+    min-height: 2.75rem;
+  }
+  @media (min-width: 1024px) {
+    .cheatsheet-sticky-header-inner { padding: 0.55rem 2rem; }
+  }
+  @media (min-width: 1600px) {
+    .cheatsheet-sticky-header-inner { padding: 0.55rem 3rem; }
+  }
+  .cheatsheet-sticky-title {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--color-ink);
+    /* Truncate overlong titles to a single line so the band stays compact
+       on every viewport — the full title is one scroll-up away. */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    flex: 0 1 auto;
+  }
+  .cheatsheet-sticky-section {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--color-muted);
+    margin-left: auto;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    flex: 0 1 auto;
+  }
+  .cheatsheet-sticky-section:empty { display: none; }
+  .cheatsheet-sticky-section::before {
+    content: "Section: ";
+    color: var(--color-muted);
+    font-weight: 500;
+    margin-right: 0.25em;
+  }
+
+  /* ----- Content grid + TOC aside (issue #92) -----
+     On narrow viewports `.cheatsheet-content` is a plain block (TOC aside
+     is rendered above the body in source order but `display: none` keeps
+     it out of layout — only revealed at ≥1024px). On wide viewports it
+     becomes a 2-column grid: aside on the right, body on the left. */
+  .cheatsheet-content {
+    display: block;
+  }
+  .cheatsheet-toc {
+    display: none;
+  }
+  @media (min-width: 1024px) {
+    .cheatsheet-content {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 16rem;
+      gap: 2.5rem;
+      align-items: start;
+    }
+    .cheatsheet-toc {
+      display: block;
+      grid-column: 2;
+      grid-row: 1;
+      position: sticky;
+      /* Stay below the sticky compact title band so they don't overlap.
+         `4.25rem` is the approximate height of the compact band. */
+      top: calc(64px + 4.25rem);
+      max-height: calc(100vh - (64px + 4.25rem + 1rem));
+      overflow-y: auto;
+      padding-left: 1.25rem;
+      border-left: 1px solid var(--color-rule);
+      font-size: 0.8125rem;
+      line-height: 1.5;
+    }
+    .cheatsheet-toc[hidden] {
+      /* Keep `[hidden]` working alongside the `display: block` override
+         above. When the page has fewer than 2 h2s the script leaves the
+         attribute set; the article should reclaim the full grid width. */
+      display: none;
+    }
+    /* When the aside is hidden the body should fill both columns instead
+       of leaving a dead right column. */
+    .cheatsheet-content:has(.cheatsheet-toc[hidden]) {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    /* Pull the body up into row 1 of the grid (alongside the aside)
+       instead of below it — keeps reading column anchored top-left. */
+    .cheatsheet-body {
+      grid-column: 1;
+      grid-row: 1;
+    }
+  }
+  @media (min-width: 1600px) {
+    .cheatsheet-content {
+      grid-template-columns: minmax(0, 1fr) 18rem;
+      gap: 3rem;
+    }
+    .cheatsheet-toc {
+      top: calc(64px + 4.25rem);
+    }
+  }
+  .cheatsheet-toc-title {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+    margin: 0 0 0.6rem;
+  }
+  .cheatsheet-toc-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .cheatsheet-toc-item {
+    margin: 0;
+  }
+  .cheatsheet-toc-link {
+    display: block;
+    padding: 0.3rem 0.5rem;
+    color: var(--color-muted);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    transition: color 0.12s ease, background-color 0.12s ease, border-color 0.12s ease;
+  }
+  .cheatsheet-toc-link:hover {
+    color: var(--color-ink);
+    background-color: var(--color-paper-shade);
+  }
+  .cheatsheet-toc-link.is-current {
+    color: var(--color-ink);
+    border-left-color: var(--color-amber);
+    background-color: var(--color-paper-shade);
+    font-weight: 600;
+  }
+  .cheatsheet-toc-link:focus-visible {
+    outline: 2px solid var(--color-coral);
+    outline-offset: 1px;
+  }
+
   @media (max-width: 640px) {
     .cheatsheet-main { padding: 1.5rem 1rem 2rem; }
     .cheatsheet-header {
@@ -763,5 +1151,13 @@ const metaDescription = frontmatter.summary;
       grid-template-areas: "main" "meta" "tags" "share";
     }
     .cheatsheet-header-meta { text-align: left; align-items: flex-start; }
+    /* Compact band stays a single-line strip on mobile — issue #91 ac says
+       it must not dominate the viewport. The section indicator is hidden
+       below 640px to keep the band slim. */
+    .cheatsheet-sticky-header { margin: 0 -1rem; }
+    .cheatsheet-sticky-header-inner { padding: 0.45rem 1rem; min-height: 2.25rem; }
+    .cheatsheet-sticky-title { font-size: 0.9375rem; }
+    .cheatsheet-sticky-section { display: none; }
+    .cheatsheet-sticky-header .catalog-category { display: none; }
   }
 </style>
