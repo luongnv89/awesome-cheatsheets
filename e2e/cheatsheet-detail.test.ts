@@ -59,4 +59,51 @@ test.describe("Cheatsheet detail page — full-width article", () => {
     expect(padding.left).toBeGreaterThan(0);
     expect(padding.right).toBeGreaterThan(0);
   });
+
+  /**
+   * Newspaper-column layout — content flows top-to-bottom and wraps into
+   * the next column. Column count scales with viewport: 1 / 2 / 3.
+   *
+   * The multi-column CSS lives in `src/pages/cheatsheets/[slug]/index.astro`
+   * (scoped per-route via `is:global`), not the layout. Test against a real
+   * cheatsheet route to exercise that stylesheet.
+   */
+  const CHEATSHEET_ROUTE = "cheatsheets/hermes-agent/";
+
+  test("body uses 1 column at small viewport (<1024px)", async ({ page }) => {
+    await page.setViewportSize({ width: 800, height: 900 });
+    await page.goto(CHEATSHEET_ROUTE);
+    const body = page.locator(".cheatsheet-body");
+    await expect(body).toBeVisible();
+    const columnCount = await body.evaluate(
+      (el) => getComputedStyle(el as HTMLElement).columnCount,
+    );
+    expect(columnCount).toBe("auto");
+  });
+
+  test("body uses 2 columns at desktop viewport (1024–1599px)", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto(CHEATSHEET_ROUTE);
+    const body = page.locator(".cheatsheet-body");
+    await expect(body).toBeVisible();
+    const columnCount = await body.evaluate(
+      (el) => getComputedStyle(el as HTMLElement).columnCount,
+    );
+    expect(columnCount).toBe("2");
+  });
+
+  test("body uses 3 columns at ultrawide viewport (≥1600px)", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1600, height: 900 });
+    await page.goto(CHEATSHEET_ROUTE);
+    const body = page.locator(".cheatsheet-body");
+    await expect(body).toBeVisible();
+    const columnCount = await body.evaluate(
+      (el) => getComputedStyle(el as HTMLElement).columnCount,
+    );
+    expect(columnCount).toBe("3");
+  });
 });
