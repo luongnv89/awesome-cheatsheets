@@ -7,7 +7,7 @@ summary: "Practical guide to sub-agents: define specialist roles, isolate contex
 last_updated: 2026-05-19
 stale_after_days: 90
 tags: [sub-agents, orchestration, agents, review, handoffs, context]
-status: poc
+status: draft
 authors:
   - name: luongnv89
 links:

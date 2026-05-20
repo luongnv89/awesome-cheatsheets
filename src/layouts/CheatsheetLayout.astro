@@ -27,9 +27,16 @@ interface Props {
     last_updated: string;
     stale_after_days: number;
   };
+  /**
+   * When true, the article is rendered without Pagefind's `data-pagefind-body`
+   * marker so the page is excluded from the search index (issue #90). The
+   * page itself still renders at the canonical URL — reviewers can read
+   * drafts by direct link, but they never appear in `/`'s search results.
+   */
+  isDraft?: boolean;
 }
 
-const { title, frontmatter } = Astro.props;
+const { title, frontmatter, isDraft = false } = Astro.props;
 
 const today = new Date();
 const lastUpdated = new Date(frontmatter.last_updated);
@@ -114,8 +121,10 @@ const metaDescription = frontmatter.summary;
     <main id="main-content" class="cheatsheet-main">
       <article
         class="cheatsheet"
-        data-pagefind-body
-        data-pagefind-meta={`title:${frontmatter.title}, category:${frontmatter.category}, last_updated:${frontmatter.last_updated}`}
+        data-pagefind-body={isDraft ? undefined : true}
+        data-pagefind-meta={isDraft
+          ? undefined
+          : `title:${frontmatter.title}, category:${frontmatter.category}, last_updated:${frontmatter.last_updated}`}
       >
         {isStale && (
           <div class="stale-banner" role="alert">

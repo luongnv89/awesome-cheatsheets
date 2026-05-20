@@ -56,7 +56,7 @@ const cheatsheetsSchema = z.object({
     )
     .min(1, "at least one tag is required")
     .max(12, "no more than 12 tags per cheatsheet"),
-  status: z.enum(["poc", "published", "deprecated"]).default("published"),
+  status: z.enum(["poc", "draft", "published", "deprecated"]).default("published"),
   authors: z.array(authorSchema).min(1).optional(),
   links: linksSchema,
 });

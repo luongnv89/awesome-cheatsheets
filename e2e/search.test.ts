@@ -59,10 +59,12 @@ test.describe("Catalog search (Pagefind)", () => {
     const input = page.locator(".catalog-search-input");
     await input.fill("hermes");
 
-    // Wait for a result to appear.
+    // Wait for a result to appear. Multiple published pages can mention
+    // "Hermes" (e.g. pi-dev cross-references it), so disambiguate to the
+    // hermes-agent detail page link rather than relying on body text.
     const result = page
       .locator(".catalog-search-result")
-      .filter({ hasText: /hermes/i });
+      .filter({ has: page.locator('a[href*="/cheatsheets/hermes-agent/"]') });
     await expect(result).toBeVisible({ timeout: 5_000 });
 
     await expect(result.locator(".catalog-search-result-title")).toBeVisible();

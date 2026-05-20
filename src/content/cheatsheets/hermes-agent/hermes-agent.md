@@ -8,7 +8,7 @@ last_updated: 2026-05-19
 stale_after_days: 90
 upstream_version: "v0.12 / v0.13 era"
 tags: [hermes-agent, nousresearch, autonomous-agent, cli, memory, skills, mcp, kanban]
-status: poc
+status: published
 authors:
   - name: luongnv89
 links:

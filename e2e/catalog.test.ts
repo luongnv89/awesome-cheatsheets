@@ -75,23 +75,27 @@ test.describe("Catalog landing page", () => {
  */
 test.describe("Centered responsive grid", () => {
   const cardSelector = ".catalog-card";
+  const listSelector = ".catalog-list";
 
-  async function visibleColumns(page: import("@playwright/test").Page) {
-    // Group cards by their bounding-box `y` coordinate (rounded) — every card
-    // in the same row shares a `y`. The largest row size is the column count.
-    const ys = await page.locator(cardSelector).evaluateAll((els) =>
-      els.map((el) => Math.round((el as HTMLElement).getBoundingClientRect().top)),
-    );
-    const counts = new Map<number, number>();
-    for (const y of ys) counts.set(y, (counts.get(y) ?? 0) + 1);
-    return Math.max(...counts.values());
+  // Inspect the grid container's computed `grid-template-columns` —
+  // a `repeat(N, …)` declaration resolves to N space-delimited track
+  // sizes in pixels, so counting tokens gives the column count even
+  // when the visible card corpus is smaller than the column count
+  // (issue #90: catalog now only lists `published` cheatsheets).
+  async function gridColumns(page: import("@playwright/test").Page) {
+    const tracks = await page
+      .locator(listSelector)
+      .evaluate(
+        (el) => getComputedStyle(el as HTMLElement).gridTemplateColumns,
+      );
+    return tracks.trim().split(/\s+/).length;
   }
 
   test("renders 3 columns at large viewport (≥1024px)", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("./");
     await expect(page.locator(cardSelector).first()).toBeVisible();
-    expect(await visibleColumns(page)).toBe(3);
+    expect(await gridColumns(page)).toBe(3);
   });
 
   test("renders 2 columns at medium viewport (640px–1023px)", async ({
@@ -100,14 +104,14 @@ test.describe("Centered responsive grid", () => {
     await page.setViewportSize({ width: 800, height: 900 });
     await page.goto("./");
     await expect(page.locator(cardSelector).first()).toBeVisible();
-    expect(await visibleColumns(page)).toBe(2);
+    expect(await gridColumns(page)).toBe(2);
   });
 
   test("renders 1 column at small viewport (<640px)", async ({ page }) => {
     await page.setViewportSize({ width: 480, height: 900 });
     await page.goto("./");
     await expect(page.locator(cardSelector).first()).toBeVisible();
-    expect(await visibleColumns(page)).toBe(1);
+    expect(await gridColumns(page)).toBe(1);
   });
 
   test("catalog main stays within its centered 1180px container at wide viewports", async ({

@@ -8,7 +8,7 @@ last_updated: 2026-05-19
 stale_after_days: 90
 upstream_version: "pi.dev current"
 tags: [pi, pi-dev, coding-agent, cli, extensions, skills, mcp]
-status: poc
+status: published
 authors:
   - name: luongnv89
 links:

@@ -8,7 +8,7 @@ last_updated: 2026-05-19
 stale_after_days: 90
 upstream_version: "Codex CLI current"
 tags: [codex, openai, coding-agent, cli, sandbox, approvals]
-status: poc
+status: draft
 authors:
   - name: luongnv89
 links:

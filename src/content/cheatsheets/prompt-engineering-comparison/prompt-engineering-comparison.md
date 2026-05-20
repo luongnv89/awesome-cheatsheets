@@ -7,7 +7,7 @@ summary: "Comparison guide for prompt engineering across coding agents: task fra
 last_updated: 2026-05-19
 stale_after_days: 120
 tags: [prompt-engineering, comparison, coding-agents, prompts, evaluation, context]
-status: poc
+status: draft
 authors:
   - name: luongnv89
 links:

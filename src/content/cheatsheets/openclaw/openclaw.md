@@ -8,7 +8,7 @@ last_updated: 2026-05-19
 stale_after_days: 90
 upstream_version: "OpenClaw current"
 tags: [openclaw, personal-agent, gateway, messaging, integrations, safety]
-status: poc
+status: draft
 authors:
   - name: luongnv89
 links:
