@@ -50,35 +50,35 @@ const isDraft = entry.data.status === 'draft';
    *   <div class="ascii">…ASCII box…</div>
    *   <span class="pill">label</span> · <span class="badge">label</span>
    *   <ol class="steps">…</ol>   (renders green-circle numbered steps)
+   *
+   * Reading layout (issue #92): single top-to-bottom column capped at ~70ch,
+   * so step N is visually adjacent to step N+1. On wide viewports the gutter
+   * carries a sticky table of contents (built by `CheatsheetLayout.astro`)
+   * rather than a second column of unrelated future sections. See
+   * `.cheatsheet-content` in CheatsheetLayout for the grid shell.
    */
   .cheatsheet-body {
     font-size: 0.9375rem;
     line-height: 1.55;
     color: var(--color-ink);
+    /* Cap the reading column so prose never stretches into uncomfortable
+       65+ch line lengths even on ultrawide. The grid in
+       `.cheatsheet-content` already gives the body the remaining width
+       minus the TOC aside; the max-width is a hard ceiling for the
+       narrow-viewport (no-aside) case. */
+    max-width: 75ch;
   }
-
-  /*
-   * Newspaper-column layout — content flows top-to-bottom, then wraps into
-   * the next column, packing more sections into a single view on wide
-   * screens. Section bars (h2) span all columns; code blocks, tables,
-   * callouts, lists, and figures keep their internal integrity via
-   * `break-inside: avoid`.
-   */
   @media (min-width: 1024px) {
     .cheatsheet-body {
-      column-count: 2;
-      column-gap: 2rem;
-      column-rule: 1px solid var(--color-rule);
+      /* Inside the grid the aside takes its own column — let the body
+         consume its full grid cell up to the same readable cap. */
+      max-width: none;
     }
   }
-  @media (min-width: 1600px) {
-    .cheatsheet-body {
-      column-count: 3;
-    }
-  }
-  .cheatsheet-body > h2 {
-    column-span: all;
-  }
+
+  /* Keep block elements from being squeezed inside the column — even
+     without newspaper columns, these blocks should stay intact when print
+     CSS or future layouts re-introduce column rules. */
   .cheatsheet-body pre,
   .cheatsheet-body table,
   .cheatsheet-body blockquote,
@@ -88,17 +88,23 @@ const isDraft = entry.data.status === 'draft';
   .cheatsheet-body ul,
   .cheatsheet-body ol,
   .cheatsheet-body .mermaid {
+    /* Keep blocks intact for print column-splitting (print CSS at end of
+       file still enables 2-column print layout). */
     break-inside: avoid;
-  }
-  .cheatsheet-body > h3,
-  .cheatsheet-body > h4 {
-    break-after: avoid;
   }
 
   .cheatsheet-body > * { margin-bottom: 0.85rem; }
   .cheatsheet-body > h2,
   .cheatsheet-body > h3,
   .cheatsheet-body > h4 { margin-bottom: 0.5rem; }
+
+  /* Anchor jumps (TOC link clicks) should land below the sticky header band
+     so the section title isn't hidden under it. 6.5rem ≈ site header
+     (~64px) + compact band (~44px) with a small buffer. */
+  .cheatsheet-body h2,
+  .cheatsheet-body h3 {
+    scroll-margin-top: 6.5rem;
+  }
 
   /* Solid dark-bar h2 — the signature MAG section header. Switches to flex
      so an injected progress chip (Step section only) sits on the right. */
