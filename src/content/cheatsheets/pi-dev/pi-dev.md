@@ -3,11 +3,11 @@ slug: pi-dev
 title: Pi — Minimal Coding Agent Cheatsheet
 category: tool
 subcategory: coding-agent
-summary: Step-by-step path to a working Pi install — minimal-by-default terminal coding agent with read/write/edit/bash, tree sessions, AGENTS.md context, multi-provider models, and extensions/skills for everything else.
-last_updated: 2026-05-19
+summary: Step-by-step path to a working Pi install — minimal-by-default terminal coding agent with read/write/edit/bash, tree sessions, AGENTS.md context, multi-provider models, and extensions/skills/packages for everything else including multi-agent, memory, MCP, and custom extensions.
+last_updated: 2026-05-23
 stale_after_days: 90
 upstream_version: "pi.dev current"
-tags: [pi, pi-dev, coding-agent, cli, extensions, skills, mcp]
+tags: [pi, pi-dev, coding-agent, cli, extensions, skills, mcp, packages, multi-agent, memory, settings]
 status: published
 authors:
   - name: luongnv89
@@ -23,7 +23,7 @@ links:
 
 **Who this is for:** Developers who want a CLI coding agent without baked-in opinions — start with `read / write / edit / bash`, then add only the sub-agents, plan mode, memory, or guardrails you actually need.
 
-**Read time:** ~6 min · **Apply Steps 1–3:** under 20 min
+**Read time:** ~10 min · **Apply Steps 1–3:** under 20 min · **Steps 7–14:** 30–60 min
 
 ## Installation
 
@@ -198,6 +198,134 @@ Skills are Markdown files you author yourself — drop them under `~/.pi/skills/
 | `Ctrl+L` | Switch model |
 | `Shift+Tab` | Toggle thinking level |
 
+### Advanced Setup (Steps 7–14)
+
+Once the 4 baseline tools feel limiting, Pi's package/extension/skills ecosystem lets you layer on exactly the capabilities you need — from persistent memory to multi-agent orchestration.
+
+### Step 7 — Global + Project Settings
+
+Create `~/.pi/agent/settings.json` (global) or `.pi/settings.json` (per-project):
+
+```json
+{
+  "thinkingLevel": "high",
+  "compaction": { "enabled": true, "threshold": 80000 },
+  "providers": {
+    "default": "anthropic",
+    "fallback": "openai"
+  },
+  "protectedPaths": ["/etc", "/usr"]
+}
+```
+
+| Setting | What it does |
+|---|---|
+| `thinkingLevel` | `"high"` or `"xhigh"` for complex tasks |
+| `compaction` | Auto-compress context when threshold (tokens) exceeded |
+| `providers` | Default and fallback model providers |
+| `protectedPaths` | Directories the agent should not touch |
+
+Reload after edits: `/reload`. List available models with `pi --list-models`.
+Pair with a `models.json` for Ollama/LM Studio custom model endpoints.
+
+### Step 8 — Package Manager Mastery
+
+```text
+pi install npm:<package>
+pi install git:<repo-url>
+```
+
+Browse the full catalog at [pi.dev/packages](https://pi.dev/packages). High-value packages:
+
+| Package | What it adds |
+|---|---|
+| `pi-subagents` / `skynex-pi` | Multi-agent triage and sub-agent delegation |
+| `pi-mcp-adapter` | MCP server integration |
+| `pi-web-access` / `@juicesharp/rpiv-web-tools` | Web search and fetch tools |
+| `pi-lens` | Real-time LSP/linting diagnostics |
+| `pi-hermes-memory` / `@samfp/pi-memory` | Persistent memory / RAG-like recall |
+
+### Step 9 — Auto-Discovery Folders
+
+Drop custom extensions, skills, prompts, or themes into these directories — Pi loads them automatically on `/reload`:
+
+| Directory | Scope | Content |
+|---|---|---|
+| `~/.pi/agent/extensions/*.ts` | Global | Extensions loaded in every project |
+| `.pi/extensions/` | Project | Project-specific extensions |
+| `.pi/skills/` | Project | Markdown skill files (`/skill:name`) |
+| `.pi/prompts/` | Project | Reusable prompt templates (`/template`) |
+| `.pi/themes/` | Project | Custom UI themes |
+
+Extensions with `package.json` + dependencies work for advanced setups.
+
+### Step 10 — Build or Install Custom Extensions
+
+Extensions are TypeScript files that hook into Pi's lifecycle. Create `~/.pi/agent/extensions/my-super.ts`:
+
+```ts
+import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+
+export default function (pi: ExtensionAPI) {
+  pi.on("tool_call", async (event, ctx) => {
+    if (event.toolName === "bash" && /* risky condition */) {
+      const ok = await ctx.ui.confirm("Risky operation?", "Proceed?");
+      if (!ok) return { block: true };
+    }
+  });
+
+  pi.registerTool({ name: "my-tool", handler: async (...) => { /* ... */ } });
+  pi.registerCommand("myflow", { handler: async (...) => { /* ... */ } });
+}
+```
+
+Test directly: `pi -e ./my-super.ts`. Once working, move to an auto-discovery folder and `/reload`.
+
+Community extension packs: `pi-vs-claude-code` repo (sub-agents, guardrails, comms).
+
+### Step 11 — Agent Skills & Prompt Templates
+
+**Skills** follow the [Agent Skills spec](https://opencode.ai/skills) — drop a `SKILL.md` in your `.pi/skills/` folder, invoke with `/skill:name`. Keep the description precise for triggering.
+
+**Prompt templates** go in `.pi/prompts/` as Markdown files, invoked via `/template`. Combine with extensions to inject RAG results or session memory into prompts.
+
+### Step 12 — Multi-Agent & Orchestration
+
+Install one of `pi-subagents`, `skynex-pi`, `pi-messenger-swarm`, or `pi-crew`. Define agent teams in YAML. Connect external servers via `pi-mcp-adapter`. Extensions enable chains, parallel execution, HITL (human-in-the-loop), and two-way Pi-to-Pi communication.
+
+### Step 13 — Memory, RAG & Context Optimization
+
+| Tool | Purpose |
+|---|---|
+| `pi-hermes-memory` / `@samfp/pi-memory` | Persistent cross-session recall |
+| Custom compaction extension | Intelligently summarize branched sessions |
+| `pi-lean-ctx` / context-mode | Minimize token usage for large sessions |
+| `before_agent_start` hook | Inject context from `AGENTS.md` / `SYSTEM.md` |
+| `/compact` (manual) | Trigger context compression on demand |
+
+### Step 14 — UI/Workflow Polish & Best Practices
+
+| Category | Options |
+|---|---|
+| Themes | `pi-zentui`, powerline footer, or custom designs |
+| Status overlays | `pi-statusbar`, `pi-powerline-footer`, todo widgets |
+| Long sessions | `tmux` + `pi-agent-hub` for persistence |
+| Safety | Sandboxing/protection extensions — never run untrusted code blindly |
+| Git workflow | Git integration via extensions + checkpoint commits |
+| Self-extending | Ask Pi: *"Build me an extension for X"* then `/reload` |
+| Monitoring | Telemetry extensions or built-in stats |
+| Security | Only install trusted packages; extensions have full permissions |
+
+### Pro Tips for Maximum Boost
+
+- **Layer, don't stack.** Start minimal, then add 3–5 extensions max per workflow.
+- **Bundle installs.** `pi install` bundles like `gentle-pi` or `rpiv-pi` for structured flows.
+- **Hybrid models.** Pair local Ollama/Qwen for cheap tasks + cloud frontier for complex.
+- **Stay current.** Join the [Pi Discord](https://discord.gg/pi) and [GitHub community](https://github.com/earendil-works/pi-coding-agent) for latest packages.
+- **Go extreme.** Build your own Pi package and share via npm/GitHub — Pi is designed to be extended.
+
+Always check [pi.dev/docs](https://pi.dev/docs) and [pi.dev/packages](https://pi.dev/packages) for the absolute latest. Experiment iteratively — Pi excels at helping you extend itself.
+
 ## Best Practices
 
 ### Do
@@ -248,6 +376,12 @@ Skills are Markdown files you author yourself — drop them under `~/.pi/skills/
 | Run shell (output to model) | `!command` |
 | Run shell (silent) | `!!command` |
 | Paste image | `Ctrl+V` |
+| List available models | `pi --list-models` |
+| Test extension directly | `pi -e ./extension.ts` |
+| Trigger compaction | `/compact` |
+| Invoke a skill | `/skill:name` |
+| Invoke a prompt template | `/template` |
+| Open settings file | Edit `~/.pi/agent/settings.json` or `.pi/settings.json` |
 
 ## Expected Outcomes (after Steps 1–3)
 
