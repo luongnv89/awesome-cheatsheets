@@ -96,6 +96,7 @@ the same ids.
 | `mermaid-missing-in-mental-model` | A required section (per `MERMAID_RULES.requiredIn`) has no `mermaid` fenced block. |
 | `mermaid-fence-broken` | A `mermaid` fence opens but is unterminated, malformed, or wrapped wrong. |
 | `mermaid-empty` | A `mermaid` fence is present but its body is empty / whitespace-only. |
+| `mermaid-parse-failed` | A `mermaid` fence is well-formed but the diagram does not parse with the real Mermaid engine (would not render). Gated on `MERMAID_RULES.mustParse`; parsed headless via `jsdom` + `mermaid`. |
 | `link-broken` | An external `http(s)://` link failed the HEAD probe (suppressed via `--no-links` or `CHEATSHEET_LINT_SKIP_LINKS=1`). |
 
 See `rules.ts` for the union of ids and the source-level pointers; each rule
