@@ -428,9 +428,10 @@ export const MERMAID_RULES = {
   fenceClose: "```",
   /**
    * Whether Mermaid blocks must parse successfully (not just have valid
-   * fences). The validator (Task 1.2) will parse with `mermaid` or an
-   * equivalent — out of scope for this contract, but flagged here so the
-   * validator implementation has a single named rule to bind to.
+   * fences). When `true`, the validator parses every Mermaid block with the
+   * real `mermaid` engine (headless, via jsdom) and emits `mermaid-parse-failed`
+   * for any diagram that would not render. See `validator/rules/mermaid.ts`
+   * and `validator/mermaid-engine.ts`.
    */
   mustParse: true,
 } as const;

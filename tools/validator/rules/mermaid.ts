@@ -24,7 +24,14 @@
  *    Currently no section requires one (`requiredIn: []`), so this is only
  *    exercised if the contract repopulates the list.
  *
+ * V2 adds, gated on `MERMAID_RULES.mustParse`:
+ *  - `mermaid-parse-failed`                — fence + body are well-formed but
+ *    the diagram does not parse with the real Mermaid engine, i.e. it would
+ *    fail to render. We parse with `mermaid` itself (already a dependency for
+ *    site rendering) so "lint-clean" means "renders". See `../mermaid-engine.ts`.
+ *
  * @see ../../template-contract.ts (`MERMAID_RULES`)
+ * @see ../mermaid-engine.ts (headless parse harness)
  * @see ../../../2026_05_18_awesome_ai_cheatsheets/prd.md §3 M1, §3 M4
  */
 
@@ -36,6 +43,7 @@ import {
   SECTION_MATCH_RULE,
 } from "../../template-contract.js";
 import { makeError, type ValidationError } from "../types.js";
+import { parseMermaid } from "../mermaid-engine.js";
 
 /**
  * Collect all `code` nodes with `lang === "mermaid"` from the AST.
@@ -182,17 +190,70 @@ function checkRequiredSectionMermaids(tree: Root): ValidationError[] {
 }
 
 /**
+ * Mermaid reports parse errors as `Parse error on line N:` where N is 1-based
+ * within the diagram body. Translate that to a file line by anchoring on the
+ * block's opening line: the body's line 1 is the line *after* the ```mermaid
+ * fence. Best-effort — falls back to the fence line if we can't extract N.
+ */
+function fileLineForParseError(
+  block: Code,
+  message: string,
+): number | undefined {
+  const fenceLine = block.position?.start.line;
+  if (fenceLine === undefined) return undefined;
+  const match = /line (\d+)/i.exec(message);
+  if (match?.[1] === undefined) return fenceLine;
+  const bodyLine = Number(match[1]);
+  if (!Number.isFinite(bodyLine) || bodyLine < 1) return fenceLine;
+  // fenceLine is the ```mermaid line; body line 1 sits one line below it.
+  return fenceLine + bodyLine;
+}
+
+/**
+ * Parse pass — gated on `MERMAID_RULES.mustParse`. Each non-empty Mermaid block
+ * is parsed with the real Mermaid engine; a failure means the diagram would not
+ * render. Skipped entirely when no Mermaid blocks exist (no engine spin-up).
+ */
+async function checkMermaidParses(blocks: Code[]): Promise<ValidationError[]> {
+  if (!MERMAID_RULES.mustParse) return [];
+
+  const errors: ValidationError[] = [];
+  for (const block of blocks) {
+    if (block.value.trim().length === 0) continue; // mermaid-empty covers this.
+    const parseError = await parseMermaid(block.value);
+    if (parseError !== null) {
+      errors.push(
+        makeError(
+          "mermaid-parse-failed",
+          `\`\`\`mermaid block does not parse (will not render): ${
+            parseError.split("\n")[0]
+          }`,
+          fileLineForParseError(block, parseError),
+        ),
+      );
+    }
+  }
+  return errors;
+}
+
+/**
  * Top-level entry point. Combines:
  *  1. Raw-source fence check (catches unclosed fences remark heals).
  *  2. AST sweep — every Mermaid `code` node with empty `value` is an error.
  *  3. Required-section check.
+ *  4. Parse pass — every Mermaid block must parse with the real engine
+ *     (gated on `MERMAID_RULES.mustParse`).
  */
-export function checkMermaid(tree: Root, rawSource: string): ValidationError[] {
+export async function checkMermaid(
+  tree: Root,
+  rawSource: string,
+): Promise<ValidationError[]> {
   const errors: ValidationError[] = [];
 
   errors.push(...checkRawFences(rawSource));
 
-  for (const block of collectMermaidBlocks(tree)) {
+  const blocks = collectMermaidBlocks(tree);
+  for (const block of blocks) {
     if (block.value.trim().length === 0) {
       const line = block.position?.start.line;
       errors.push(
@@ -206,6 +267,7 @@ export function checkMermaid(tree: Root, rawSource: string): ValidationError[] {
   }
 
   errors.push(...checkRequiredSectionMermaids(tree));
+  errors.push(...(await checkMermaidParses(blocks)));
 
   return errors;
 }

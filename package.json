@@ -38,9 +38,11 @@
   "devDependencies": {
     "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.60.0",
+    "@types/jsdom": "^28.0.3",
     "@types/mdast": "^4.0.4",
     "@types/node": "^25.9.0",
     "@types/unist": "^3.0.3",
+    "jsdom": "^29.1.1",
     "pagefind": "^1.5.2",
     "tsx": "^4.22.2",
     "typescript": "^6.0.3",

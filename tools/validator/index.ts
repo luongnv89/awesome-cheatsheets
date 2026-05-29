@@ -16,7 +16,9 @@
  *  - AC #2: frontmatter rules come from `frontmatterSchema` in
  *    `template-contract.ts` — no inline rules anywhere in this package.
  *  - AC #3: AST walk verifies required sections in locked order.
- *  - AC #4: Mermaid fences are syntactically checked (raw + AST).
+ *  - AC #4: Mermaid blocks are checked for fences (raw + AST), empties, and —
+ *    when `MERMAID_RULES.mustParse` is set — that they parse/render with the
+ *    real Mermaid engine.
  *  - AC #5: external link probe with configurable timeout (default 5_000 ms).
  *  - AC #6: unit tests in `__tests__/` cover each rule with passing and
  *    failing fixtures.
@@ -115,7 +117,7 @@ export async function validate(
   errors.push(...checkOneLiner(tree));
   errors.push(...checkSections(tree));
   errors.push(...checkReference(tree));
-  errors.push(...checkMermaid(tree, source));
+  errors.push(...(await checkMermaid(tree, source)));
 
   // I/O-bound rule last.
   errors.push(...(await checkLinks(tree, options)));

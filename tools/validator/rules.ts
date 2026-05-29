@@ -37,6 +37,7 @@ export const RULE_IDS = [
   "mermaid-missing-in-required-section",
   "mermaid-fence-broken",
   "mermaid-empty",
+  "mermaid-parse-failed",
 
   // External link rule (AC #5).
   "link-broken",
