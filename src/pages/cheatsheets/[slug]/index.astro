@@ -372,10 +372,21 @@ const isDraft = entry.data.status === 'draft';
     font-size: 0.875rem;
   }
 
-  .cheatsheet-body p code,
-  .cheatsheet-body li code,
-  .cheatsheet-body td code,
-  .cheatsheet-body th code {
+  .cheatsheet-body pre code {
+    display: block;
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    border: 0;
+    border-radius: 0;
+    font: inherit;
+    white-space: pre;
+  }
+
+  .cheatsheet-body p > code,
+  .cheatsheet-body li > code,
+  .cheatsheet-body td > code,
+  .cheatsheet-body th > code {
     background-color: var(--color-paper-shade);
     color: var(--color-ink);
     padding: 0.05rem 0.35rem;

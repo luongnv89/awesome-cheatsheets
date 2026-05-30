@@ -553,6 +553,11 @@ const metaDescription = frontmatter.summary;
         if (pre.closest('.mermaid')) return;
         if (pre.parentElement?.classList.contains('code-block')) return;
 
+        const code = pre.querySelector('code');
+        if (code?.textContent) {
+          code.textContent = code.textContent.replace(/\n+$/, '');
+        }
+
         const wrapper = document.createElement('div');
         wrapper.className = 'code-block';
         pre.parentNode?.insertBefore(wrapper, pre);
@@ -567,7 +572,7 @@ const metaDescription = frontmatter.summary;
 
         button.addEventListener('click', async () => {
           const code = pre.querySelector('code');
-          const text = (code?.innerText ?? pre.innerText).replace(/\n$/, '');
+          const text = (code?.innerText ?? pre.innerText).replace(/\n+$/, '');
           try {
             await navigator.clipboard.writeText(text);
             button.textContent = 'Copied';
