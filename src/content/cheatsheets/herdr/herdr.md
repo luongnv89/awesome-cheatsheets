@@ -78,19 +78,19 @@ herdr channel set stable
 
 ## Step-by-Step Setup & Optimization
 
-### 1. Basic working setup
+### Step 1 — Basic working setup
 
-- [ ] Install with a method above and run `herdr` from a project directory.
-- [ ] Create **one workspace per active project** (sidebar state rolls up per workspace).
-- [ ] Use the **mouse first**: click panes/tabs/workspaces/agents, drag borders, right-click to split/create tabs, drag-select to copy.
-- [ ] Start an agent **inside a pane** (not inside nested tmux):
+- Run `herdr` from a project directory after install.
+- Create **one workspace per active project** (sidebar state rolls up per workspace).
+- Prefer the **mouse first**: click panes/tabs/workspaces/agents, drag borders, right-click to split/create tabs, drag-select to copy.
+- Start an agent **inside a pane** (not inside nested tmux):
 
   ```bash
   claude    # or: codex, pi, opencode, hermes, …
   ```
 
-- [ ] Confirm the sidebar shows agent state (`working`, `blocked`, `done`, `idle`).
-- [ ] Learn five prefix keys (default prefix `ctrl+b`):
+- Confirm the sidebar shows agent state (`working`, `blocked`, `done`, `idle`).
+- Learn five prefix keys (default prefix `ctrl+b`):
 
   | Action | Key |
   | ------- | --- |
@@ -100,18 +100,18 @@ herdr channel set stable
   | Workspace navigation | `prefix+w` |
   | Detach (leave agents running) | `prefix+q` |
 
-- [ ] Press `prefix+?` for the full live keymap.
+- Press `prefix+?` for the full live keymap.
 
-### 2. Daily workflow
+### Step 2 — Daily workflow
 
-- [ ] Detach with `prefix+q` or close the terminal; reattach later with `herdr` — processes keep running on the server.
-- [ ] Stop the whole default session only when you mean to kill panes:
+- Detach with `prefix+q` or close the terminal; reattach later with `herdr` — processes keep running on the server.
+- Stop the whole default session only when you mean to kill panes:
 
   ```bash
   herdr server stop
   ```
 
-- [ ] Pick a remote path intentionally:
+- Pick a remote path intentionally:
 
   | Path | When |
   | ---- | ---- |
@@ -125,7 +125,7 @@ herdr channel set stable
   herdr --remote workbox --session agents
   ```
 
-- [ ] Use **named sessions** only when you need separate servers/sockets (workspaces usually come first):
+- Use **named sessions** only when you need separate servers/sockets (workspaces usually come first):
 
   ```bash
   herdr session list
@@ -133,7 +133,7 @@ herdr channel set stable
   herdr session stop work
   ```
 
-- [ ] Spawn or attach agents from scripts when useful:
+- Spawn or attach agents from scripts when useful:
 
   ```bash
   herdr agent start reviewer --cwd ~/project --split right -- pi
@@ -142,17 +142,17 @@ herdr channel set stable
   herdr agent attach reviewer
   ```
 
-### 3. Configuration baseline
+### Step 3 — Configuration baseline
 
-- [ ] Config is optional. Path: `~/.config/herdr/config.toml` (Windows: `%APPDATA%\herdr\config.toml`).
-- [ ] Dump defaults when you want a full starter file:
+- Config is optional. Path: `~/.config/herdr/config.toml` (Windows: `%APPDATA%\herdr\config.toml`).
+- Dump defaults when you want a full starter file:
 
   ```bash
   herdr --default-config > ~/.config/herdr/config.toml
   herdr server reload-config
   ```
 
-- [ ] Install integrations for the agents you actually use (better restore / lifecycle where supported):
+- Install integrations for the agents you actually use (better restore / lifecycle where supported):
 
   ```bash
   herdr integration install claude
@@ -164,7 +164,7 @@ herdr channel set stable
   herdr integration status
   ```
 
-- [ ] Enable toast notifications so blocked/done agents surface when you are elsewhere:
+- Enable toast notifications so blocked/done agents surface when you are elsewhere:
 
   ```toml
   [ui.toast]
@@ -172,7 +172,7 @@ herdr channel set stable
   delay_seconds = 1
   ```
 
-- [ ] Optional theme and prefix:
+- Optional theme and prefix:
 
   ```toml
   [theme]
@@ -182,7 +182,7 @@ herdr channel set stable
   prefix = "ctrl+b"
   ```
 
-- [ ] Optional prefix-free chords (safe family is often `ctrl+alt`; verify against your OS/terminal):
+- Optional prefix-free chords (safe family is often `ctrl+alt`; verify against your OS/terminal):
 
   ```toml
   [keys]
@@ -194,9 +194,9 @@ herdr channel set stable
   previous_tab = ["prefix+p", "ctrl+alt+["]
   ```
 
-### 4. Advanced optimization
+### Step 4 — Advanced optimization
 
-- [ ] **Git worktrees as workspaces** (sidebar or CLI):
+- **Git worktrees as workspaces** (sidebar or CLI):
 
   ```bash
   herdr worktree create --branch worktree/api
@@ -210,7 +210,7 @@ herdr channel set stable
   directory = "~/.herdr/worktrees"
   ```
 
-- [ ] **CLI orchestration** for multi-agent pipelines:
+- **CLI orchestration** for multi-agent pipelines:
 
   ```bash
   herdr workspace create --cwd ~/project --label api --no-focus
@@ -221,7 +221,7 @@ herdr channel set stable
   herdr pane read w1:p2 --source recent --lines 50
   ```
 
-- [ ] **Agent detection debug** when status looks wrong:
+- **Agent detection debug** when status looks wrong:
 
   ```bash
   herdr agent explain <target>
@@ -231,13 +231,13 @@ herdr channel set stable
   herdr server reload-agent-manifests
   ```
 
-- [ ] **Sandbox wrappers (Linux):** if Bubblewrap/VM/`fence` hides the process, set a scoped hint:
+- **Sandbox wrappers (Linux):** if Bubblewrap/VM/`fence` hides the process, set a scoped hint:
 
   ```bash
   HERDR_AGENT=claude fence -- claude
   ```
 
-- [ ] **Plugins** for reusable workflows (vet manifests; full CLI access):
+- **Plugins** for reusable workflows (vet manifests; full CLI access):
 
   ```bash
   herdr plugin install ogulcancelik/herdr-plugin-examples/agent-telegram-notify
@@ -254,7 +254,7 @@ herdr channel set stable
   description = "apply layout"
   ```
 
-- [ ] **Session restore trade-offs** (read before enabling history):
+- **Session restore trade-offs** (read before enabling history):
 
   | Path | Processes keep running | Agent conversation |
   | ---- | ---------------------- | ------------------ |
@@ -270,18 +270,18 @@ herdr channel set stable
   pane_history = false              # off by default; can store secrets in session-history.json
   ```
 
-- [ ] Teach an AI agent Herdr with the official agent guide:
+- Teach an AI agent Herdr with the official agent guide:
 
   ```text
   Help me understand and set up Herdr. Read https://herdr.dev/agent-guide.md first, then walk me through it step by step.
   ```
 
-### 5. Maintenance and troubleshooting
+### Step 5 — Maintenance and troubleshooting
 
-- [ ] Prefer detach over `server stop` when agents should keep working.
-- [ ] After package-manager upgrades, restart the Herdr server when you need the new binary (`herdr server stop` then `herdr`, or named `herdr session stop <name>` then reattach).
-- [ ] Do **not** nest `tmux` inside a Herdr pane — detection sees `tmux`, not the agent. Herdr *as* outer terminal is fine.
-- [ ] Check status and logs:
+- Prefer detach over `server stop` when agents should keep working.
+- After package-manager upgrades, restart the Herdr server when you need the new binary (`herdr server stop` then `herdr`, or named `herdr session stop <name>` then reattach).
+- Do **not** nest `tmux` inside a Herdr pane — detection sees `tmux`, not the agent. Herdr *as* outer terminal is fine.
+- Check status and logs:
 
   ```bash
   herdr status
@@ -293,7 +293,7 @@ herdr channel set stable
   HERDR_LOG=herdr=debug herdr
   ```
 
-- [ ] Shell completions (optional):
+- Shell completions (optional):
 
   ```bash
   mkdir -p ~/.zfunc
