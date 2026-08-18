@@ -51,6 +51,15 @@ Our wedge: **format + freshness + comparability**.
 | **Freshness** | Every cheatsheet ships with `last_updated` and a `stale_after_days` budget. Past budget, it's flagged inline as *may be stale*. |
 | **Comparability** | Because structure is fixed, two cheatsheets in the same category diff cleanly section-by-section. No re-learning a new layout per tool. |
 
+## Who this is for
+
+This catalog is aimed at:
+
+- Developers evaluating terminal-native AI tools
+- Engineers comparing agents and MCP ecosystems
+- Contributors looking for structured, up-to-date references
+- Teams that want quick onboarding without digging through scattered docs
+
 ## How it works
 
 1. **Browse the catalog** at [luongnv89.github.io/awesome-cheatsheets](https://luongnv89.github.io/awesome-cheatsheets/) — filter by category (tool, mcp, concept, comparison) or tag, search the full corpus, and open any entry.
