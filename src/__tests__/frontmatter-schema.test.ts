@@ -20,6 +20,7 @@ import { describe, expect, it } from "vitest";
 import { parse as parseYaml } from "yaml";
 
 import { collections } from "../content.config.js";
+import { frontmatterSchema } from "../../tools/template-contract.js";
 
 const schema = collections.cheatsheets.schema;
 
@@ -104,6 +105,26 @@ describe("cheatsheets collection schema — invalid fixtures", () => {
   ])("rejects %s", (_label, patch) => {
     const result = schema.safeParse({ ...validFixture(), ...patch });
     expect(result.success).toBe(false);
+  });
+});
+
+describe("cheatsheets collection schema — contract single-source (issue #135)", () => {
+  it("derives its fields from frontmatterSchema minus slug — never a second copy", () => {
+    // `src/content.config.ts` builds the collection schema as
+    // `frontmatterSchema.omit({ slug: true })`. This guard fails if the two
+    // ever drift apart again — e.g. someone re-inlines a z.object copy.
+    const collectionFields = Object.keys(schema.def.shape).sort();
+    const contractFields = Object.keys(frontmatterSchema.def.shape)
+      .filter((field) => field !== "slug")
+      .sort();
+    expect(collectionFields).toEqual(contractFields);
+  });
+
+  it("keeps slug contract-only — required by frontmatterSchema, absent from the collection", () => {
+    // `slug` is validated by the lint side (frontmatterSchema) but stays out
+    // of the collection schema: Astro derives the entry id from the file path.
+    expect(Object.keys(frontmatterSchema.def.shape)).toContain("slug");
+    expect(Object.keys(schema.def.shape)).not.toContain("slug");
   });
 });
 
