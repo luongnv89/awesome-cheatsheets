@@ -9,7 +9,7 @@ name: ci
 #   4. build        — astro build + pagefind index (`pnpm build`)
 #   5. no-CDN gate  — tools/ci/no-cdn-check.sh against dist/ (issue #23)
 #   6. lighthouse   — @lhci/cli autorun against `astro preview` of dist/
-#   7. audit        — `pnpm audit --prod` as a non-blocking warning
+#   7. audit        — `pnpm audit --prod --audit-level=high` as a blocking gate
 #
 # A second job, `e2e`, runs in parallel (issue #115):
 #   playwright install (browser binaries cached by @playwright/test version)
@@ -91,14 +91,12 @@ jobs:
           # public storage. Not a secret.
           LHCI_BUILD_CONTEXT__CURRENT_HASH: ${{ github.sha }}
 
-      # Non-blocking: `pnpm audit --prod` reports prod-dep vulnerabilities.
-      # We use --prod to skip noisy devDep findings (test runners, etc.).
-      # When a high/critical lands, the warning surfaces in the Actions UI
-      # without failing the PR. Tighten to a hard gate when we have a clean
-      # baseline and a triage process.
-      - name: Audit production dependencies (non-blocking)
-        run: pnpm audit --prod
-        continue-on-error: true
+      # Blocking: `pnpm audit --prod --audit-level=high` fails the job when a
+      # high or critical advisory lands in production dependencies.
+      # --prod skips noisy devDep findings (test runners, etc.); moderate and
+      # low advisories still surface in the step output without failing CI.
+      - name: Audit production dependencies (high/critical)
+        run: pnpm audit --prod --audit-level=high
 
   # E2E gate (issue #115). Runs alongside `ci` rather than after it so the
   # Playwright suite adds no wall-clock time to the existing pipeline. The
