@@ -44,6 +44,9 @@ cheatsheet. For code and tooling changes, use the development guide in
 - Use conventional-style commit and PR titles already used by this repository,
   such as `docs(cheatsheet): add claude-code cheatsheet` or
   `fix(validator): handle missing references`.
+- `pnpm install` wires a Husky-managed `pre-commit` hook
+  (`.husky/pre-commit`) that runs `pnpm type-check` on every commit. Keep it
+  green rather than bypassing it with `--no-verify`.
 
 ## Pull request checklist
 

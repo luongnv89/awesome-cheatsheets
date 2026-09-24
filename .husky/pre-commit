@@ -1,0 +1,2 @@
+# Pre-commit gate: whole-project type check (issue #140 / F-CI-004).
+pnpm type-check
