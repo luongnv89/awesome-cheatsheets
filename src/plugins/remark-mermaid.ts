@@ -1,4 +1,5 @@
 import { visit } from 'unist-util-visit';
+import type { Code, Html, Parent, Root } from 'mdast';
 
 /**
  * Replace ```mermaid code fences with <div class="mermaid">…escaped source…</div>
@@ -10,14 +11,19 @@ import { visit } from 'unist-util-visit';
  * div, and mermaid reads it back via textContent.
  */
 export function remarkMermaid() {
-  return function (tree: any) {
-    visit(tree, 'code', (node: any, index: number | null, parent: any) => {
-      if (node.lang !== 'mermaid' || parent == null || index == null) return;
-      parent.children[index] = {
-        type: 'html',
-        value: `<div class="mermaid">${escapeHtml(node.value)}</div>`,
-      };
-    });
+  return function (tree: Root) {
+    visit(
+      tree,
+      'code',
+      (node: Code, index: number | undefined, parent: Parent | undefined) => {
+        if (node.lang !== 'mermaid' || parent == null || index == null) return;
+        const replacement: Html = {
+          type: 'html',
+          value: `<div class="mermaid">${escapeHtml(node.value)}</div>`,
+        };
+        parent.children[index] = replacement;
+      },
+    );
   };
 }
 
