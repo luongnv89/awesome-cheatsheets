@@ -46,6 +46,8 @@ pnpm test:e2e
 | Lint a cheatsheet | `pnpm cheatsheet:lint <file>` |
 | Check generated output for third-party CDN URLs | `pnpm check:no-cdn` |
 | Run freshness scan | `pnpm freshness:scan -- --dry-run` |
+| Regenerate `.claude/skills/` and `.agents/skills/` mirrors from canonical `skills/` | `pnpm skills:sync` |
+| Verify skill mirrors have not drifted | `pnpm skills:sync -- --check` |
 
 ## Repository map
 
@@ -59,8 +61,8 @@ pnpm test:e2e
 | `src/plugins/remark-mermaid.ts` | Mermaid remark integration. |
 | `tools/validator/` | Template-contract validator implementation and tests. |
 | `tools/cli/lint.ts` | `pnpm cheatsheet:lint` CLI wrapper. |
-| `tools/ci/` | CI helpers for freshness scanning and no-CDN enforcement. |
-| `skills/cheatsheet-scribe/` | Local authoring skill and examples for generating cheatsheets. |
+| `tools/ci/` | CI helpers for freshness scanning, no-CDN enforcement, and skill-mirror sync. |
+| `skills/` | Canonical authoring skills (`cheatsheet-scribe/`, `docs-to-cheatsheet/`). `.claude/skills/` and `.agents/skills/` are generated mirrors — edit `skills/` only, then run `pnpm skills:sync`. |
 | `e2e/` | Playwright coverage for catalog/search/filter/page behavior. |
 
 ## Authoring cheatsheets
