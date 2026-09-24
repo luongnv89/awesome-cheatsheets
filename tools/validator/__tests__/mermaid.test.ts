@@ -70,4 +70,44 @@ describe("mermaid rule", () => {
     );
     expect(parseErrors).toEqual([]);
   });
+
+  it("reports every unclosed opener when several mermaid fences stay open", async () => {
+    // Single-pass regression (issue #141, F-PERF-003): two openers, no closer
+    // — the scan must emit one error per opener, in source order.
+    const result = await validate(fixture("multi-broken-mermaid.md"), {
+      links: "skip",
+    });
+    const broken = result.errors.filter(
+      (e) => e.rule === "mermaid-fence-broken",
+    );
+    expect(broken).toHaveLength(2);
+    expect(broken[0]?.line).toBe(56);
+    expect(broken[1]?.line).toBe(60);
+  });
+
+  it("emits mermaid-engine-not-bundled for a diagram type the build trims", async () => {
+    // sequenceDiagram parses fine with the full engine, but its detector id
+    // (`sequence`) is outside MERMAID_RULES.bundledDiagrams — the client
+    // bundle drops that engine chunk (issue #141, F-PERF-001), so the lint
+    // gate must reject the diagram before it reaches a page that cannot
+    // render it.
+    const result = await validate(fixture("nonbundled-mermaid.md"), {
+      links: "skip",
+    });
+    const notBundled = result.errors.filter(
+      (e) => e.rule === "mermaid-engine-not-bundled",
+    );
+    expect(notBundled).toHaveLength(2);
+    // The sequenceDiagram fence is rejected by its detector id…
+    expect(notBundled[0]?.message).toContain('"sequence"');
+    expect(notBundled[0]?.message).toContain("bundledDiagrams");
+    // …and the flowchart that requests layout: elk via frontmatter is
+    // rejected because the ELK layout loader is trimmed too.
+    expect(notBundled[1]?.message).toContain('layout "elk"');
+    expect(notBundled[1]?.message).toContain("bundledLayouts");
+    // Both diagrams parse — no mermaid-parse-failed for these blocks.
+    expect(
+      result.errors.filter((e) => e.rule === "mermaid-parse-failed"),
+    ).toHaveLength(0);
+  });
 });

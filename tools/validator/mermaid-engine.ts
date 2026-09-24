@@ -23,6 +23,7 @@
 
 interface MermaidEngine {
   parse(source: string): Promise<unknown>;
+  detectType(source: string): string;
 }
 
 let enginePromise: Promise<MermaidEngine> | undefined;
@@ -52,6 +53,7 @@ async function createEngine(): Promise<MermaidEngine> {
 
   return {
     parse: (source: string) => mermaid.parse(source),
+    detectType: (source: string) => mermaid.detectType(source),
   };
 }
 
@@ -79,5 +81,26 @@ export async function parseMermaid(source: string): Promise<string | null> {
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     return message;
+  }
+}
+
+/**
+ * Detect a Mermaid source's diagram type with the real engine — the same
+ * detector ids `mermaid.detectType` reports (`flowchart-v2`, `sequence`,
+ * `wardley`, …). The validator compares the result against
+ * `MERMAID_RULES.bundledDiagrams` so a diagram whose engine the client
+ * bundle trims (issue #141) fails lint instead of rendering broken.
+ *
+ * @returns the detected diagram id, or `null` when no detector matches
+ *          (unparseable text — `mermaid-parse-failed` reports that case).
+ */
+export async function detectMermaidType(
+  source: string,
+): Promise<string | null> {
+  const engine = await getMermaidEngine();
+  try {
+    return engine.detectType(source);
+  } catch {
+    return null;
   }
 }

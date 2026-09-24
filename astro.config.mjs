@@ -3,6 +3,8 @@ import { unified } from '@astrojs/markdown-remark';
 import mdx from '@astrojs/mdx';
 import tailwindcss from '@tailwindcss/vite';
 import { remarkMermaid } from './src/plugins/remark-mermaid.ts';
+import { mermaidTrim } from './src/plugins/vite-mermaid-trim.ts';
+import { MERMAID_RULES } from './tools/contract/mermaid.ts';
 
 export default defineConfig({
   integrations: [
@@ -13,7 +15,18 @@ export default defineConfig({
   vite: {
     // Tailwind 4 is wired through the official Vite plugin (the canonical
     // Astro path); the theme lives in `src/styles/base.css` via `@theme`.
-    plugins: [tailwindcss()],
+    // mermaidTrim drops the lazy diagram/layout engines no published
+    // cheatsheet uses (Wardley→cytoscape, ELK, KaTeX, …) from the client
+    // bundle — issue #141, F-PERF-001. The keep-list lives in
+    // tools/contract/mermaid.ts and is enforced by the validator's
+    // mermaid-engine-not-bundled rule.
+    plugins: [
+      tailwindcss(),
+      mermaidTrim({
+        keepDiagrams: MERMAID_RULES.bundledDiagrams,
+        keepLayouts: MERMAID_RULES.bundledLayouts,
+      }),
+    ],
   },
   markdown: {
     // Astro 7 renders Markdown with Sätteri by default; stay on the unified()

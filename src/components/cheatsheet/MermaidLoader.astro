@@ -11,6 +11,15 @@
  * 12 otherwise defaults to the bundled ELK layout engine and the `neo`
  * look, which would re-layout and restyle existing diagrams.
  *
+ * `import('mermaid')` resolves to `mermaid.core.mjs`, which registers ~37
+ * lazy diagram detectors — every engine's `import()` specifier would be
+ * traced into `dist/` (Wardley→cytoscape, ELK, KaTeX, …) even though no
+ * cheatsheet uses them. `src/plugins/vite-mermaid-trim.ts` rewrites those
+ * imports at build time so only engines in
+ * `MERMAID_RULES.bundledDiagrams`/`bundledLayouts` ship (issue #141,
+ * F-PERF-001); the validator's `mermaid-engine-not-bundled` rule keeps
+ * lint-clean content inside that same keep-list.
+ *
  * Extracted from `CheatsheetLayout.astro` (issue #133).
  */
 ---

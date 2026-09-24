@@ -29,6 +29,9 @@
  *    the diagram does not parse with the real Mermaid engine, i.e. it would
  *    fail to render. We parse with `mermaid` itself (already a dependency for
  *    site rendering) so "lint-clean" means "renders". See `../mermaid-engine.ts`.
+ *  - `mermaid-engine-not-bundled`           — parses fine, but the detected
+ *    diagram type is outside `MERMAID_RULES.bundledDiagrams`, so the trimmed
+ *    client bundle (issue #141) cannot render it either.
  *
  * @see ../../template-contract.ts (`MERMAID_RULES`)
  * @see ../mermaid-engine.ts (headless parse harness)
@@ -43,7 +46,7 @@ import {
   SECTION_MATCH_RULE,
 } from "../../template-contract.js";
 import { makeError, type ValidationError } from "../types.js";
-import { parseMermaid } from "../mermaid-engine.js";
+import { detectMermaidType, parseMermaid } from "../mermaid-engine.js";
 
 /**
  * Collect all `code` nodes with `lang === "mermaid"` from the AST.
@@ -73,52 +76,37 @@ function walk(node: AnyNode, visitor: (n: AnyNode) => void): void {
  * fence as text rather than as an unterminated code block — so we don't fully
  * rely on the AST for this signal.
  *
- * Heuristic:
- *  - For each line starting with ` ```mermaid` (allowing trailing info string),
- *    scan forward for a line that is exactly ` ``` ` (with optional trailing
- *    whitespace). Stop at EOF.
- *  - If no closing fence is found, emit `mermaid-fence-broken`.
+ * Single pass (issue #141, F-PERF-003): each line is visited exactly once.
+ * A ` ```mermaid` opener pushes its line onto `pending`; the next bare
+ * ` ``` ` line clears every pending opener — it terminates the enclosing
+ * fence, which also rescues any earlier unclosed openers (they end up
+ * inside that fence's body, exactly what the old forward scan concluded).
+ * Every opener still pending at EOF never saw a closer, so each gets a
+ * `mermaid-fence-broken` error in source order — the same errors the
+ * previous per-opener forward scan produced, including multiple errors
+ * when several openers stay unclosed.
  */
 function checkRawFences(rawSource: string): ValidationError[] {
-  const errors: ValidationError[] = [];
   const lines = rawSource.split(/\r?\n/);
-  let i = 0;
-  while (i < lines.length) {
+  let pending: number[] = [];
+  for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    if (line === undefined) {
-      i++;
-      continue;
-    }
+    if (line === undefined) continue;
     // Match an opener — must start the line (no indentation), language is
     // exactly `mermaid` optionally followed by whitespace + an info string.
     if (/^```mermaid(\s.*)?$/.test(line)) {
-      const openLine = i + 1; // 1-based
-      let closed = false;
-      for (let j = i + 1; j < lines.length; j++) {
-        const inner = lines[j];
-        if (inner === undefined) continue;
-        if (/^```\s*$/.test(inner)) {
-          closed = true;
-          i = j + 1;
-          break;
-        }
-      }
-      if (!closed) {
-        errors.push(
-          makeError(
-            "mermaid-fence-broken",
-            `\`\`\`mermaid fence opened at line ${openLine} but never closed (expected a matching \`\`\`)`,
-            openLine,
-          ),
-        );
-        // Advance past the offending opener so we don't loop forever.
-        i++;
-      }
-    } else {
-      i++;
+      pending.push(i + 1); // 1-based
+    } else if (pending.length > 0 && /^```\s*$/.test(line)) {
+      pending = [];
     }
   }
-  return errors;
+  return pending.map((openLine) =>
+    makeError(
+      "mermaid-fence-broken",
+      `\`\`\`mermaid fence opened at line ${openLine} but never closed (expected a matching \`\`\`)`,
+      openLine,
+    ),
+  );
 }
 
 /**
@@ -224,9 +212,46 @@ function fileLineForParseError(
 }
 
 /**
+ * Extract a `layout:` request from a diagram's config directives. Mermaid
+ * accepts two forms — a `%%{init: {"layout": "elk"}}%%` directive and a
+ * leading `---\nconfig:\n  layout: elk\n---` frontmatter block — and both
+ * override the loader's pinned `layout: 'dagre'`. Only directive regions are
+ * scanned, so a node label like `A["layout: grid"]` cannot false-positive.
+ *
+ * @returns the requested layout name, or `null` when no directive asks for
+ *          one outside `MERMAID_RULES.bundledLayouts`.
+ */
+function nonBundledLayoutRequest(source: string): string | null {
+  const regions: string[] = [];
+  for (const m of source.matchAll(/%%\{init:([\s\S]*?)\}%%/g)) {
+    if (m[1] !== undefined) regions.push(m[1]);
+  }
+  const frontmatter = /^---\s*\n([\s\S]*?)\n---\s*(?:\n|$)/.exec(source);
+  if (frontmatter?.[1] !== undefined) regions.push(frontmatter[1]);
+  for (const region of regions) {
+    const m = /\blayout\s*:\s*["']?([a-zA-Z0-9_-]+)/.exec(region);
+    if (
+      m?.[1] !== undefined &&
+      !(MERMAID_RULES.bundledLayouts as readonly string[]).includes(m[1])
+    ) {
+      return m[1];
+    }
+  }
+  return null;
+}
+
+/**
  * Parse pass — gated on `MERMAID_RULES.mustParse`. Each non-empty Mermaid block
  * is parsed with the real Mermaid engine; a failure means the diagram would not
  * render. Skipped entirely when no Mermaid blocks exist (no engine spin-up).
+ *
+ * The same pass emits `mermaid-engine-not-bundled` when the detected diagram
+ * type is outside `MERMAID_RULES.bundledDiagrams`, or when a config directive
+ * requests a layout outside `MERMAID_RULES.bundledLayouts` (issue #141): the
+ * client build trims every engine not in those lists, so a diagram that
+ * parses fine here would still fail to render on the published site. The
+ * lint error names the contract list so the fix — bundling the engine — is
+ * one edit away.
  */
 async function checkMermaidParses(blocks: Code[]): Promise<ValidationError[]> {
   if (!MERMAID_RULES.mustParse) return [];
@@ -243,6 +268,35 @@ async function checkMermaidParses(blocks: Code[]): Promise<ValidationError[]> {
             parseError.split("\n")[0]
           }`,
           fileLineForParseError(block, parseError),
+        ),
+      );
+      continue;
+    }
+
+    const diagramType = await detectMermaidType(block.value);
+    if (
+      diagramType !== null &&
+      !(MERMAID_RULES.bundledDiagrams as readonly string[]).includes(
+        diagramType,
+      )
+    ) {
+      errors.push(
+        makeError(
+          "mermaid-engine-not-bundled",
+          `\`\`\`mermaid diagram type "${diagramType}" is not bundled by the site build (bundled: ${MERMAID_RULES.bundledDiagrams.join(", ")}) — add it to MERMAID_RULES.bundledDiagrams in tools/contract/mermaid.ts`,
+          block.position?.start.line,
+        ),
+      );
+      continue;
+    }
+
+    const layout = nonBundledLayoutRequest(block.value);
+    if (layout !== null) {
+      errors.push(
+        makeError(
+          "mermaid-engine-not-bundled",
+          `\`\`\`mermaid block requests layout "${layout}", which is not bundled by the site build (bundled: ${MERMAID_RULES.bundledLayouts.join(", ")}) — add it to MERMAID_RULES.bundledLayouts in tools/contract/mermaid.ts`,
+          block.position?.start.line,
         ),
       );
     }

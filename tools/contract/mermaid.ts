@@ -42,4 +42,30 @@ export const MERMAID_RULES = {
    * and `validator/mermaid-engine.ts`.
    */
   mustParse: true,
+  /**
+   * Mermaid diagram types whose engines the client bundle keeps (issue #141,
+   * F-PERF-001). `import('mermaid')` resolves to `mermaid.core.mjs`, which
+   * registers ~37 lazy diagram detectors — every one of their `import()`
+   * specifiers is traced by Vite, so engines like Wardley/Cytoscape ship to
+   * `dist/` even though no cheatsheet uses them. The site build trims every
+   * detector whose id is not listed here (see
+   * `src/plugins/vite-mermaid-trim.ts`), and the validator emits
+   * `mermaid-engine-not-bundled` for any ` ```mermaid ` block whose detected
+   * type is outside this list — so adding a diagram type here is the single
+   * place that re-enables its engine.
+   *
+   * The ids are the ones `mermaid.detectType` reports. `flowchart-v2`
+   * covers both `flowchart` and `graph` fences — every published diagram.
+   * `flowchart-elk` is deliberately absent: it shares the flowchart engine
+   * chunk but its detector forces `layout: 'elk'`, and the ELK layout
+   * loader is trimmed, so it would lint-pass yet fail to render.
+   */
+  bundledDiagrams: ["flowchart-v2"] as const,
+  /**
+   * Layout algorithm names whose loaders the client bundle keeps. The
+   * client loader pins `layout: 'dagre'`; elk (~1.6 MB), cose-bilkent
+   * (cytoscape) and swimlane loaders are trimmed with the unused diagram
+   * engines.
+   */
+  bundledLayouts: ["dagre"] as const,
 } as const;
