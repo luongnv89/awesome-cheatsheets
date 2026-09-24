@@ -16,7 +16,8 @@
     "cheatsheet:lint": "tsx tools/cli/lint.ts",
     "check:no-cdn": "bash tools/ci/no-cdn-check.sh dist",
     "freshness:scan": "tsx tools/ci/freshness-scan.ts",
-    "skills:sync": "tsx tools/ci/skills-sync.ts"
+    "skills:sync": "tsx tools/ci/skills-sync.ts",
+    "prepare": "husky"
   },
   "engines": {
     "node": ">=24.0.0"
@@ -45,6 +46,7 @@
     "@types/node": "^24.13.6",
     "@types/unist": "^3.0.3",
     "@vitest/coverage-v8": "^5.0.1",
+    "husky": "^9.1.7",
     "jsdom": "^30.1.1",
     "pagefind": "^1.5.2",
     "tsx": "^4.23.15",
