@@ -22,7 +22,7 @@ Static catalog of AI cheatsheets (Astro) plus a TypeScript validator and lint CL
 - `src/content/cheatsheets/` — markdown entries; `src/content.config.ts` — collection schema
 - `tools/validator/`, `tools/cli/`, `tools/ci/` — lint, tests, CI helpers
 - `e2e/` — Playwright
-- `skills/cheatsheet-scribe/` — authoring skill (copies also exist under `.claude/skills/` and `.agents/skills/`)
+- `skills/` — canonical authoring skills (`cheatsheet-scribe/`, `docs-to-cheatsheet/`); `.claude/skills/` and `.agents/skills/` are generated mirrors — edit `skills/` only, then run `pnpm skills:sync`
 - Do not hand-edit `dist/`, `.astro/`, `node_modules/`, `.lighthouseci/`, `test-results/`, or `playwright-report/`
 
 ## Conventions

@@ -157,7 +157,8 @@ awesome-cheatsheets/
 ├── public/brand/         Logo set, favicons, color tokens
 ├── docs/                 User, development, architecture, API, deployment docs
 ├── tools/                Validator, CI gates, freshness scanner
-└── .claude/skills/       /cheatsheet-scribe authoring skill
+└── skills/               Canonical authoring skills (`.claude/skills/` and
+                          `.agents/skills/` are `pnpm skills:sync` mirrors)
 ```
 
 ## Related Publications

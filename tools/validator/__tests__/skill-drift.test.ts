@@ -12,7 +12,9 @@ import { describe, it, expect } from "vitest";
 import { REQUIRED_SECTIONS } from "../../template-contract.js";
 
 const REPO_ROOT = join(import.meta.dirname, "..", "..", "..");
-const SKILL_PATH = join(REPO_ROOT, ".claude/skills/cheatsheet-scribe", "SKILL.md");
+// skills/ is the canonical tree; .claude/skills/ and .agents/skills/ are
+// generated mirrors (pnpm skills:sync — see issue #136).
+const SKILL_PATH = join(REPO_ROOT, "skills/cheatsheet-scribe", "SKILL.md");
 
 describe("skill-drift", () => {
   it("SKILL.md section list matches template-contract.md", async () => {
