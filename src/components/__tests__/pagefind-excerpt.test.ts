@@ -107,7 +107,7 @@ describe("CatalogSearch.astro — excerpt sink contract (issue #144)", () => {
   const source = readFileSync(COMPONENT_PATH, "utf8");
 
   it("routes hit.excerpt through sanitizeExcerpt before innerHTML", () => {
-    expect(source).toMatch(/innerHTML\s*=\s*sanitizeExcerpt\(hit\.excerpt\)/);
+    expect(source).toMatch(/innerHTML\s*=\s*sanitizeExcerpt\(hit\.excerpt/);
   });
 
   it("has no raw innerHTML = hit.excerpt assignment left", () => {

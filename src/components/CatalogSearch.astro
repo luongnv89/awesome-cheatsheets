@@ -157,8 +157,9 @@ const baseUrl = (import.meta.env.BASE_URL || "/").replace(/\/$/, "") + "/";
         excerpt.className = "catalog-search-result-excerpt";
         // hit.excerpt is HTML built from indexed content — sanitize it
         // through a <mark>-only whitelist so highlighting survives without
-        // letting any other markup form live elements (issue #144).
-        excerpt.innerHTML = sanitizeExcerpt(hit.excerpt);
+        // letting any other markup form live elements (issue #144). The
+        // `?? ""` guard keeps a missing excerpt from breaking the render.
+        excerpt.innerHTML = sanitizeExcerpt(hit.excerpt ?? "");
         a.appendChild(titleEl);
         a.appendChild(excerpt);
         li.appendChild(a);
