@@ -57,6 +57,25 @@ async function skillNames(): Promise<string[]> {
   return names.sort();
 }
 
+/** Non-directory files directly under `skills/` (e.g. a future README). */
+async function rootFiles(): Promise<string[]> {
+  const names: string[] = [];
+  for (const entry of await readdir(CANONICAL, { withFileTypes: true })) {
+    if (entry.isFile()) names.push(entry.name);
+  }
+  return names.sort();
+}
+
+/** Non-directory files directly under a mirror root (missing mirror ⇒ none). */
+async function mirrorRootFiles(mirror: string): Promise<string[]> {
+  if (!(await isDirectory(mirror))) return [];
+  const names: string[] = [];
+  for (const entry of await readdir(mirror, { withFileTypes: true })) {
+    if (entry.isFile()) names.push(entry.name);
+  }
+  return names.sort();
+}
+
 async function listFiles(dir: string, prefix = ""): Promise<string[]> {
   const out: string[] = [];
   for (const entry of await readdir(dir, { withFileTypes: true })) {
@@ -106,6 +125,8 @@ async function unmanagedSkills(mirror: string, canonicalNames: Set<string>): Pro
 async function check(): Promise<number> {
   const names = await skillNames();
   const canonical = new Set(names);
+  const files = await rootFiles();
+  const canonicalFiles = new Set(files);
   const problems: string[] = [];
   for (const mirror of MIRRORS) {
     for (const name of names) {
@@ -120,6 +141,25 @@ async function check(): Promise<number> {
     }
     for (const name of await unmanagedSkills(mirror.path, canonical)) {
       problems.push(`  extra-skill ${mirror.label}/${name}`);
+    }
+    for (const name of files) {
+      const src = join(CANONICAL, name);
+      const dst = join(mirror.path, name);
+      if (!(await isDirectory(dst)) && !(await mirrorRootFiles(mirror.path)).includes(name)) {
+        problems.push(`  missing ${mirror.label}/${name}`);
+        continue;
+      }
+      if (await isDirectory(dst)) {
+        problems.push(`  differs ${mirror.label}/${name}`);
+        continue;
+      }
+      const [ac, bc] = await Promise.all([readFile(src), readFile(dst)]);
+      if (!ac.equals(bc)) problems.push(`  differs ${mirror.label}/${name}`);
+    }
+    for (const name of await mirrorRootFiles(mirror.path)) {
+      if (!canonicalFiles.has(name)) {
+        problems.push(`  extra ${mirror.label}/${name}`);
+      }
     }
   }
   if (problems.length > 0) {
@@ -137,17 +177,29 @@ async function check(): Promise<number> {
 async function sync(): Promise<number> {
   const names = await skillNames();
   const canonical = new Set(names);
+  const files = await rootFiles();
+  const canonicalFiles = new Set(files);
   for (const mirror of MIRRORS) {
     for (const name of names) {
       const target = join(mirror.path, name);
       await rm(target, { recursive: true, force: true });
       await cp(join(CANONICAL, name), target, { recursive: true });
     }
+    for (const name of files) {
+      await cp(join(CANONICAL, name), join(mirror.path, name));
+    }
     console.log(`✓ ${mirror.label}: mirrored ${names.join(", ")}`);
     for (const name of await unmanagedSkills(mirror.path, canonical)) {
       console.warn(
         `⚠ ${mirror.label}/${name} is not in skills/ — left untouched (unmanaged)`,
       );
+    }
+    for (const name of await mirrorRootFiles(mirror.path)) {
+      if (!canonicalFiles.has(name)) {
+        console.warn(
+          `⚠ ${mirror.label}/${name} is not in skills/ — left untouched (unmanaged)`,
+        );
+      }
     }
   }
   return 0;

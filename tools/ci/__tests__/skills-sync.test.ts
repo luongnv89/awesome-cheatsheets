@@ -59,21 +59,18 @@ describe("skills-sync mirror parity", () => {
     }
   });
 
-  it("each skill directory is byte-identical across all trees", async () => {
-    const canonical = await dirNames(CANONICAL);
+  it("each mirror tree is byte-identical to skills/ (diff -rq empty)", async () => {
+    const aFiles = await listFiles(CANONICAL);
+    expect(aFiles.length).toBeGreaterThan(0);
     for (const mirror of MIRRORS) {
-      for (const name of canonical) {
-        const a = join(CANONICAL, name);
-        const b = join(mirror, name);
-        const [aFiles, bFiles] = await Promise.all([listFiles(a), listFiles(b)]);
-        expect(bFiles.sort(), `${b} file set`).toEqual(aFiles.sort());
-        for (const rel of aFiles) {
-          const [ac, bc] = await Promise.all([
-            readFile(join(a, rel)),
-            readFile(join(b, rel)),
-          ]);
-          expect(bc.equals(ac), `${b}/${rel} content`).toBe(true);
-        }
+      const bFiles = await listFiles(mirror);
+      expect(bFiles.sort(), `${mirror} file set`).toEqual(aFiles.sort());
+      for (const rel of aFiles) {
+        const [ac, bc] = await Promise.all([
+          readFile(join(CANONICAL, rel)),
+          readFile(join(mirror, rel)),
+        ]);
+        expect(bc.equals(ac), `${mirror}/${rel} content`).toBe(true);
       }
     }
   });
