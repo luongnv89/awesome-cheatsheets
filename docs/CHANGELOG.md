@@ -4,6 +4,13 @@ This project follows a lightweight changelog for public-facing changes. Dates us
 
 ## Unreleased
 
+### Added
+
+- Thirteen post-launch cheatsheets — ASM, Claude Code, Codex, Herdr, Obsidian,
+  Oh My Pi (omp), OpenClaw, OpenCode, Agent Skills, Harness Engineering,
+  Sub-agents, MCP, and the Prompt Engineering comparison — bringing the
+  catalog to 15 published entries.
+
 ### Fixed
 
 - Link check probes now cancel the response body before returning and run
@@ -20,6 +27,10 @@ This project follows a lightweight changelog for public-facing changes. Dates us
   `links: "check" | "skip"` mode string (`LinkCheckMode`). The
   `pnpm cheatsheet:lint --no-links` flag and the
   `CHEATSHEET_LINT_SKIP_LINKS=1` environment variable are unchanged.
+
+### Planned
+
+- More contributor-facing examples and validation fixtures as the catalog grows.
 
 ## 0.1.0 — 2026-05-19
 
@@ -48,10 +59,3 @@ Initial public launch readiness baseline.
 
 - Code: MIT.
 - Cheatsheet/content prose, diagrams, and examples: CC BY 4.0.
-
-## Unreleased
-
-### Planned
-
-- Additional cheatsheets from the v1.1 roadmap.
-- More contributor-facing examples and validation fixtures as the catalog grows.
