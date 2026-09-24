@@ -1,0 +1,10 @@
+/*
+ * Tailwind base/stylesheet — replaces `@astrojs/tailwind`'s injected
+ * `@astrojs/tailwind/base.css` (which contained exactly these three
+ * directives) now that the deprecated integration is gone (it is peer-capped
+ * at Astro 5 and cannot follow this repo to Astro 7). Processed through the
+ * project PostCSS pipeline (`postcss.config.mjs`: tailwindcss + autoprefixer).
+ */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

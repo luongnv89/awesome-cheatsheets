@@ -36,7 +36,7 @@
  * Untrusted input note:
  *   Issue body content is not used here. Cheatsheet frontmatter is treated
  *   as data: `slug`, `last_updated`, `stale_after_days` are validated by
- *   the content collection schema at build time (`src/content/config.ts`)
+ *   the content collection schema at build time (`src/content.config.ts`)
  *   and re-validated here defensively. We never `eval`, never `exec` user
  *   strings, and the only network calls are to the GitHub REST API with
  *   a fixed schema (title/body/labels) — no shell interpolation.
@@ -130,7 +130,7 @@ export function parseFrontmatter(
   const staleAfter = parsed["stale_after_days"];
   // The YAML parser may emit `last_updated: 2026-05-18` as a Date object
   // when the value is unquoted. Normalize to the ISO-8601 calendar string
-  // the schema requires, matching what `src/content/config.ts` produces.
+  // the schema requires, matching what `src/content.config.ts` produces.
   let lastUpdated: string | null = null;
   if (lastUpdatedRaw instanceof Date && !Number.isNaN(lastUpdatedRaw.getTime())) {
     const yyyy = lastUpdatedRaw.getUTCFullYear().toString().padStart(4, "0");

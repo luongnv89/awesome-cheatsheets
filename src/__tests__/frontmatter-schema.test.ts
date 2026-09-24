@@ -1,12 +1,13 @@
 /**
  * Characterization tests for the shared cheatsheet frontmatter schema in
- * `src/content/config.ts` — the Zod schema every entry under
+ * `src/content.config.ts` — the Zod schema every entry under
  * `src/content/cheatsheets/` is validated against at build time.
  *
- * `astro:content` is a virtual module, so `vitest.config.ts` aliases it to
- * `src/__tests__/stubs/astro-content.ts`, which re-exports the project's zod
- * and returns the `defineCollection` config unchanged — making
- * `collections.cheatsheets.schema` reachable here.
+ * `astro:content`, `astro/zod` and `astro/loaders` are virtual modules, so
+ * `vitest.config.ts` aliases them (`astro:content`/`astro/loaders` to minimal
+ * stubs, `astro/zod` to the project's pinned zod v4) — `defineCollection`
+ * returns its config unchanged, making `collections.cheatsheets.schema`
+ * reachable here.
  *
  * Fixtures live in `src/__tests__/fixtures/`; the last block also sweeps every
  * real published cheatsheet's YAML frontmatter through the schema so a schema
@@ -18,7 +19,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { parse as parseYaml } from "yaml";
 
-import { collections } from "../content/config.js";
+import { collections } from "../content.config.js";
 
 const schema = collections.cheatsheets.schema;
 

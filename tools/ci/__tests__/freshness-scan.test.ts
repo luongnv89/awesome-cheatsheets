@@ -76,7 +76,7 @@ describe("parseFrontmatter", () => {
 
   it("normalises a YAML Date back to ISO-8601 calendar string", () => {
     // YAML 1.2 parses an unquoted `2026-01-01` as a Date object. We mirror
-    // the transform from src/content/config.ts to keep things consistent.
+    // the transform from src/content.config.ts to keep things consistent.
     const source = [
       "---",
       "slug: foo",

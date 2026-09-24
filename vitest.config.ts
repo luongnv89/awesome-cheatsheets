@@ -16,6 +16,12 @@ import { defineConfig } from "vitest/config";
  *   re-exports the project's zod and returns `defineCollection` input
  *   unchanged, exposing `collections.<name>.schema` for characterization
  *   tests.
+ * - `resolve.alias["astro/zod"]` — `src/content.config.ts` imports `z` from
+ *   `astro/zod` (Zod 4, the version Astro 6+ uses internally); the project's
+ *   pinned `zod` v4 dependency is the same API, so tests alias straight to it.
+ * - `resolve.alias["astro/loaders"]` — same virtual-module problem; the stub
+ *   (`src/__tests__/stubs/astro-loaders.ts`) returns a marker from `glob()`
+ *   because the tests only exercise the collection's `schema`.
  */
 export default defineConfig({
   resolve: {
@@ -23,6 +29,10 @@ export default defineConfig({
       "astro:content": fileURLToPath(
         new URL("./src/__tests__/stubs/astro-content.ts", import.meta.url),
       ),
+      "astro/loaders": fileURLToPath(
+        new URL("./src/__tests__/stubs/astro-loaders.ts", import.meta.url),
+      ),
+      "astro/zod": "zod",
     },
   },
   test: {
