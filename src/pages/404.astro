@@ -16,6 +16,7 @@
  * `import.meta.env.BASE_URL`, so they resolve correctly on GitHub Pages.
  */
 import Layout from '../layouts/Layout.astro';
+import '../styles/hero.css';
 
 const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, '');
 const catalogHref = `${baseUrl}/`;
@@ -53,43 +54,13 @@ const aboutHref = `${baseUrl}/about/`;
 
 <style is:global>
   /*
-   * Catalog hero typography — duplicated here intentionally so the 404 page
-   * styles even when the catalog landing page's stylesheet isn't loaded.
-   * (Astro scopes `is:global` stylesheets per route; the rules in
-   * `index.astro` ship only with `dist/index.html`.) Keep these in sync with
-   * `src/pages/index.astro` and `src/pages/about.astro`.
+   * Hero typography comes from the shared `src/styles/hero.css` (imported
+   * in the frontmatter) — only the 404-page chrome below is local.
    */
   .catalog-main {
     max-width: 760px;
     margin: 0 auto;
     padding: 4rem 1.25rem 4rem;
-  }
-
-  .catalog-hero {
-    margin-bottom: 2rem;
-  }
-
-  .catalog-hero-title {
-    font-family: var(--font-heading);
-    font-size: clamp(2.25rem, 5vw, 3rem);
-    font-weight: 800;
-    line-height: 1.05;
-    margin: 0 0 1.25rem 0;
-    color: var(--color-ink);
-    letter-spacing: -0.015em;
-  }
-
-  .catalog-hero-lede {
-    font-size: 1.125rem;
-    line-height: 1.6;
-    color: var(--color-muted);
-    max-width: 60ch;
-    margin: 0;
-  }
-
-  .catalog-hero-lede strong {
-    color: var(--color-ink);
-    font-weight: 700;
   }
 
   /* 404-specific rules. The eyebrow is a quiet, mono-styled "404" stamped
@@ -100,10 +71,10 @@ const aboutHref = `${baseUrl}/about/`;
     font-size: 2rem;
     font-weight: 800;
     letter-spacing: 0.08em;
-    color: var(--color-amber-deep);
-    background-color: var(--color-paper-shade);
-    border: 1px solid var(--color-rule);
-    border-radius: var(--radius-md);
+    color: var(--accent-text);
+    background-color: var(--surface-2);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-ctl);
     padding: 0.375rem 0.875rem;
     display: inline-block;
     margin-bottom: 1.25rem;
@@ -113,9 +84,10 @@ const aboutHref = `${baseUrl}/about/`;
   .not-found-actions {
     margin-top: 2rem;
     padding: 1.5rem;
-    background-color: #fff;
-    border: 1px solid var(--color-rule);
-    border-radius: var(--radius-lg);
+    background-color: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
   }
 
   .not-found-link-list {
@@ -139,30 +111,30 @@ const aboutHref = `${baseUrl}/about/`;
     align-items: center;
     gap: 0.5rem;
     padding: 0.75rem 1.125rem;
-    color: var(--color-ink);
-    background-color: var(--color-amber);
+    color: #0A1410;
+    background-color: var(--accent-line);
     text-decoration: none;
     font-size: 1rem;
     font-weight: 600;
-    border-radius: var(--radius-md);
-    border: 1px solid var(--color-amber-deep);
-    transition: background-color 0.12s ease, transform 0.12s ease;
+    border-radius: var(--radius-ctl);
+    border: 1px solid var(--accent-line);
+    transition: transform 0.12s ease, filter 0.12s ease;
   }
   .not-found-link:hover {
-    background-color: #FFCD3A;
+    filter: brightness(0.92);
     transform: translateY(-1px);
   }
   .not-found-link:focus-visible {
-    outline: 2px solid var(--color-ink);
+    outline: 2px solid var(--focus-ring);
     outline-offset: 2px;
   }
-  .not-found-link + .not-found-link,
   .not-found-link-list li:nth-child(2) .not-found-link {
-    background-color: #fff;
-    border-color: var(--color-rule);
-    color: var(--color-ink);
+    background-color: var(--surface);
+    border-color: var(--rule);
+    color: var(--ink);
   }
   .not-found-link-list li:nth-child(2) .not-found-link:hover {
-    background-color: var(--color-paper-shade);
+    background-color: var(--surface-2);
+    filter: none;
   }
 </style>

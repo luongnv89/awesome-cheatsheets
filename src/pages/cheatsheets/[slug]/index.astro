@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
 import CheatsheetLayout from '../../../layouts/CheatsheetLayout.astro';
+import { countSteps, sumStepMinutes } from '../../../lib/steps';
 
 export async function getStaticPaths() {
   const cheatsheets = await getCollection('cheatsheets');
@@ -20,7 +21,13 @@ const frontmatter = {
   tags: entry.data.tags,
   last_updated: entry.data.last_updated,
   stale_after_days: entry.data.stale_after_days,
+  upstream_version: entry.data.upstream_version,
 };
+
+// Step metadata for the header meta row + sticky progress bar — counted
+// at build time from the markdown body (see src/lib/steps.ts).
+const stepCount = countSteps(entry.body ?? '');
+const stepMinutes = sumStepMinutes(entry.body ?? '');
 
 // Draft cheatsheets render at the canonical URL for review but stay out
 // of the Pagefind search index (issue #90). The catalog filter in
@@ -29,7 +36,13 @@ const frontmatter = {
 const isDraft = entry.data.status === 'draft';
 ---
 
-<CheatsheetLayout title={entry.data.title} frontmatter={frontmatter} isDraft={isDraft}>
+<CheatsheetLayout
+  title={entry.data.title}
+  frontmatter={frontmatter}
+  stepCount={stepCount}
+  stepMinutes={stepMinutes}
+  isDraft={isDraft}
+>
   <div class="cheatsheet-body">
     <Content />
   </div>
@@ -37,19 +50,23 @@ const isDraft = entry.data.status === 'draft';
 
 <style is:global>
   /*
-   * Cheatsheet body — markdown-rendered article content, styled in the dense
-   * MAG-cheatsheet aesthetic: solid dark-bar h2s with a neon-green accent,
-   * tight h3s, dense tables, dark code blocks, and blockquote-as-callout.
+   * Cheatsheet body — markdown-rendered article content in the "premium
+   * field manual" style: serif section headers on 1px rules, a vertical
+   * step timeline with numbered rail nodes, dark code blocks with a
+   * language+Copy header bar, GitHub-style alert callouts, and ruled
+   * tables. All colours come from `src/styles/tokens.css` so the article
+   * themes with `[data-theme]`; code blocks stay dark in both themes.
    *
-   * Brand-aligned: uses --color-ink/--color-amber tokens from
-   * CheatsheetLayout.astro. Neon green is the sole accent; amber/red appear
-   * only on warn callouts and the existing stale banner (chrome).
-   *
-   * Helper classes authors can drop into markdown for the full MAG palette:
+   * Helper classes authors can drop into markdown:
    *   <div class="callout warn|info|tip">…</div>
    *   <div class="ascii">…ASCII box…</div>
    *   <span class="pill">label</span> · <span class="badge">label</span>
-   *   <ol class="steps">…</ol>   (renders green-circle numbered steps)
+   *
+   * Structured blocks emitted by `src/plugins/remark-cheatsheet-blocks.ts`:
+   *   p.step-meta / span.step-meta-item — Goal · Time · Level meta line
+   *   div.callout-verify — `**Verify:**` check callout
+   *   div.callout-note|tip|important|warning|caution — GitHub [!ALERT]s
+   *   input.prereq-checkbox — persistent `## Prerequisites` task boxes
    *
    * Reading layout (issue #92): single top-to-bottom column capped at ~70ch,
    * so step N is visually adjacent to step N+1. On wide viewports the gutter
@@ -60,7 +77,7 @@ const isDraft = entry.data.status === 'draft';
   .cheatsheet-body {
     font-size: 0.9375rem;
     line-height: 1.55;
-    color: var(--color-ink);
+    color: var(--ink);
     /* Cap the reading column so prose never stretches into uncomfortable
        65+ch line lengths even on ultrawide. The grid in
        `.cheatsheet-content` already gives the body the remaining width
@@ -76,9 +93,7 @@ const isDraft = entry.data.status === 'draft';
     }
   }
 
-  /* Keep block elements from being squeezed inside the column — even
-     without newspaper columns, these blocks should stay intact when print
-     CSS or future layouts re-introduce column rules. */
+  /* Keep block elements intact when print CSS splits the page. */
   .cheatsheet-body pre,
   .cheatsheet-body table,
   .cheatsheet-body blockquote,
@@ -88,283 +103,555 @@ const isDraft = entry.data.status === 'draft';
   .cheatsheet-body ul,
   .cheatsheet-body ol,
   .cheatsheet-body .mermaid {
-    /* Keep blocks intact for print column-splitting (print CSS at end of
-       file still enables 2-column print layout). */
     break-inside: avoid;
   }
 
   .cheatsheet-body > * { margin-bottom: 0.85rem; }
+
+  /* The layout header already renders the document title — hide the
+     markdown body's own leading H1 so it doesn't duplicate it. */
+  .cheatsheet-body > h1:first-of-type { display: none; }
+
   .cheatsheet-body > h2,
   .cheatsheet-body > h3,
   .cheatsheet-body > h4 { margin-bottom: 0.5rem; }
 
-  /* Anchor jumps (TOC link clicks) should land below the sticky header band
-     so the section title isn't hidden under it. 6.5rem ≈ site header
-     (~64px) + compact band (~44px) with a small buffer. */
+  /* Anchor jumps (TOC link clicks) should land below the sticky chrome —
+     measured site header (--site-header-h) + compact band (~3rem). */
   .cheatsheet-body h2,
   .cheatsheet-body h3 {
-    scroll-margin-top: 6.5rem;
+    scroll-margin-top: calc(var(--site-header-h, 4rem) + 3rem);
   }
 
-  /* Solid dark-bar h2 — the signature MAG section header. Switches to flex
-     so an injected progress chip (Step section only) sits on the right. */
+  /* Section H2 — serif title over a hairline rule with a neon accent tick.
+     Flex layout lets the injected progress chip (Setup section only) sit
+     on the right. */
   .cheatsheet-body h2 {
-    font-family: var(--font-heading);
-    font-size: 1.0625rem;
+    font-family: var(--font-display);
+    font-size: 1.375rem;
     font-weight: 700;
-    margin-top: 1.75rem;
-    padding: 0.45rem 0.75rem;
-    color: #fff;
-    background-color: var(--color-ink);
-    border-radius: var(--radius-sm);
-    border-bottom: 3px solid var(--color-amber);
+    margin-top: 2.25rem;
+    padding: 0.5rem 0 0.55rem;
+    color: var(--ink);
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    box-shadow: inset 0 2px 0 var(--accent-line);
     display: flex;
-    align-items: center;
+    align-items: baseline;
     justify-content: space-between;
     gap: 0.75rem;
+    /* Long titles + the injected progress side can exceed a narrow
+       viewport — let the side drop to its own line instead of
+       overflowing. */
+    flex-wrap: wrap;
+    letter-spacing: -0.01em;
     page-break-after: avoid;
+  }
+  .cheatsheet-body > h2:first-child {
+    margin-top: 0;
+    border-top: 0;
+    box-shadow: none;
+    padding-top: 0;
   }
 
   /* Progress chip on the Setup H2 — injected by the step-heading enhancer
-     when at least one Step is present. Reads against the dark bar; flips to
-     neon green fill when all steps are checked. */
+     when at least one Step is present. Flips to a neon fill when all
+     steps are checked. */
   .cheatsheet-body h2 .step-progress {
     font-family: var(--font-mono);
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     font-weight: 600;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
     padding: 0.15rem 0.55rem;
-    color: #DCFCE7;
-    background-color: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--muted);
+    background-color: var(--surface-2);
+    border: 1px solid var(--rule);
     border-radius: var(--radius-sm);
     white-space: nowrap;
   }
   .cheatsheet-body h2 .step-progress.is-complete {
-    color: var(--color-ink);
-    background-color: #4ADE80;
-    border-color: #4ADE80;
+    color: #0A1410;
+    background-color: var(--accent-line);
+    border-color: var(--accent-line);
   }
-  .cheatsheet-body > h2:first-child { margin-top: 0; }
+
+  /* "Reset progress" text button — sits next to the progress chip. */
+  .cheatsheet-body h2 .step-reset {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: none;
+    border: 0;
+    padding: 0.15rem 0.25rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.15s ease;
+  }
+  .cheatsheet-body h2 .step-reset:hover { color: var(--danger); }
+  .cheatsheet-body h2 .step-reset:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 1px;
+  }
+  .cheatsheet-body h2 .step-header-side {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 0 0 auto;
+  }
+
+  /* "All steps complete" line injected under the Setup H2 once every step
+     is checked — hidden until then. */
+  .cheatsheet-body .steps-complete {
+    display: none;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0.5rem 0 0.85rem;
+    font-size: 0.875rem;
+    color: var(--accent-text);
+    font-weight: 500;
+  }
+  .cheatsheet-body .steps-complete.is-visible { display: flex; }
+  .cheatsheet-body .steps-complete a {
+    color: var(--accent-text);
+    text-decoration: underline;
+    text-decoration-color: var(--accent-line);
+    text-underline-offset: 3px;
+  }
 
   .cheatsheet-body h3 {
-    font-family: var(--font-heading);
-    font-size: 1rem;
+    font-family: var(--font-display);
+    font-size: 1.125rem;
     font-weight: 700;
-    margin-top: 1.1rem;
-    color: var(--color-ink);
+    margin-top: 1.4rem;
+    color: var(--ink);
     page-break-after: avoid;
   }
 
-  /* Step headings (rewritten client-side from `### Step N — Title`).
-     Checkbox, pill badge, and bare title in one row above the body. Gives
-     scannable "newspaper section break" separation between setup steps,
-     plus a one-click way to mark a step as done — checked state persists
-     per-cheatsheet via localStorage. */
-  .cheatsheet-body h3.step-heading {
-    display: grid;
-    grid-template-columns: auto auto 1fr;
+  /* ----- Step timeline -----
+     Each `### Step N — Title` (rewritten client-side by StepChecklist)
+     becomes a card on a left rail: the rail segment and the numbered
+     circle turn neon when the step is checked. */
+  .cheatsheet-body .step {
+    position: relative;
+    margin: 0 0 1.25rem;
+    padding: 0 0 0.25rem 2.5rem;
+    border-left: 2px solid var(--rule);
+    transition: border-color 0.2s ease;
+  }
+  .cheatsheet-body .step:last-of-type { border-left-color: transparent; }
+  .cheatsheet-body .step.is-done { border-left-color: var(--accent-line); }
+
+  .cheatsheet-body .step-number {
+    position: absolute;
+    left: -0.9375rem;
+    top: 0.5rem;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    display: flex;
     align-items: center;
-    column-gap: 0.55rem;
-    row-gap: 0.2rem;
-    margin-top: 1.6rem;
-    padding-top: 0.6rem;
-    border-top: 1px solid var(--color-rule);
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--muted);
+    background-color: var(--surface);
+    border: 2px solid var(--rule);
+    transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+  }
+  .cheatsheet-body .step.is-done .step-number {
+    color: #0A1410;
+    background-color: var(--accent-line);
+    border-color: var(--accent-line);
+  }
+
+  .cheatsheet-body h3.step-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.55rem;
+    margin: 0 0 0.35rem;
+    padding: 0.35rem 0 0;
     font-size: 1.0625rem;
     line-height: 1.3;
   }
   .cheatsheet-body h3.step-heading .step-checkbox {
-    grid-row: 1;
     width: 1.1rem;
     height: 1.1rem;
     margin: 0;
-    accent-color: #4ADE80;
+    accent-color: var(--accent-text);
     cursor: pointer;
+    flex: 0 0 auto;
   }
   .cheatsheet-body h3.step-heading .step-badge {
-    grid-row: 1;
     padding: 0.1rem 0.55rem;
     font-family: var(--font-mono);
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    color: var(--color-ink);
-    background-color: #4ADE80;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border: 1px solid var(--rule);
     border-radius: var(--radius-sm);
+    flex: 0 0 auto;
   }
   .cheatsheet-body h3.step-heading .step-title {
-    grid-column: 2 / -1;
-    grid-row: 2;
-    color: var(--color-ink);
+    color: var(--ink);
+    font-family: var(--font-display);
+    flex: 1 1 12rem;
+  }
+  .cheatsheet-body h3.step-heading .step-copy {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.6rem;
+    color: var(--accent-text);
+    background: none;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+  }
+  .cheatsheet-body h3.step-heading .step-copy:hover {
+    border-color: var(--accent-text);
+    background-color: var(--accent-soft);
+  }
+  .cheatsheet-body h3.step-heading .step-copy.is-copied {
+    color: #0A1410;
+    background-color: var(--accent-line);
+    border-color: var(--accent-line);
+  }
+  .cheatsheet-body h3.step-heading .step-copy:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 1px;
   }
 
-  /* Done state — strike the title and fade the body, but keep things
-     readable (lower opacity, not invisible) so the user can still re-check
-     what they completed. */
+  /* Done state — strike the title, collapse the body behind a
+     "Show details" toggle in the heading row. */
   .cheatsheet-body h3.step-heading.is-done .step-title {
     text-decoration: line-through;
     text-decoration-thickness: 2px;
-    text-decoration-color: var(--color-ink-soft);
-    color: var(--color-ink-soft);
+    text-decoration-color: var(--muted);
+    color: var(--muted);
   }
-  .cheatsheet-body h3.step-heading.is-done .step-badge {
-    background-color: var(--color-rule);
-    color: var(--color-ink-soft);
+  .cheatsheet-body .step-body[hidden] { display: none; }
+  .cheatsheet-body h3.step-heading .step-toggle {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.6rem;
+    color: var(--muted);
+    background: none;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    flex: 0 0 auto;
+    transition: color 0.15s ease, border-color 0.15s ease;
   }
-  .cheatsheet-body .step-done-body {
-    opacity: 0.45;
-    transition: opacity 0.15s;
+  .cheatsheet-body h3.step-heading .step-toggle:hover {
+    color: var(--accent-text);
+    border-color: var(--accent-text);
   }
-  .cheatsheet-body .step-done-body:hover {
-    opacity: 1;
+  .cheatsheet-body h3.step-heading .step-toggle:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 1px;
+  }
+
+  /* Step meta line — `<p class="step-meta">` emitted by the remark plugin:
+     Goal reads as a body sentence behind a small mono label; Time and
+     Level render as small outlined chips on the same line. */
+  .cheatsheet-body .step-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0.75rem;
+    margin: 0 0 0.6rem;
+    font-size: 0.9375rem;
+    color: var(--ink);
+  }
+  .cheatsheet-body .step-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .cheatsheet-body .step-meta-item strong {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.68rem;
+    color: var(--muted);
+  }
+  .cheatsheet-body .step-meta-item code {
+    font-size: 0.85em;
+  }
+  .cheatsheet-body .step-meta-item[data-key="time"],
+  .cheatsheet-body .step-meta-item[data-key="level"] {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border: 1px solid var(--rule);
+    border-radius: 9999px;
+    padding: 0.1rem 0.6rem;
+  }
+  /* The chip's leading "Time:"/"Level:" strong is redundant with the
+     chip shape — hide it and let an icon carry the time meaning. */
+  .cheatsheet-body .step-meta-item[data-key="time"] strong,
+  .cheatsheet-body .step-meta-item[data-key="level"] strong {
+    display: none;
+  }
+  .cheatsheet-body .step-meta-item[data-key="time"]::before {
+    content: "";
+    width: 0.8em;
+    height: 0.8em;
+    flex: 0 0 auto;
+    background-color: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpolyline points='12 6 12 12 16 14'/%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpolyline points='12 6 12 12 16 14'/%3E%3C/svg%3E") center / contain no-repeat;
   }
 
   .cheatsheet-body h4 {
-    font-family: var(--font-heading);
+    font-family: var(--font-display);
     font-size: 0.9375rem;
     font-weight: 700;
     margin-top: 0.9rem;
-    color: var(--color-ink);
+    color: var(--ink);
   }
 
   .cheatsheet-body p,
   .cheatsheet-body li {
-    color: var(--color-ink);
+    color: var(--ink);
     line-height: 1.55;
   }
 
   .cheatsheet-body a {
-    color: var(--color-ink);
+    color: var(--accent-text);
     text-decoration: underline;
-    text-decoration-color: var(--color-amber);
-    text-decoration-thickness: 2px;
+    text-decoration-color: var(--accent-line);
+    text-decoration-thickness: 1.5px;
     text-underline-offset: 3px;
   }
-  .cheatsheet-body a:hover { color: var(--color-amber-deep); }
+  .cheatsheet-body a:hover { text-decoration-thickness: 2.5px; }
 
   .cheatsheet-body ul,
   .cheatsheet-body ol {
     padding-left: 1.4rem;
     margin: 0.25rem 0 0.85rem;
   }
+  .cheatsheet-body ul { list-style: disc; }
+  .cheatsheet-body ol { list-style: decimal; }
   .cheatsheet-body li { margin-bottom: 0.2rem; }
   .cheatsheet-body li > ul,
   .cheatsheet-body li > ol { margin: 0.25rem 0 0.25rem; }
+  /* Task-list items carry their own checkbox as the marker. */
+  .cheatsheet-body li:has(> input[type="checkbox"]) { list-style: none; }
+  /* Do/Don't cards use ✅/❌ bullets — the emoji is the marker. */
+  .cheatsheet-body .bp-card ul { list-style: none; padding-left: 0; }
+  /* Inside a step, lists keep normal outside markers on a small indent —
+     the marker hangs in the padding so it shares a line with the text
+     (step list items wrap content in <p>, which breaks inside markers). */
+  .cheatsheet-body .step ul,
+  .cheatsheet-body .step ol { padding-left: 1.25rem; }
 
-  /* Blockquote → tip callout: green left border + paper-shade fill. Pairs
-     with the > "Why:" / > "Pro tip:" markdown convention used by the
-     cheatsheets. */
+  /* Prerequisites task list — persistent checkboxes under the optional
+     `## Prerequisites` section (emitted by the remark plugin). */
+  .cheatsheet-body .prereq-item {
+    list-style: none;
+  }
+  .cheatsheet-body .prereq-checkbox {
+    width: 1rem;
+    height: 1rem;
+    margin: 0 0.5rem 0 0;
+    accent-color: var(--accent-text);
+    cursor: pointer;
+    vertical-align: -0.15em;
+  }
+  .cheatsheet-body .prereq-item:has(.prereq-checkbox:checked) {
+    color: var(--muted);
+  }
+
+  /* Generic blockquote — quiet callout (GitHub [!ALERT] blockquotes are
+     rewritten by the remark plugin into .callout-* divs instead). */
   .cheatsheet-body blockquote {
-    border-left: 3px solid var(--color-amber);
-    background-color: var(--color-paper-shade);
+    border-left: 3px solid var(--accent-line);
+    background-color: var(--surface-2);
     padding: 0.6rem 0.9rem;
     margin: 0.75rem 0;
     border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-    color: var(--color-ink);
+    color: var(--ink);
     font-size: 0.9rem;
     page-break-inside: avoid;
   }
   .cheatsheet-body blockquote p { margin: 0; }
   .cheatsheet-body blockquote p + p { margin-top: 0.35rem; }
 
-  /* Manual callout classes — drop <div class="callout warn"> into markdown
-     when a section needs a stronger visual flag than a blockquote. */
+  /* Callouts — shared card for `**Verify:**`, GitHub alerts, and the
+     manual `warn|info|tip` classes. 1px rule border + 3px status edge +
+     a mono uppercase label driven by the variant. */
   .cheatsheet-body .callout {
-    border-left: 3px solid;
-    padding: 0.6rem 0.9rem;
+    position: relative;
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--callout-color, var(--accent-line));
+    background-color: var(--surface);
+    padding: 0.55rem 0.9rem 0.6rem;
     margin: 0.75rem 0;
     border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
     font-size: 0.9rem;
     page-break-inside: avoid;
   }
-  .cheatsheet-body .callout.tip   { background-color: var(--color-paper-shade); border-color: var(--color-amber); }
-  .cheatsheet-body .callout.info  { background-color: #EFF6FF;                  border-color: #2563EB; color: #1E3A8A; }
-  .cheatsheet-body .callout.warn  { background-color: #FEF2F2;                  border-color: #DC2626; color: #7F1D1D; }
-  .cheatsheet-body .callout p     { margin: 0; }
+  .cheatsheet-body .callout::before {
+    content: attr(data-callout);
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--callout-color, var(--accent-text));
+    margin-bottom: 0.3rem;
+  }
+  .cheatsheet-body .callout > p:first-of-type { margin-top: 0; }
+  .cheatsheet-body .callout p { margin: 0; }
   .cheatsheet-body .callout p + p { margin-top: 0.35rem; }
+  .cheatsheet-body .callout > :last-child { margin-bottom: 0; }
+
+  .cheatsheet-body .callout-verify    { --callout-color: var(--accent-text); }
+  .cheatsheet-body .callout-note      { --callout-color: var(--info); }
+  .cheatsheet-body .callout-tip       { --callout-color: var(--accent-text); }
+  .cheatsheet-body .callout-important { --callout-color: var(--important); }
+  .cheatsheet-body .callout-warning   { --callout-color: var(--warning); }
+  .cheatsheet-body .callout-caution   { --callout-color: var(--danger); }
+
+  /* Manual callout classes — legacy authoring escape hatch; mapped onto
+     the same callout card. */
+  .cheatsheet-body .callout.tip  { --callout-color: var(--accent-text); }
+  .cheatsheet-body .callout.info { --callout-color: var(--info); }
+  .cheatsheet-body .callout.warn { --callout-color: var(--danger); }
+  .cheatsheet-body .callout.tip::before,
+  .cheatsheet-body .callout.info::before,
+  .cheatsheet-body .callout.warn::before { content: none; }
 
   /* Reference / collapsible sections. */
   .cheatsheet-body details {
     margin: 0.75rem 0;
     padding: 0.75rem 0.9rem;
-    background-color: var(--color-paper);
-    border: 1px solid var(--color-rule);
-    border-radius: var(--radius-md);
+    background-color: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-ctl);
     page-break-inside: avoid;
   }
   .cheatsheet-body details summary {
     font-weight: 600;
     cursor: pointer;
     list-style: none;
-    color: var(--color-ink);
+    color: var(--ink);
   }
   .cheatsheet-body details summary::-webkit-details-marker { display: none; }
   .cheatsheet-body details summary::before {
-    content: "▸";
+    content: "";
     display: inline-block;
-    margin-right: 0.4rem;
-    color: var(--color-amber-deep);
+    width: 0.45em;
+    height: 0.45em;
+    margin-right: 0.5rem;
+    border-top: 1.5px solid var(--accent-text);
+    border-right: 1.5px solid var(--accent-text);
+    transform: rotate(45deg) translateY(-0.1em);
     transition: transform 0.2s;
   }
-  .cheatsheet-body details[open] summary::before { transform: rotate(90deg); }
+  .cheatsheet-body details[open] summary::before {
+    transform: rotate(135deg) translateY(-0.1em);
+  }
   .cheatsheet-body details[open] summary { margin-bottom: 0.5rem; }
 
-  /* Dark code blocks for high syntax contrast. Tightened for density. */
+  /* Dark code blocks — stay dark in both themes. The !important guards
+     against the Shiki inline background so the token always wins. */
   .cheatsheet-body pre {
     padding: 0.7rem 0.95rem;
-    background-color: var(--color-ink);
-    color: #DCFCE7;
-    border-radius: var(--radius-sm);
+    background-color: var(--code-bg) !important;
+    color: var(--code-ink);
+    border-radius: 0 0 var(--radius-ctl) var(--radius-ctl);
     overflow-x: auto;
-    margin: 0.4rem 0 0.75rem;
+    margin: 0;
     font-size: 0.8125rem;
     line-height: 1.5;
-    border: 1px solid var(--color-ink-soft);
+    border: 1px solid var(--code-rule);
+    border-top: 0;
     page-break-inside: avoid;
   }
+  .cheatsheet-body pre:not(.astro-code) {
+    border-radius: var(--radius-ctl);
+    border-top: 1px solid var(--code-rule);
+  }
 
-  /* Copy button — injected client-side by CheatsheetLayout. The wrapper is
-     positioned so the absolute button sits in the top-right corner; the
-     wrapper inherits the <pre>'s natural margin (the <pre> resets its own
-     margin once wrapped). */
+  /* Code block wrapper + header bar (language label + Copy) — injected
+     client-side by CodeCopyButtons.astro. */
   .cheatsheet-body .code-block {
     position: relative;
-    margin: 0.4rem 0 0.75rem;
+    margin: 0.4rem 0 0.9rem;
+    border-radius: var(--radius-ctl);
   }
-  .cheatsheet-body .code-block > pre { margin: 0; }
+  .cheatsheet-body .code-block-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.3rem 0.5rem 0.3rem 0.95rem;
+    background-color: var(--code-bg);
+    border: 1px solid var(--code-rule);
+    border-bottom: 1px solid var(--code-rule);
+    border-radius: var(--radius-ctl) var(--radius-ctl) 0 0;
+  }
+  .cheatsheet-body .code-block-lang {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
   .cheatsheet-body .code-block-copy {
-    position: absolute;
-    top: 0.4rem;
-    right: 0.4rem;
     padding: 0.2rem 0.55rem;
     font-family: var(--font-mono);
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     font-weight: 600;
-    line-height: 1;
-    letter-spacing: 0.02em;
-    color: #DCFCE7;
-    background-color: var(--color-ink-soft);
-    border: 1px solid #4ADE80;
+    line-height: 1.4;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--code-ink);
+    background-color: transparent;
+    border: 1px solid var(--code-rule);
     border-radius: var(--radius-sm);
     cursor: pointer;
-    transition: background-color 0.15s, color 0.15s;
+    transition: background-color 0.15s, color 0.15s, border-color 0.15s;
   }
   .cheatsheet-body .code-block-copy:hover {
-    background-color: #4ADE80;
-    color: var(--color-ink);
+    border-color: var(--accent-line);
+    color: var(--accent-line);
   }
   .cheatsheet-body .code-block-copy.is-copied {
-    background-color: #4ADE80;
-    color: var(--color-ink);
-    border-color: #4ADE80;
+    background-color: var(--accent-line);
+    color: #0A1410;
+    border-color: var(--accent-line);
   }
   .cheatsheet-body .code-block-copy.is-failed {
-    background-color: #DC2626;
+    background-color: var(--danger);
     color: #fff;
-    border-color: #DC2626;
+    border-color: var(--danger);
   }
   @media print {
-    .cheatsheet-body .code-block-copy { display: none; }
+    .cheatsheet-body .code-block-header { display: none; }
+    .cheatsheet-body pre {
+      border-top: 1px solid var(--code-rule);
+      border-radius: var(--radius-ctl);
+    }
   }
 
   .cheatsheet-body code {
@@ -383,49 +670,63 @@ const isDraft = entry.data.status === 'draft';
     white-space: pre;
   }
 
+  /* Inline code — subtle tinted chip, quiet in both themes. */
   .cheatsheet-body p > code,
   .cheatsheet-body li > code,
   .cheatsheet-body td > code,
-  .cheatsheet-body th > code {
-    background-color: var(--color-paper-shade);
-    color: var(--color-ink);
+  .cheatsheet-body th > code,
+  .cheatsheet-body summary code,
+  .cheatsheet-body .step-meta code {
+    background-color: var(--surface-2);
+    color: var(--ink);
     padding: 0.05rem 0.35rem;
     border-radius: 0.25rem;
-    border: 1px solid var(--color-rule);
+    border: 1px solid var(--rule);
     font-size: 0.85em;
   }
 
-  /* Dense reference tables — header row in paper-shade, rule lines between
-     rows only. Wraps don't break inside on print. */
+  /* Tables — ruled rows, no zebra, horizontal scroll on narrow screens.
+     `.table-scroll` is wrapped client-side by CodeCopyButtons.astro. */
+  .cheatsheet-body .table-scroll {
+    overflow-x: auto;
+    margin: 0.5rem 0 0.9rem;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-ctl);
+  }
   .cheatsheet-body table {
     width: 100%;
     border-collapse: collapse;
-    margin: 0.5rem 0 0.9rem;
+    margin: 0;
     font-size: 0.875rem;
     page-break-inside: auto;
   }
   .cheatsheet-body th,
   .cheatsheet-body td {
-    padding: 0.4rem 0.6rem;
+    padding: 0.45rem 0.65rem;
     text-align: left;
     vertical-align: top;
-    border-bottom: 1px solid var(--color-rule);
+    border-bottom: 1px solid var(--rule);
   }
+  .cheatsheet-body tr:last-child td { border-bottom: 0; }
   .cheatsheet-body th {
-    background-color: var(--color-paper-shade);
-    color: var(--color-ink);
+    background-color: var(--surface-2);
+    color: var(--ink);
     font-weight: 700;
     font-size: 0.8125rem;
     letter-spacing: 0.01em;
   }
+  .cheatsheet-body td:first-child:has(code) {
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+  }
 
-  /* ASCII / pre-rendered diagrams — light paper, monospaced, no break. */
+  /* ASCII / pre-rendered diagrams — light surface, monospaced, no break. */
   .cheatsheet-body .ascii {
     font-family: var(--font-mono);
     font-size: 0.8125rem;
     line-height: 1.35;
-    background-color: #fff;
-    border: 1px solid var(--color-rule);
+    background-color: var(--surface);
+    border: 1px solid var(--rule);
     padding: 0.65rem 0.85rem;
     border-radius: var(--radius-sm);
     white-space: pre;
@@ -442,15 +743,15 @@ const isDraft = entry.data.status === 'draft';
     border-radius: 9999px;
     font-size: 0.7rem;
     font-weight: 600;
-    border: 1px solid var(--color-rule);
-    background-color: var(--color-paper-shade);
-    color: var(--color-ink);
+    border: 1px solid var(--rule);
+    background-color: var(--surface-2);
+    color: var(--ink);
     vertical-align: middle;
   }
-  .cheatsheet-body .badge.warn { background-color: #FEF2F2; border-color: #DC2626; color: #7F1D1D; }
-  .cheatsheet-body .badge.info { background-color: #EFF6FF; border-color: #2563EB; color: #1E3A8A; }
+  .cheatsheet-body .badge.warn { border-color: var(--danger); color: var(--danger); background: transparent; }
+  .cheatsheet-body .badge.info { border-color: var(--info); color: var(--info); background: transparent; }
 
-  /* Numbered green-circle steps — apply by authoring <ol class="steps">. */
+  /* Numbered steps list — apply by authoring <ol class="steps">. */
   .cheatsheet-body ol.steps {
     list-style: none;
     counter-reset: step;
@@ -470,8 +771,8 @@ const isDraft = entry.data.status === 'draft';
     width: 1.4rem;
     height: 1.4rem;
     border-radius: 50%;
-    background-color: var(--color-amber);
-    color: var(--color-ink);
+    background-color: var(--accent-line);
+    color: #0A1410;
     font-weight: 700;
     font-size: 0.8125rem;
     display: flex;
@@ -479,13 +780,42 @@ const isDraft = entry.data.status === 'draft';
     justify-content: center;
   }
 
+  /* Best Practices Do/Don't pair — the enhancer wraps `### Do` /
+     `### Don't` subsections into `.bp-card`s inside a `.bp-grid`. */
+  .cheatsheet-body .bp-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.9rem;
+    margin: 0.5rem 0 0.9rem;
+  }
+  @media (min-width: 900px) {
+    .cheatsheet-body .bp-grid { grid-template-columns: 1fr 1fr; }
+  }
+  .cheatsheet-body .bp-card {
+    border: 1px solid var(--rule);
+    border-top: 3px solid var(--rule);
+    border-radius: var(--radius-card);
+    padding: 0.85rem 1rem;
+    background-color: var(--surface);
+    box-shadow: var(--shadow-card);
+  }
+  .cheatsheet-body .bp-card h3 {
+    margin-top: 0;
+    font-size: 0.95rem;
+  }
+  .cheatsheet-body .bp-card.bp-do { border-top-color: var(--accent-line); }
+  .cheatsheet-body .bp-card.bp-dont { border-top-color: var(--danger); }
+  .cheatsheet-body .bp-card.bp-do h3 { color: var(--accent-text); }
+  .cheatsheet-body .bp-card.bp-dont h3 { color: var(--danger); }
+  .cheatsheet-body .bp-card > :last-child { margin-bottom: 0; }
+
   /* Mermaid diagrams are emitted into a wrapper div by the remark plugin —
-     give them breathing room without competing with the dense layout. */
+     give them breathing room without competing with the layout. */
   .cheatsheet-body .mermaid {
     margin: 0.75rem 0 1rem;
     padding: 0.5rem;
-    background-color: #fff;
-    border: 1px solid var(--color-rule);
+    background-color: var(--surface);
+    border: 1px solid var(--rule);
     border-radius: var(--radius-sm);
     text-align: center;
     page-break-inside: avoid;
@@ -496,6 +826,8 @@ const isDraft = entry.data.status === 'draft';
     .cheatsheet-body { font-size: 0.9375rem; }
     .cheatsheet-body pre { font-size: 0.75rem; }
     .cheatsheet-body table { font-size: 0.8125rem; }
+    .cheatsheet-body .step { padding-left: 2rem; }
+    .cheatsheet-body .step-number { left: -0.8125rem; width: 1.5rem; height: 1.5rem; font-size: 0.72rem; }
   }
 
   @media print {

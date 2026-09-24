@@ -82,6 +82,9 @@ test.describe("Catalog filter pills", () => {
       '.catalog-filter-pill[data-filter-axis="tag"]',
     );
     await expect(tagPills).toHaveCount(PUBLISHED_TAGS.length);
+    // Tags beyond the top-10 most-frequent set sit behind the "+N more"
+    // expander — reveal the full list before sampling visibility.
+    await page.locator(".catalog-filter-more").click();
     // Sample a few values to confirm rendering — we don't need to match
     // exact order since the source iterates a Set sorted alphabetically.
     // Samples come from the derived set so the corpus can't drift them.
@@ -110,6 +113,9 @@ test.describe("Catalog filter pills", () => {
   });
 
   test("clicking a tag pill filters the visible cards", async ({ page }) => {
+    // `mcp` sits outside the top-10 tag facet in the fixture corpus —
+    // expand the "+N more" tail before clicking it.
+    await page.locator(".catalog-filter-more").click();
     const pill = page.locator(
       '.catalog-filter-pill[data-filter-axis="tag"][data-filter-value="mcp"]',
     );
@@ -247,6 +253,9 @@ test.describe("Catalog filter pills", () => {
   });
 
   test("keyboard: Enter toggles a focused pill", async ({ page }) => {
+    // "memory" sits outside the top-10 frequent tags — expand "+N more"
+    // so the pill is visible and focusable.
+    await page.locator(".catalog-filter-more").click();
     const pill = page.locator(
       '.catalog-filter-pill[data-filter-axis="tag"][data-filter-value="memory"]',
     );

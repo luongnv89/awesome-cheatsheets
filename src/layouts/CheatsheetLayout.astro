@@ -31,6 +31,7 @@ import MermaidLoader from '../components/cheatsheet/MermaidLoader.astro';
 import StepChecklist from '../components/cheatsheet/StepChecklist.astro';
 import StickyToc from '../components/cheatsheet/StickyToc.astro';
 import CodeCopyButtons from '../components/cheatsheet/CodeCopyButtons.astro';
+import ContentEnhance from '../components/cheatsheet/ContentEnhance.astro';
 // Staleness rule lives in `tools/utils/freshness.ts` — the single source of
 // truth shared with CatalogCard.astro and the freshness CI (issue #135).
 import { daysSinceUpdate, isStale } from '../../tools/utils/freshness.js';
@@ -44,7 +45,12 @@ interface Props {
     tags: string[];
     last_updated: string;
     stale_after_days: number;
+    upstream_version?: string;
   };
+  /** Number of `### Step N — …` headings in the body (0 hides step UI). */
+  stepCount?: number;
+  /** Total estimated minutes summed from `**Time:**` step meta. */
+  stepMinutes?: number;
   /**
    * When true, the article is rendered without Pagefind's `data-pagefind-body`
    * marker so the page is excluded from the search index (issue #90). The
@@ -54,7 +60,13 @@ interface Props {
   isDraft?: boolean;
 }
 
-const { title, frontmatter, isDraft = false } = Astro.props;
+const {
+  title,
+  frontmatter,
+  stepCount = 0,
+  stepMinutes = 0,
+  isDraft = false,
+} = Astro.props;
 
 const today = new Date();
 const days = daysSinceUpdate(frontmatter.last_updated, today);
@@ -88,7 +100,22 @@ const metaDescription = frontmatter.summary;
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={metaDescription} />
-    <meta name="theme-color" content="#0A1410" />
+    <meta name="theme-color" content="#FAFAF7" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0A1410" media="(prefers-color-scheme: dark)" />
+    <script is:inline>
+      (function () {
+        var theme = 'light';
+        try {
+          var stored = localStorage.getItem('theme');
+          if (stored === 'light' || stored === 'dark') {
+            theme = stored;
+          } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            theme = 'dark';
+          }
+        } catch (e) { /* storage blocked — keep default */ }
+        document.documentElement.setAttribute('data-theme', theme);
+      })();
+    </script>
     <SecurityHeaders />
     <link rel="canonical" href={canonicalUrl} />
     <link rel="icon" type="image/svg+xml" href={`${baseUrl}/brand/favicon.svg`} />
@@ -159,21 +186,30 @@ const metaDescription = frontmatter.summary;
             </span>
             <h1 class="cheatsheet-title">{frontmatter.title}</h1>
             <p class="cheatsheet-summary">{frontmatter.summary}</p>
+            <ul class="cheatsheet-meta" aria-label="Document metadata">
+              {hasValidDate && (
+                <li class="cheatsheet-meta-item">
+                  <span class="freshness-chip" title={`Last updated: ${frontmatter.last_updated}`}>
+                    <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span class="absolute-date">{frontmatter.last_updated}</span>
+                    <span class="relative-date">({relativeTime})</span>
+                  </span>
+                </li>
+              )}
+              {stepCount > 0 && (
+                <li class="cheatsheet-meta-item">{stepCount} steps</li>
+              )}
+              {stepMinutes > 0 && (
+                <li class="cheatsheet-meta-item">~{stepMinutes} min total</li>
+              )}
+              {frontmatter.upstream_version && (
+                <li class="cheatsheet-meta-item">{frontmatter.upstream_version}</li>
+              )}
+            </ul>
           </div>
-          <aside class="cheatsheet-header-meta" aria-label="Document metadata">
-            <div class="cheatsheet-header-meta-slug">{slug}</div>
-            <div class="cheatsheet-header-meta-row">cheatsheet · {today.getFullYear()}</div>
-            {hasValidDate && (
-              <div class="freshness-chip" title={`Last updated: ${frontmatter.last_updated}`}>
-                <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <polyline points="12 6 12 12 16 14"></polyline>
-                </svg>
-                <span class="absolute-date">{frontmatter.last_updated}</span>
-                <span class="relative-date">({relativeTime})</span>
-              </div>
-            )}
-          </aside>
           {frontmatter.tags.length > 0 && (
             <ul class="cheatsheet-tags" aria-label="tags">
               {frontmatter.tags.map((tag) => (
@@ -206,6 +242,23 @@ const metaDescription = frontmatter.summary;
               {frontmatter.category}
             </span>
             <h2 class="cheatsheet-sticky-title">{frontmatter.title}</h2>
+            {stepCount > 0 && (
+              <span class="cheatsheet-sticky-progress">
+                <span
+                  class="step-segments"
+                  role="progressbar"
+                  aria-label="Steps completed"
+                  aria-valuemin={0}
+                  aria-valuemax={stepCount}
+                  aria-valuenow={0}
+                >
+                  {Array.from({ length: stepCount }, (_, i) => (
+                    <span class="step-segment" data-step-segment={i + 1}></span>
+                  ))}
+                </span>
+                <span class="cheatsheet-sticky-steps" data-steps-indicator></span>
+              </span>
+            )}
             <span class="cheatsheet-sticky-section" data-section-indicator></span>
           </div>
         </div>
@@ -241,5 +294,6 @@ const metaDescription = frontmatter.summary;
     <StepChecklist />
     <StickyToc />
     <CodeCopyButtons />
+    <ContentEnhance />
   </body>
 </html>

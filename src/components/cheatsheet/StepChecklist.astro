@@ -1,14 +1,23 @@
 ---
 /**
- * Step heading enhancer. Rewrites `### Step N — Title (qualifier)` H3s
- * into a checkbox + pill badge ("STEP N") + bare title, so setup steps
- * are visually distinct from regular H3s. The pattern only matches the
- * literal `Step <digits>` prefix; other H3s are left alone.
+ * Step heading enhancer. Rewrites `### Step N — Title` H3s into timeline
+ * nodes: each step H3 and its body (everything up to the next Step H3 or
+ * H2) is wrapped in a `.step` rail card carrying a numbered circle, a
+ * checkbox, a mono "STEP N" badge, the bare title, and — when the step
+ * contains shell code blocks — a "Copy step commands" button.
  *
- * Checkbox state persists per-cheatsheet via localStorage. Checking a
- * step strikes through its title and all sibling nodes up to (but not
- * including) the next Step H3 or the next H2 — i.e., the visual span
- * the user just completed.
+ * Checkbox state persists per-cheatsheet in localStorage under
+ * `cheatsheet-progress:<slug>` (`step-N` keys; `prereq-N` keys for the
+ * optional Prerequisites task list share the object but are not counted
+ * toward step progress).
+ *
+ * Also owns the surrounding progress chrome:
+ *  - the "k / N done" chip + "Reset progress" button on the Setup H2,
+ *  - the "All steps complete" line under it,
+ *  - the segmented progress bar + "Step k of N" text in the sticky band,
+ *  - a `cheatsheet:step-progress` CustomEvent so the TOC (StickyToc) can
+ *    mark done steps — dispatched on every change; the TOC reads storage
+ *    directly for its initial paint since this script runs first.
  *
  * Extracted from `CheatsheetLayout.astro` (issue #133).
  */
@@ -36,6 +45,7 @@
     };
 
     const STEP_RE = /^Step\s+(\d+)\s*[—–-]\s*(.+)$/;
+    const SHELL_LANGS = new Set(['bash', 'sh', 'shell', 'zsh', 'console', 'powershell']);
     const stepHeadings = container.querySelectorAll('h3');
 
     /**
@@ -56,8 +66,35 @@
       return nodes;
     };
 
+    /**
+     * Shell code blocks inside a node list — top-level `pre[data-language]`
+     * elements plus any nested inside list items. Language comes from the
+     * `data-language` attribute Shiki emits on each <pre>.
+     * @param {Element[]} nodes
+     */
+    const shellBlocksIn = (nodes) => {
+      /** @type {Element[]} */
+      const blocks = [];
+      for (const node of nodes) {
+        if (node.matches?.('pre[data-language]')) blocks.push(node);
+        blocks.push(...node.querySelectorAll('pre[data-language]'));
+      }
+      return blocks.filter((pre) =>
+        SHELL_LANGS.has(pre.getAttribute('data-language') ?? ''),
+      );
+    };
+
+    /** Strip a leading "$ " prompt per line — copy-paste ready output. */
+    const stripPrompts = (text) =>
+      text
+        .split('\n')
+        .map((line) => line.replace(/^\$\s+/, ''))
+        .join('\n');
+
     /** @type {string[]} */
     const stepKeys = [];
+    /** @type {Map<string, HTMLInputElement>} */
+    const checkboxByKey = new Map();
     /** @type {Element | null} */
     let sectionH2 = null;
 
@@ -79,6 +116,26 @@
         }
       }
 
+      // Wrap the H3 + its body into a `.step` timeline node before the
+      // heading is rewritten — body collection needs the flat siblings.
+      const body = collectBody(h3);
+      const stepEl = document.createElement('div');
+      stepEl.className = 'step';
+      stepEl.dataset.stepKey = stepKey;
+      h3.parentNode?.insertBefore(stepEl, h3);
+      stepEl.appendChild(h3);
+      const bodyWrap = document.createElement('div');
+      bodyWrap.className = 'step-body';
+      bodyWrap.id = `${stepKey}-body`;
+      stepEl.appendChild(bodyWrap);
+      for (const node of body) bodyWrap.appendChild(node);
+
+      const numberEl = document.createElement('span');
+      numberEl.className = 'step-number';
+      numberEl.textContent = n;
+      numberEl.setAttribute('aria-hidden', 'true');
+      stepEl.insertBefore(numberEl, stepEl.firstChild);
+
       h3.classList.add('step-heading');
       h3.innerHTML = '';
 
@@ -87,6 +144,7 @@
       checkbox.className = 'step-checkbox';
       checkbox.setAttribute('aria-label', `Mark Step ${n} done`);
       checkbox.checked = state[stepKey] === true;
+      checkboxByKey.set(stepKey, checkbox);
 
       const badge = document.createElement('span');
       badge.className = 'step-badge';
@@ -100,10 +158,60 @@
       h3.appendChild(badge);
       h3.appendChild(titleEl);
 
-      const body = collectBody(h3);
+      // "Copy step commands" — copies every shell code block in the step
+      // joined by blank lines, with leading "$ " prompts stripped.
+      const shellBlocks = shellBlocksIn(body);
+      if (shellBlocks.length > 0) {
+        const copyBtn = document.createElement('button');
+        copyBtn.type = 'button';
+        copyBtn.className = 'step-copy';
+        copyBtn.textContent = 'Copy step commands';
+        copyBtn.setAttribute('aria-label', `Copy Step ${n} commands to clipboard`);
+        h3.appendChild(copyBtn);
+        copyBtn.addEventListener('click', async () => {
+          const text = shellBlocks
+            .map((pre) => stripPrompts((pre.textContent ?? '').replace(/\n+$/, '')))
+            .filter((chunk) => chunk.trim().length > 0)
+            .join('\n\n');
+          try {
+            await navigator.clipboard.writeText(text);
+            copyBtn.textContent = 'Copied';
+            copyBtn.classList.add('is-copied');
+          } catch {
+            copyBtn.textContent = 'Failed';
+          }
+          setTimeout(() => {
+            copyBtn.textContent = 'Copy step commands';
+            copyBtn.classList.remove('is-copied');
+          }, 1500);
+        });
+      }
+
+      // "Show details" / "Hide details" toggle — only offered on done
+      // steps, whose body starts collapsed. aria-controls points at the
+      // step body; the "Copy step commands" button above stays usable
+      // while collapsed (it reads the hidden blocks' text).
+      const toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.className = 'step-toggle';
+      toggle.textContent = 'Show details';
+      toggle.setAttribute('aria-expanded', 'false');
+      toggle.setAttribute('aria-controls', bodyWrap.id);
+      toggle.hidden = true;
+      h3.appendChild(toggle);
+
+      const setCollapsed = (collapsed) => {
+        bodyWrap.hidden = collapsed;
+        toggle.textContent = collapsed ? 'Show details' : 'Hide details';
+        toggle.setAttribute('aria-expanded', String(!collapsed));
+      };
+      toggle.addEventListener('click', () => setCollapsed(!bodyWrap.hidden));
+
       const applyDone = (done) => {
         h3.classList.toggle('is-done', done);
-        for (const node of body) node.classList.toggle('step-done-body', done);
+        stepEl.classList.toggle('is-done', done);
+        toggle.hidden = !done;
+        setCollapsed(done);
       };
       applyDone(checkbox.checked);
 
@@ -115,21 +223,120 @@
       });
     });
 
+    // ----- Prerequisites task list (emitted by the remark plugin) -------
+    // `input.prereq-checkbox` persists under `prereq-N` keys in the same
+    // progress object but is never counted toward step progress.
+    /** @type {HTMLInputElement[]} */
+    const prereqInputs = Array.from(
+      container.querySelectorAll('input.prereq-checkbox'),
+    );
+    for (const input of prereqInputs) {
+      const key = input.dataset.prereq;
+      if (!key) continue;
+      input.checked = state[key] === true;
+      input.addEventListener('change', () => {
+        state[key] = input.checked;
+        persist();
+      });
+    }
+
+    // ----- Progress chrome ----------------------------------------------
     /** @type {HTMLElement | null} */
     let progressChip = null;
+    /** @type {HTMLElement | null} */
+    let completeEl = null;
+    const segmentsBar = document.querySelector('.step-segments');
+    const stepsIndicator = document.querySelector('[data-steps-indicator]');
+
     if (sectionH2 && stepKeys.length > 0) {
+      const side = document.createElement('span');
+      side.className = 'step-header-side';
+
       progressChip = document.createElement('span');
       progressChip.className = 'step-progress';
       progressChip.setAttribute('aria-live', 'polite');
-      sectionH2.appendChild(progressChip);
+
+      const resetBtn = document.createElement('button');
+      resetBtn.type = 'button';
+      resetBtn.className = 'step-reset';
+      resetBtn.textContent = 'Reset progress';
+      resetBtn.addEventListener('click', () => {
+        for (const key of Object.keys(state)) delete state[key];
+        try {
+          localStorage.removeItem(storageKey);
+        } catch {
+          /* storage disabled — in-memory state already cleared */
+        }
+        for (const [key, checkbox] of checkboxByKey) {
+          checkbox.checked = false;
+          checkbox.dispatchEvent(new Event('change'));
+          void key;
+        }
+        for (const input of prereqInputs) input.checked = false;
+        updateProgress();
+      });
+
+      side.appendChild(progressChip);
+      side.appendChild(resetBtn);
+      // Stamp the clean heading text before injecting the chip/button —
+      // StickyToc reads `data-label` for the TOC + section indicator so
+      // the injected controls never leak into either label.
+      sectionH2.setAttribute(
+        'data-label',
+        (sectionH2.textContent ?? '').trim(),
+      );
+      sectionH2.appendChild(side);
+
+      // "All steps complete — see Expected Outcomes" success line, shown
+      // once every step is checked. Links to the Expected Outcomes H2.
+      const outcomesH2 = Array.from(container.querySelectorAll('h2')).find(
+        (h2) => /expected outcomes/i.test(h2.textContent ?? ''),
+      );
+      if (outcomesH2?.id) {
+        completeEl = document.createElement('p');
+        completeEl.className = 'steps-complete';
+        const check = document.createElement('span');
+        check.setAttribute('aria-hidden', 'true');
+        check.textContent = '✓';
+        const text = document.createElement('span');
+        text.textContent = 'All steps complete — ';
+        const link = document.createElement('a');
+        link.href = `#${outcomesH2.id}`;
+        link.textContent = 'see Expected Outcomes';
+        text.appendChild(link);
+        completeEl.appendChild(check);
+        completeEl.appendChild(text);
+        sectionH2.after(completeEl);
+      }
     }
 
     function updateProgress() {
-      if (!progressChip) return;
       const done = stepKeys.filter((k) => state[k] === true).length;
       const total = stepKeys.length;
-      progressChip.textContent = `${done} / ${total} done`;
-      progressChip.classList.toggle('is-complete', done === total && total > 0);
+
+      if (progressChip) {
+        progressChip.textContent = `${done} / ${total} done`;
+        progressChip.classList.toggle('is-complete', done === total && total > 0);
+      }
+      if (segmentsBar) {
+        segmentsBar.setAttribute('aria-valuenow', String(done));
+        segmentsBar
+          .querySelectorAll('.step-segment')
+          .forEach((seg, i) => seg.classList.toggle('is-done', i < done));
+      }
+      if (stepsIndicator) {
+        stepsIndicator.textContent = `Step ${done} of ${total}`;
+      }
+      if (completeEl) {
+        completeEl.classList.toggle('is-visible', done === total && total > 0);
+      }
+      // TOC step check-marks listen on this event (StickyToc reads storage
+      // for its own initial paint, so the first dispatch here is a no-op).
+      document.dispatchEvent(
+        new CustomEvent('cheatsheet:step-progress', {
+          detail: { slug, state: { ...state } },
+        }),
+      );
     }
     updateProgress();
   }

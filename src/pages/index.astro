@@ -1,21 +1,23 @@
 ---
 /**
- * Catalog / landing page.
+ * Catalog / landing page — search-first.
  *
- * Lists every entry in the `cheatsheets` content collection with title,
- * one-liner summary, category, tags, and `last_updated`. Stale entries (per
- * `last_updated + stale_after_days`) get an inline "may be stale" badge in
- * the row. Statically rendered at build (Astro's default `output: 'static'`).
+ * Lists every published entry in the `cheatsheets` content collection with
+ * title, one-liner summary, category, tags, `last_updated`, step count, and
+ * a progress strip hydrated from `cheatsheet-progress:<slug>` in
+ * localStorage. Statically rendered at build (Astro's default
+ * `output: 'static'`).
  *
- * The hero cites the project principles — format + freshness + comparability —
- * per PRD §1. Internal links honor the configured base path
- * (`/awesome-cheatsheets`).
+ * Hierarchy: hero (search is the dominant control) → filter pills → grid.
+ * Internal links honor the configured base path (`/awesome-cheatsheets`).
  */
 import { getCollection } from 'astro:content';
 import Layout from '../layouts/Layout.astro';
 import CatalogCard from '../components/CatalogCard.astro';
 import CatalogSearch from '../components/CatalogSearch.astro';
 import FilterPills from '../components/FilterPills.astro';
+import { countSteps } from '../lib/steps';
+import '../styles/hero.css';
 
 const entries = await getCollection('cheatsheets', ({ data }) => {
   // Only "published" cheatsheets surface in the catalog grid, the search
@@ -43,9 +45,16 @@ const cheatsheetHref = (slug: string) => `${baseUrl}/cheatsheets/${slug}/`;
 const CATEGORY_ORDER = ['tool', 'mcp', 'concept', 'comparison'] as const;
 const categoriesInCorpus = new Set(sorted.map((e) => e.data.category));
 const filterCategories = CATEGORY_ORDER.filter((c) => categoriesInCorpus.has(c));
-const filterTags = Array.from(
-  new Set(sorted.flatMap((e) => e.data.tags)),
-).sort();
+// Tags are ordered by corpus frequency (ties alphabetical) so the filter
+// bar can lead with the most useful facets and tuck the long tail behind
+// a "+N more" expander.
+const tagCounts = new Map<string, number>();
+for (const e of sorted) {
+  for (const t of e.data.tags) tagCounts.set(t, (tagCounts.get(t) ?? 0) + 1);
+}
+const filterTags = Array.from(tagCounts.keys()).sort(
+  (a, b) => (tagCounts.get(b) ?? 0) - (tagCounts.get(a) ?? 0) || a.localeCompare(b),
+);
 ---
 
 <Layout title="Awesome AI Cheatsheets">
@@ -54,30 +63,18 @@ const filterTags = Array.from(
       <p class="catalog-hero-eyebrow" aria-hidden="true">Reference, refreshed.</p>
       <h1 class="catalog-hero-title">Awesome AI Cheatsheets</h1>
       <p class="catalog-hero-lede">
-        Rich-format, visibly-dated, mutually-comparable references for terminal-native
-        AI coding agents and the concepts behind them. Our focus:
-        <strong>format + freshness + comparability</strong> — every cheatsheet ships
-        with a last-updated date and is flagged when it goes stale.
+        Step-by-step setup guides for AI coding tools. Copy every command,
+        track your progress, and know when a guide was last checked.
       </p>
-      <div class="catalog-hero-pillars" role="list">
-        <span class="catalog-hero-pillar" role="listitem">
-          <span class="catalog-hero-pillar-dot" data-pillar="format"></span>
-          Format
-        </span>
-        <span class="catalog-hero-pillar" role="listitem">
-          <span class="catalog-hero-pillar-dot" data-pillar="freshness"></span>
-          Freshness
-        </span>
-        <span class="catalog-hero-pillar" role="listitem">
-          <span class="catalog-hero-pillar-dot" data-pillar="comparability"></span>
-          Comparability
-        </span>
+      <div class="catalog-hero-search">
+        <CatalogSearch />
       </div>
+      <p class="catalog-hero-stats">
+        {sorted.length} cheatsheets · updated {sorted[0]?.data.last_updated ?? ''}
+      </p>
     </header>
 
-    <CatalogSearch />
-
-    <FilterPills categories={filterCategories} tags={filterTags} />
+    <FilterPills categories={filterCategories} tags={filterTags} maxVisibleTags={10} />
 
     <section class="catalog-section" aria-labelledby="catalog-heading">
       <h2 id="catalog-heading" class="catalog-section-title">
@@ -102,6 +99,8 @@ const filterTags = Array.from(
                 summary={entry.data.summary}
                 category={entry.data.category}
                 tags={entry.data.tags}
+                slug={entry.id}
+                stepCount={countSteps(entry.body ?? '')}
                 lastUpdated={entry.data.last_updated}
                 staleAfterDays={entry.data.stale_after_days}
               />
@@ -137,162 +136,85 @@ const filterTags = Array.from(
 
 <style is:global>
   /*
-   * Catalog hero typography lives in three files (index.astro, about.astro,
-   * 404.astro) because Astro scopes `is:global` styles per route — keep these
-   * blocks in sync. Brand-color tokens (--color-ink / --color-amber etc.)
-   * come from Layout.astro's :root.
+   * Page chrome only — the hero typography lives in `src/styles/hero.css`
+   * (shared with about.astro + 404.astro; keep edits there). Filter-pill
+   * chrome lives in `src/styles/filter-pills.css`; card chrome in
+   * `CatalogCard.astro`.
    */
   .catalog-main {
     max-width: 1180px;
     margin: 0 auto;
-    padding: 3rem 1.25rem 4rem;
+    padding: 2.5rem 1.25rem 4rem;
   }
-
-  .catalog-hero {
-    margin-bottom: 2.5rem;
-    padding: 2.5rem 0 1.5rem;
-    position: relative;
-  }
-  .catalog-hero::before {
-    content: "";
-    position: absolute;
-    left: -2rem;
-    top: 1.25rem;
-    width: 6px;
-    height: 3.5rem;
-    background-color: var(--color-amber);
-    border-radius: 4px;
-    display: none;
-  }
-  @media (min-width: 1024px) {
-    .catalog-hero::before { display: block; }
-  }
-
-  .catalog-hero-eyebrow {
-    font-family: var(--font-mono);
-    font-size: 0.8125rem;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--color-amber-deep);
-    margin: 0 0 0.75rem;
-  }
-
-  .catalog-hero-title {
-    font-family: var(--font-heading);
-    font-size: clamp(2.25rem, 5vw, 3.25rem);
-    font-weight: 800;
-    line-height: 1.05;
-    margin: 0 0 1.25rem 0;
-    color: var(--color-ink);
-    letter-spacing: -0.015em;
-  }
-
-  .catalog-hero-lede {
-    font-size: 1.125rem;
-    line-height: 1.6;
-    color: var(--color-muted);
-    max-width: 64ch;
-    margin: 0;
-  }
-
-  .catalog-hero-lede strong {
-    color: var(--color-ink);
-    font-weight: 700;
-  }
-
-  .catalog-hero-pillars {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 1.5rem;
-  }
-  .catalog-hero-pillar {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.375rem 0.75rem;
-    background-color: #fff;
-    border: 1px solid var(--color-rule);
-    border-radius: 9999px;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: var(--color-ink);
-  }
-  .catalog-hero-pillar-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    display: inline-block;
-  }
-  .catalog-hero-pillar-dot[data-pillar="format"]        { background-color: var(--color-ink); }
-  .catalog-hero-pillar-dot[data-pillar="freshness"]     { background-color: var(--color-amber); }
-  .catalog-hero-pillar-dot[data-pillar="comparability"] { background-color: var(--color-coral); }
 
   .catalog-section-title {
-    font-family: var(--font-heading);
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--color-ink);
-    margin: 1rem 0 1.5rem 0;
-    letter-spacing: -0.01em;
-  }
-
-  .catalog-list {
-    display: grid;
-    gap: 1.25rem;
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    grid-template-columns: 1fr;
-  }
-
-  /*
-   * Honor the HTML `hidden` attribute when the catalog search toggles the
-   * grid off — the explicit `display: grid` rule above otherwise wins over
-   * the UA `[hidden] { display: none }` default. Same goes for the section
-   * title and empty-state hint when a search query is active.
-   */
-  .catalog-list[hidden],
-  .catalog-section-title[hidden],
-  .catalog-empty[hidden] {
-    display: none;
-  }
-
-  @media (min-width: 640px) {
-    .catalog-list {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .catalog-list {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-  }
-
-  .catalog-list-item {
-    display: flex;
-  }
-
-  .catalog-list-item > * {
-    flex: 1;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 1rem;
   }
 
   .catalog-empty {
-    color: var(--color-muted);
-    font-size: 1rem;
-    padding: 2rem 1.5rem;
-    background-color: #fff;
-    border: 1px dashed var(--color-rule);
-    border-radius: var(--radius-lg);
+    color: var(--muted);
+    font-size: 0.9375rem;
+    padding: 2rem 0;
   }
-
   .catalog-empty a {
-    color: var(--color-ink);
+    color: var(--accent-text);
     text-decoration: underline;
-    text-decoration-color: var(--color-amber);
-    text-decoration-thickness: 2px;
+    text-decoration-color: var(--accent-line);
     text-underline-offset: 3px;
   }
+
+  /* Card grid — 3 cols ≥1024px, 2 ≥640px, 1 below. */
+  .catalog-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem 1.25rem;
+  }
+  @media (min-width: 640px) {
+    .catalog-list { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (min-width: 1024px) {
+    .catalog-list { grid-template-columns: repeat(3, 1fr); }
+  }
+  .catalog-list-item { min-width: 0; }
 </style>
+
+<script>
+  // Card progress strips — each card footer carries
+  // `[data-progress-slug]`; the strip is hidden until the cheatsheet has
+  // at least one checked step in `cheatsheet-progress:<slug>` (the same
+  // object the detail page writes, so progress follows the reader home).
+  import { parseProgress } from '../components/cheatsheet/step-progress';
+
+  document.querySelectorAll('[data-progress-slug]').forEach((el) => {
+    const slug = el.getAttribute('data-progress-slug');
+    const total = Number(el.getAttribute('data-step-count') ?? '0');
+    if (!slug || !Number.isFinite(total) || total <= 0) return;
+    let state = {};
+    try {
+      state = parseProgress(localStorage.getItem(`cheatsheet-progress:${slug}`));
+    } catch {
+      /* storage disabled — leave the strip hidden */
+      return;
+    }
+    const done = Object.keys(state).filter(
+      (k) => /^step-\d+$/.test(k) && state[k] === true,
+    ).length;
+    if (done === 0) return;
+    const fill = el.querySelector('.catalog-card-progress-fill');
+    const label = el.querySelector('.catalog-card-progress-label');
+    if (fill instanceof HTMLElement) {
+      fill.style.width = `${Math.min(100, (done / total) * 100)}%`;
+    }
+    if (label) label.textContent = `${done}/${total} done`;
+    if (el instanceof HTMLElement) el.hidden = false;
+  });
+</script>

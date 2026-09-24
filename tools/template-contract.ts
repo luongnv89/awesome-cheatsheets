@@ -54,3 +54,4 @@ export {
   type RequiredSection,
 } from "./contract/sections.js";
 export { MERMAID_RULES } from "./contract/mermaid.js";
+export { STEP_RULES, type StepLevel } from "./contract/steps.js";

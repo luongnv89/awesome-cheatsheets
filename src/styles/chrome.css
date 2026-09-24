@@ -1,10 +1,11 @@
 /*
- * Shared site chrome — the global reset, brand tokens, base typography,
- * skip-link, and site header/footer rules used by every page.
+ * Shared site chrome — the global reset, base typography, skip-link, and
+ * site header/footer rules used by every page.
  *
- * Imported by `Layout.astro` and `CheatsheetLayout.astro` (after `base.css`)
- * so these rules have a single source of truth — both layouts previously
- * carried near-identical copies (issue #133, F-CLEAN-009).
+ * Imported by `Layout.astro` and `CheatsheetLayout.astro` (after `base.css`,
+ * which pulls in `tokens.css`) so these rules have a single source of
+ * truth — both layouts previously carried near-identical copies (issue
+ * #133, F-CLEAN-009).
  *
  * `body` deliberately omits `line-height`: `Layout.astro` pages use 1.55
  * while cheatsheet pages use 1.6 — each layout sets its own.
@@ -23,55 +24,47 @@ ul, ol {
   padding: 0;
 }
 
-:root {
-  --color-ink: #0A1410;
-  --color-ink-soft: #1A2E22;
-  --color-amber: #39FF14;
-  --color-amber-deep: #2BCC0F;
-  --color-coral: #00C853;
-  --color-coral-deep: #00A040;
-  --color-paper: #F0FFF4;
-  --color-paper-shade: #DCFCE7;
-  --color-rule: #BBF7D0;
-  --color-muted: #3A6B4E;
-  --color-text: #0A1410;
-
-  --font-heading: ui-serif, Georgia, 'Iowan Old Style', 'Apple Garamond', Cambria, 'Times New Roman', serif;
-  --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-
-  --radius-sm: 0.375rem;
-  --radius-md: 0.625rem;
-  --radius-lg: 0.875rem;
-}
-
 html {
   -webkit-text-size-adjust: 100%;
 }
 
 body {
   font-family: var(--font-body);
-  color: var(--color-text);
-  background-color: var(--color-paper);
+  color: var(--ink);
+  background-color: var(--bg);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Column-flex children default to `min-width: auto` (min-content), so a
+   wide descendant — a code block, the filter-pill row — would stretch the
+   item past the viewport instead of scrolling internally. Zeroing the
+   minimum lets `overflow-x: auto` containers clamp to the viewport. */
+body > * {
+  min-width: 0;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-heading);
-  color: var(--color-ink);
+  font-family: var(--font-display);
+  color: var(--ink);
   letter-spacing: -0.01em;
   line-height: 1.2;
 }
 
 a {
-  color: var(--color-ink);
+  color: var(--accent-text);
 }
 a:focus-visible {
-  outline: 2px solid var(--color-coral);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
   border-radius: 0.25rem;
+}
+
+::selection {
+  background-color: var(--accent-line);
+  color: #0A1410;
 }
 
 /* Skip-link — visible only when focused. Required for keyboard a11y. */
@@ -80,8 +73,8 @@ a:focus-visible {
   top: 0.5rem;
   left: 0.5rem;
   transform: translateY(-150%);
-  background: var(--color-ink);
-  color: #fff;
+  background: var(--code-bg);
+  color: var(--code-ink);
   padding: 0.5rem 0.875rem;
   border-radius: var(--radius-sm);
   font-weight: 600;
@@ -94,13 +87,13 @@ a:focus-visible {
 
 /* Header — markup lives in `src/components/SiteHeader.astro`. */
 .site-header {
-  border-bottom: 1px solid var(--color-rule);
+  border-bottom: 1px solid var(--rule);
   position: sticky;
   top: 0;
   z-index: 10;
   backdrop-filter: saturate(180%) blur(6px);
   -webkit-backdrop-filter: saturate(180%) blur(6px);
-  background-color: rgba(250, 247, 242, 0.9);
+  background-color: var(--header-bg);
 }
 .site-header-inner {
   max-width: 1180px;
@@ -116,13 +109,35 @@ a:focus-visible {
   display: inline-flex;
   align-items: center;
   text-decoration: none;
-  color: var(--color-ink);
+  color: var(--ink);
   border-radius: var(--radius-sm);
 }
 .site-brand-logo {
   height: 56px;
   width: auto;
   display: block;
+}
+/* The full lockup's wordmark is dark-on-transparent — invisible on the
+   dark theme, so the white variant swaps in. */
+.site-brand-logo-dark {
+  display: none;
+}
+[data-theme="dark"] .site-brand-logo-light {
+  display: none;
+}
+[data-theme="dark"] .site-brand-logo-dark {
+  display: block;
+}
+/* Compact brand mark — replaces the full lockup below 640px so the
+   header stays a single row. The white chip keeps the dark mark legible
+   on the dark theme (same treatment as the footer logo). */
+.site-brand-mark {
+  display: none;
+  height: 34px;
+  width: 34px;
+  border-radius: var(--radius-sm);
+  background-color: #fff;
+  padding: 3px;
 }
 .site-nav {
   display: flex;
@@ -136,13 +151,13 @@ a:focus-visible {
   padding: 0.5rem 0.875rem;
   font-size: 0.9375rem;
   font-weight: 500;
-  color: var(--color-ink);
+  color: var(--ink);
   text-decoration: none;
-  border-radius: var(--radius-sm);
-  transition: background-color 0.12s ease;
+  border-radius: var(--radius-ctl);
+  transition: background-color 0.15s ease;
 }
 .site-nav-link:hover {
-  background-color: var(--color-paper-shade);
+  background-color: var(--surface-2);
 }
 .site-nav-link-external::after {
   content: "";
@@ -155,11 +170,47 @@ a:focus-visible {
   transform: translateY(-0.05em) rotate(45deg);
 }
 
-/* Footer — markup lives in `src/components/SiteFooter.astro`. */
+/* Theme toggle — sun/moon button in the site nav. The icon for the
+   *destination* theme is shown: moon on light, sun on dark. */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  margin-left: 0.25rem;
+  color: var(--ink);
+  background-color: transparent;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-ctl);
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.theme-toggle:hover {
+  background-color: var(--surface-2);
+  border-color: var(--muted);
+}
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+.theme-toggle svg {
+  width: 1.05rem;
+  height: 1.05rem;
+  display: block;
+}
+.theme-toggle .theme-icon-moon { display: block; }
+.theme-toggle .theme-icon-sun { display: none; }
+[data-theme="dark"] .theme-toggle .theme-icon-moon { display: none; }
+[data-theme="dark"] .theme-toggle .theme-icon-sun { display: block; }
+
+/* Footer — markup lives in `src/components/SiteFooter.astro`. Dark band in
+   both themes, matching the code-block palette. */
 .site-footer {
   margin-top: 4rem;
-  background-color: var(--color-ink);
-  color: #DCFCE7;
+  background-color: var(--code-bg);
+  color: var(--code-ink);
   flex-shrink: 0;
 }
 .site-footer-inner {
@@ -176,9 +227,9 @@ a:focus-visible {
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
-  color: #fff;
+  color: var(--code-ink);
   text-decoration: none;
-  font-family: var(--font-heading);
+  font-family: var(--font-display);
   font-weight: 700;
   font-size: 1.125rem;
 }
@@ -191,16 +242,16 @@ a:focus-visible {
   padding: 4px;
 }
 .site-footer-name {
-  color: #fff;
+  color: var(--code-ink);
 }
 .site-footer-meta {
   font-size: 0.875rem;
-  color: #BFBED1;
+  color: var(--muted);
   margin: 0;
 }
 .site-footer-meta a,
 .site-footer-link-button {
-  color: var(--color-amber);
+  color: var(--accent-line);
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 2px;
@@ -214,17 +265,38 @@ a:focus-visible {
 }
 .site-footer-meta a:hover,
 .site-footer-link-button:hover {
-  color: #FFCD3A;
+  color: var(--code-ink);
 }
 .site-footer-meta a:focus-visible,
 .site-footer-link-button:focus-visible {
-  outline-color: var(--color-amber);
+  outline-color: var(--accent-line);
+}
+
+/* Below 640px the header is one row: brand mark on the left, nav links +
+   theme toggle on the right with tight gaps — no second nav row, so the
+   sticky band's offset stays correct and nothing overflows at 320px. */
+@media (max-width: 639.98px) {
+  .site-header-inner {
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+  }
+  .site-brand { flex-shrink: 0; }
+  .site-brand-logo,
+  [data-theme="dark"] .site-brand-logo-dark { display: none; }
+  .site-brand-mark { display: block; }
+  .site-nav { gap: 0; flex-wrap: nowrap; }
+  .site-nav-link { padding: 0.375rem 0.5rem; font-size: 0.8125rem; }
+  .theme-toggle {
+    width: 2rem;
+    height: 2rem;
+    margin-left: 0.125rem;
+    flex-shrink: 0;
+  }
 }
 
 @media (max-width: 480px) {
-  .site-header-inner { padding: 0.625rem 1rem; }
-  .site-brand-logo { height: 44px; }
-  .site-nav-link { padding: 0.375rem 0.625rem; font-size: 0.875rem; }
+  .site-nav-link { padding: 0.375rem 0.5rem; font-size: 0.8125rem; }
   .site-footer-inner { flex-direction: column; align-items: flex-start; gap: 1rem; }
 }
 

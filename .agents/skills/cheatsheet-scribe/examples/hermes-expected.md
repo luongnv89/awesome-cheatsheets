@@ -84,6 +84,8 @@ flowchart LR
 
 ### Step 1 — Baseline: Update, Diagnose, Verify (5–10 min)
 
+**Goal:** A current install with clean diagnostics · **Time:** ~10 min · **Level:** beginner
+
 ```bash
 hermes update          # Pull latest version
 hermes doctor          # Diagnose config, providers, tools, memory
@@ -93,7 +95,10 @@ hermes memory status   # Check memory providers
 
 If anything fails, re-run `hermes setup` and follow the prompts.
 
-> **Why:** Outdated installs miss self-evolving skills, Kanban, context compression, and cost optimizations. `doctor` catches OAuth issues, missing tools, and memory bloat.
+**Verify:** `hermes doctor` completes with no failing checks.
+
+> [!NOTE]
+> Outdated installs miss self-evolving skills, Kanban, context compression, and cost optimizations. `doctor` catches OAuth issues, missing tools, and memory bloat.
 
 **Pro tip (prod stability):**
 ```bash
@@ -101,6 +106,8 @@ hermes config set version_pin true
 ```
 
 ### Step 2 — Optimize Config, Models & Providers (Cost + Speed)
+
+**Goal:** Right-sized models per task with prompt-cache preservation · **Time:** ~15 min · **Level:** intermediate
 
 Edit `~/.hermes/config.yaml` or use `hermes config` commands.
 
@@ -124,9 +131,14 @@ performance:
   cache_preserve: true
 ```
 
-> **Why:** Smart routing + cache hits routinely cut token spend by **~90%** (community reports: ~$130/few-days → ~$10/few-days). Cache preservation is the single highest-ROI knob.
+**Verify:** `hermes model` opens the interactive model selector.
+
+> [!NOTE]
+> Smart routing + cache hits routinely cut token spend by **~90%** (community reports: ~$130/few-days → ~$10/few-days). Cache preservation is the single highest-ROI knob.
 
 ### Step 3 — Persistent Memory (Compounding Intelligence)
+
+**Goal:** Facts and preferences that survive across sessions · **Time:** ~15 min · **Level:** intermediate
 
 Hermes' superpower: facts that survive across sessions.
 
@@ -151,9 +163,14 @@ hermes memory setup    # pick Honcho (or similar) for semantic search
 ```
 For graph-based recall, follow the **OnlyTerp LightRAG** path: clone the repo, set `.env`, run the server, ingest docs/vaults via `curl`.
 
-> **Why:** Memory + skills compound. The agent stops re-discovering things it already learned.
+**Verify:** `hermes sessions list` returns past conversations.
+
+> [!NOTE]
+> Memory + skills compound. The agent stops re-discovering things it already learned.
 
 ### Step 4 — Skills & Self-Evolution (the real magic)
+
+**Goal:** A reusable, slash-callable skill from real work · **Time:** ~15 min · **Level:** intermediate
 
 Skills turn one-off work into reusable procedures (slash-callable next time).
 
@@ -181,9 +198,14 @@ hermes skills install <name>
 **Advanced — fully autonomous skill optimization:**
 Install the [self-evolution](https://github.com/NousResearch/hermes-agent-self-evolution) module (GEPA/DSPy loop) to optimize skills from execution traces.
 
-> **Rule of thumb:** Skills for *how* (procedures). Memory for *what* (facts). Don't mix.
+**Verify:** `/skills` lists your installed and authored skills.
+
+> [!TIP]
+> Skills for *how* (procedures). Memory for *what* (facts). Don't mix.
 
 ### Step 5 — Gateways & Proactive Features (24/7 teammate)
+
+**Goal:** A phone-reachable agent that works while you sleep · **Time:** ~30 min · **Level:** advanced
 
 Make Hermes phone-accessible and autonomous.
 
@@ -208,9 +230,14 @@ hermes cron create "Daily briefing" --schedule "every 1d at 8am"
 /sethome
 ```
 
-> **Why:** Reactive chat → proactive agent that works while you sleep.
+**Verify:** `hermes gateway` starts the gateway without errors.
+
+> [!NOTE]
+> Reactive chat → proactive agent that works while you sleep.
 
 ### Step 6 — Multi-Agent Orchestration with Kanban (v0.12+)
+
+**Goal:** A kanban board with claiming specialist agents · **Time:** ~20 min · **Level:** advanced
 
 Best when you have parallel subtasks, dependencies, or role pipelines. Start small.
 
@@ -222,9 +249,14 @@ hermes dashboard            # http://127.0.0.1:9119
 - Create specialist profiles (e.g., `researcher`, `coder`, `reviewer`) via config.
 - Assign tasks → agents claim from the board → hand off via `kanban_complete` → auto-retry on blocks.
 
-> **Anti-pattern:** Don't orchestrate before you have at least one well-tuned single agent + skills library. Multi-agent multiplies *current quality*, including the bad parts.
+**Verify:** `hermes dashboard` serves the board at http://127.0.0.1:9119.
+
+> [!WARNING]
+> Don't orchestrate before you have at least one well-tuned single agent + skills library. Multi-agent multiplies *current quality*, including the bad parts.
 
 ### Step 7 — Harden: Security, Deployment, Observability
+
+**Goal:** A production-safe Hermes deployment · **Time:** ~30 min · **Level:** advanced
 
 **VPS / production bootstrap (community one-liner):**
 ```bash
@@ -242,7 +274,11 @@ Sets up a non-root user, firewall, Caddy reverse proxy, systemd units.
 **Observability:**
 - Hook **Langfuse** or **Helicone** for traces + cost analytics (community templates available in the OnlyTerp repo).
 
+**Verify:** `hermes status` reports a healthy baseline after hardening.
+
 ### Step 8 — Monitor, Iterate, Compound (ongoing)
+
+**Goal:** A weekly hygiene loop that compounds quality · **Time:** ~10 min · **Level:** beginner
 
 **Weekly hygiene (10 min):**
 - Run `/insights` and `/usage`
@@ -256,6 +292,8 @@ Sets up a non-root user, firewall, Caddy reverse proxy, systemd units.
 **Ask the agent to self-optimize:**
 > *"Optimize my current setup."*
 > *"Clean up memory and curate skills."*
+
+**Verify:** `ls ~/.hermes/skills/` shows only skills you still use.
 
 ## Best Practices
 

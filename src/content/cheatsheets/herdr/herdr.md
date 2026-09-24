@@ -65,7 +65,8 @@ herdr --version
 herdr
 ```
 
-If `herdr` is not found, restart the terminal or fix `PATH`. Detach with `ctrl+b q`; reattach with `herdr`.
+> [!TIP]
+> If `herdr` is not found, restart the terminal or fix `PATH`. Detach with `ctrl+b q`; reattach with `herdr`.
 
 **Update (depends on install method):**
 ```bash
@@ -79,6 +80,8 @@ herdr channel set stable
 ## Step-by-Step Setup & Optimization
 
 ### Step 1 — Basic working setup
+
+**Goal:** A running session with agents visible in the sidebar · **Time:** ~10 min · **Level:** beginner
 
 - Run `herdr` from a project directory after install.
 - Create **one workspace per active project** (sidebar state rolls up per workspace).
@@ -102,7 +105,11 @@ herdr channel set stable
 
 - Press `prefix+?` for the full live keymap.
 
+**Verify:** `herdr status` shows your running session and panes.
+
 ### Step 2 — Daily workflow
+
+**Goal:** A daily detach/reattach and remote routine · **Time:** ~10 min · **Level:** beginner
 
 - Detach with `prefix+q` or close the terminal; reattach later with `herdr` — processes keep running on the server.
 - Stop the whole default session only when you mean to kill panes:
@@ -142,7 +149,11 @@ herdr channel set stable
   herdr agent attach reviewer
   ```
 
+**Verify:** `herdr agent list` shows the agents you spawned.
+
 ### Step 3 — Configuration baseline
+
+**Goal:** A config baseline with integrations and notifications · **Time:** ~15 min · **Level:** intermediate
 
 - Config is optional. Path: `~/.config/herdr/config.toml` (Windows: `%APPDATA%\herdr\config.toml`).
 - Dump defaults when you want a full starter file:
@@ -194,7 +205,11 @@ herdr channel set stable
   previous_tab = ["prefix+p", "ctrl+alt+["]
   ```
 
+**Verify:** `herdr integration status` lists your installed integrations.
+
 ### Step 4 — Advanced optimization
+
+**Goal:** Worktrees, CLI orchestration, and plugins on top of the baseline · **Time:** ~20 min · **Level:** advanced
 
 - **Git worktrees as workspaces** (sidebar or CLI):
 
@@ -276,11 +291,16 @@ herdr channel set stable
   Help me understand and set up Herdr. Read https://herdr.dev/agent-guide.md first, then walk me through it step by step.
   ```
 
+**Verify:** `herdr worktree list` shows your worktree workspaces.
+
 ### Step 5 — Maintenance and troubleshooting
+
+**Goal:** Safe upgrades and a working debug loop · **Time:** ~10 min · **Level:** intermediate
 
 - Prefer detach over `server stop` when agents should keep working.
 - After package-manager upgrades, restart the Herdr server when you need the new binary (`herdr server stop` then `herdr`, or named `herdr session stop <name>` then reattach).
-- Do **not** nest `tmux` inside a Herdr pane — detection sees `tmux`, not the agent. Herdr *as* outer terminal is fine.
+> [!WARNING]
+> Do **not** nest `tmux` inside a Herdr pane — detection sees `tmux`, not the agent. Herdr *as* outer terminal is fine.
 - Check status and logs:
 
   ```bash
@@ -300,6 +320,8 @@ herdr channel set stable
   herdr completion zsh > ~/.zfunc/_herdr
   # fpath=(~/.zfunc $fpath) + compinit in ~/.zshrc
   ```
+
+**Verify:** `herdr integration status --outdated-only` lists integrations that need updates.
 
 ## Best Practices
 

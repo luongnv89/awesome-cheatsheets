@@ -42,6 +42,7 @@ import { checkSections } from "./rules/sections.js";
 import { checkOneLiner } from "./rules/oneLiner.js";
 import { checkReference } from "./rules/reference.js";
 import { checkMermaid } from "./rules/mermaid.js";
+import { checkSteps } from "./rules/steps.js";
 import { checkLinks } from "./rules/links.js";
 import {
   makeError,
@@ -118,6 +119,7 @@ export async function validate(
   errors.push(...checkOneLiner(tree));
   errors.push(...checkSections(tree));
   errors.push(...checkReference(tree));
+  errors.push(...checkSteps(tree));
   errors.push(...(await checkMermaid(tree, source)));
 
   // I/O-bound rule last.

@@ -95,6 +95,49 @@ Every cheatsheet must follow `template-contract.md`:
 6. `## Expected Outcomes` — what the user gets
 7. `## Reference` — collapsed `<details>` block with sources
 
+An optional `## Prerequisites` H2 may appear before `## Installation` — a
+task list (`- [ ] …`) of environment requirements the reader checks off.
+
+**Step format (extended template):**
+
+Steps render as a checklist timeline on the detail page. Aim for 3–7 steps
+under `## Step-by-Step Setup & Optimization`, numbered `1..N` contiguously
+(`### Step N — Title`, em dash). Every step carries a meta line and a
+Verify line:
+
+```md
+### Step 1 — Install and verify
+
+**Goal:** A working `tool` binary on PATH · **Time:** ~5 min · **Level:** beginner
+
+1. Install:
+   ```bash
+   curl -fsSL https://example.dev/install.sh | sh
+   ```
+2. Check the version:
+   ```bash
+   tool --version
+   ```
+
+**Verify:** `tool --version` prints a version number.
+
+> [!TIP]
+> One-line tip that saves time.
+```
+
+Rules:
+- Meta line is one paragraph directly after the heading, segments joined
+  by ` · `. `**Time:**` matches `~?\d+ (min|mins|minutes|h|hr|hours)`;
+  `**Level:**` is `beginner` | `intermediate` | `advanced`.
+- `**Verify:**` names the command/output that proves the step worked
+  (≥10 chars) — reuse a command already in the step, never invent one.
+- One action per numbered item; every command in its own fenced code
+  block with a language tag (`bash`, `toml`, …). Commands are
+  copy-paste ready: no `$ ` prompts, placeholders as `<UPPER_SNAKE>`.
+- Use GitHub alerts (`> [!TIP]`, `> [!WARNING]`, `> [!NOTE]`,
+  `> [!IMPORTANT]`, `> [!CAUTION]`) for tips and warnings instead of bold
+  prose — they render as callouts on the site and natively on GitHub.
+
 ### Step 3: Draft the cheatsheet
 
 Use the canonical Hermes Agent example (`examples/hermes-draft.md` → `examples/hermes-expected.md`) as a reference for:
@@ -139,7 +182,8 @@ if (!result.ok) {
 - `section-missing`, `section-out-of-order`
 - `one-liner-missing`, `one-liner-too-short`
 - `reference-details-missing`
-- `mermaid-missing-in-mental-model`, `mermaid-fence-broken`, `mermaid-empty`
+- `step-sequence`, `step-meta-invalid`, `prerequisites-out-of-order`, `verify-empty`
+- `mermaid-missing-in-required-section`, `mermaid-fence-broken`, `mermaid-empty`
 - `link-broken` (optional, skip via `links: "skip"`)
 
 Do NOT duplicate validation logic in this skill — the validator decides, the skill orchestrates.

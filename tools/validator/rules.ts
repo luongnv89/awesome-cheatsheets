@@ -10,6 +10,7 @@
  * @see ./rules/oneLiner.ts
  * @see ./rules/reference.ts
  * @see ./rules/mermaid.ts
+ * @see ./rules/steps.ts
  * @see ./rules/links.ts
  */
 export const RULE_IDS = [
@@ -39,6 +40,12 @@ export const RULE_IDS = [
   "mermaid-empty",
   "mermaid-parse-failed",
   "mermaid-engine-not-bundled",
+
+  // Step-structure rules — STEP_RULES (optional structured blocks).
+  "step-sequence",
+  "step-meta-invalid",
+  "prerequisites-out-of-order",
+  "verify-empty",
 
   // External link rule (AC #5).
   "link-broken",

@@ -3,13 +3,14 @@ import { unified } from '@astrojs/markdown-remark';
 import mdx from '@astrojs/mdx';
 import tailwindcss from '@tailwindcss/vite';
 import { remarkMermaid } from './src/plugins/remark-mermaid.ts';
+import { remarkCheatsheetBlocks } from './src/plugins/remark-cheatsheet-blocks.ts';
 import { mermaidTrim } from './src/plugins/vite-mermaid-trim.ts';
 import { MERMAID_RULES } from './tools/contract/mermaid.ts';
 
 export default defineConfig({
   integrations: [
     mdx({
-      remarkPlugins: [remarkMermaid],
+      remarkPlugins: [remarkMermaid, remarkCheatsheetBlocks],
     })
   ],
   vite: {
@@ -32,7 +33,7 @@ export default defineConfig({
     // Astro 7 renders Markdown with Sätteri by default; stay on the unified()
     // pipeline so the custom remark-mermaid plugin keeps working unchanged.
     processor: unified(),
-    remarkPlugins: [remarkMermaid],
+    remarkPlugins: [remarkMermaid, remarkCheatsheetBlocks],
   },
   // Keep the pre-v7 HTML-aware whitespace compression ('jsx' is the new
   // default) so rendered output matches what the catalog and e2e suites

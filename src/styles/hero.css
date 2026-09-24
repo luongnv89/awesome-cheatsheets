@@ -1,0 +1,60 @@
+/*
+ * Shared hero styles — imported by index.astro, about.astro, and 404.astro
+ * so the three heroes stay in sync (previously the same CSS block was
+ * duplicated across all three pages; keep edits here).
+ *
+ * Page chrome (`.catalog-main` width, footer strip, prose links, etc.)
+ * stays in each page's own style block — only the hero look is shared.
+ */
+
+.catalog-hero {
+  /* Compact hero: mono eyebrow over a serif title and a short lede.
+     The neon accent is confined to a 2px rule under the block — the brand
+     green is only ever a line, never a fill (issue #117). */
+  margin-bottom: 2.25rem;
+  padding-bottom: 1.75rem;
+  border-bottom: 2px solid var(--accent-line);
+}
+.catalog-hero-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.75rem;
+}
+.catalog-hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin: 0 0 0.75rem;
+  color: var(--ink);
+}
+.catalog-hero-lede {
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  color: var(--muted);
+  max-width: 60ch;
+  margin: 0;
+}
+.catalog-hero-lede strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* Search-first hero: the search box lives inside the hero on the home
+   page; stats sit beneath it in quiet mono. */
+.catalog-hero-search {
+  margin-top: 1.5rem;
+  max-width: 40rem;
+}
+.catalog-hero-stats {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin: 0.75rem 0 0;
+}

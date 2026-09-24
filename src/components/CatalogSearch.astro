@@ -38,16 +38,19 @@ const baseUrl = (import.meta.env.BASE_URL || "/").replace(/\/$/, "") + "/";
   <label class="catalog-search-label" for="catalog-search-input">
     Search cheatsheets
   </label>
-  <input
-    id="catalog-search-input"
-    class="catalog-search-input"
-    type="search"
-    autocomplete="off"
-    spellcheck="false"
-    placeholder="Search cheatsheets…"
-    aria-controls="catalog-search-results"
-    aria-describedby="catalog-search-status"
-  />
+  <div class="catalog-search-field">
+    <input
+      id="catalog-search-input"
+      class="catalog-search-input"
+      type="search"
+      autocomplete="off"
+      spellcheck="false"
+      placeholder="Search tools, workflows, commands…"
+      aria-controls="catalog-search-results"
+      aria-describedby="catalog-search-status"
+    />
+    <kbd class="catalog-search-kbd" aria-hidden="true">/</kbd>
+  </div>
   <p
     id="catalog-search-status"
     class="catalog-search-status"
@@ -227,6 +230,26 @@ const baseUrl = (import.meta.env.BASE_URL || "/").replace(/\/$/, "") + "/";
             const value = (event.target as HTMLInputElement).value;
             scheduleSearch(value);
           });
+          // "/" focuses the search box from anywhere on the page — the
+          // hint chip in the field advertises it. Ignored while typing in
+          // any editable control or with modifier keys held.
+          document.addEventListener("keydown", (event) => {
+            if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) {
+              return;
+            }
+            const target = event.target as HTMLElement | null;
+            if (
+              target &&
+              (target.tagName === "INPUT" ||
+                target.tagName === "TEXTAREA" ||
+                target.tagName === "SELECT" ||
+                target.isContentEditable)
+            ) {
+              return;
+            }
+            event.preventDefault();
+            input.focus();
+          });
         }
       } catch (err) {
         // Pagefind assets missing (dev mode or build failure). Keep the
@@ -243,52 +266,83 @@ const baseUrl = (import.meta.env.BASE_URL || "/").replace(/\/$/, "") + "/";
 <style is:global>
   /*
    * Pagefind search — all class names and the runtime logic (script block
-   * above) are asserted by e2e/search.test.ts. CSS only.
+   * above) are asserted by e2e/search.test.ts. CSS only. The input is the
+   * hero's dominant control: larger padding/type, a neon focus ring, and a
+   * "/" kbd hint chip docked on the right.
    */
   .catalog-search {
-    margin-bottom: 1.75rem;
+    margin-bottom: 0;
   }
 
   .catalog-search-label {
     display: block;
     font-family: var(--font-mono);
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     font-weight: 600;
-    color: var(--color-muted);
+    color: var(--muted);
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.12em;
     margin-bottom: 0.5rem;
+  }
+
+  .catalog-search-field {
+    position: relative;
   }
 
   .catalog-search-input {
     width: 100%;
-    padding: 0.75rem 1rem;
-    font-size: 1rem;
+    padding: 0.9rem 3rem 0.9rem 1rem;
+    font-size: 1.05rem;
     line-height: 1.5;
-    color: var(--color-ink);
-    background-color: #fff;
-    border: 1px solid var(--color-rule);
-    border-radius: var(--radius-md);
-    box-shadow: 0 1px 2px 0 rgba(27, 31, 58, 0.04);
+    color: var(--ink);
+    background-color: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-ctl);
+    box-shadow: var(--shadow-card);
     font-family: var(--font-body);
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
   }
 
   .catalog-search-input::placeholder {
-    color: var(--color-muted);
+    color: var(--muted);
   }
 
   .catalog-search-input:focus {
     outline: none;
-    border-color: var(--color-amber-deep);
-    box-shadow: 0 0 0 3px rgba(242, 183, 5, 0.25);
+    border-color: var(--accent-text);
+    box-shadow: 0 0 0 3px var(--focus-ring);
+  }
+
+  .catalog-search-kbd {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 0.15rem 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--muted);
+    background-color: var(--surface-2);
+    border: 1px solid var(--rule);
+    border-bottom-width: 2px;
+    border-radius: var(--radius-sm);
+    pointer-events: none;
+  }
+  /* Hide the hint once the box is focused — it has served its purpose. */
+  .catalog-search-field:focus-within .catalog-search-kbd {
+    opacity: 0.35;
   }
 
   .catalog-search-status {
     margin-top: 0.5rem;
     font-size: 0.875rem;
-    color: var(--color-muted);
+    color: var(--muted);
     min-height: 1.25rem;
+  }
+  /* Don't reserve vertical space for the status/results before a query
+     is typed — the hero stats line sits directly under the input. */
+  .catalog-search-status:empty {
+    display: none;
   }
 
   .catalog-search-results {
@@ -298,15 +352,19 @@ const baseUrl = (import.meta.env.BASE_URL || "/").replace(/\/$/, "") + "/";
     display: grid;
     gap: 0.75rem;
   }
+  .catalog-search-results:empty {
+    display: none;
+  }
 
   .catalog-search-result {
-    border: 1px solid var(--color-rule);
-    border-radius: var(--radius-md);
-    background-color: #fff;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-card);
+    background-color: var(--surface);
+    box-shadow: var(--shadow-card);
     transition: border-color 0.12s ease, transform 0.12s ease;
   }
   .catalog-search-result:hover {
-    border-color: var(--color-ink-soft);
+    border-color: var(--accent-text);
   }
 
   .catalog-search-result-link {
@@ -314,48 +372,48 @@ const baseUrl = (import.meta.env.BASE_URL || "/").replace(/\/$/, "") + "/";
     padding: 1rem 1.25rem;
     color: inherit;
     text-decoration: none;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-card);
   }
 
   .catalog-search-result-link:hover,
   .catalog-search-result-link:focus-visible {
-    background-color: var(--color-paper-shade);
+    background-color: var(--surface-2);
     outline: none;
   }
   .catalog-search-result-link:focus-visible {
-    box-shadow: inset 0 0 0 2px var(--color-coral);
+    box-shadow: inset 0 0 0 2px var(--focus-ring);
   }
 
   .catalog-search-result-title {
     margin: 0 0 0.375rem 0;
-    font-family: var(--font-heading);
+    font-family: var(--font-display);
     font-size: 1.125rem;
     font-weight: 700;
-    color: var(--color-ink);
+    color: var(--ink);
   }
 
   .catalog-search-result-excerpt {
     margin: 0;
     font-size: 0.9375rem;
-    color: var(--color-muted);
+    color: var(--muted);
     line-height: 1.5;
   }
 
   .catalog-search-result-excerpt mark {
-    background-color: var(--color-amber);
-    color: var(--color-ink);
+    background-color: var(--accent-line);
+    color: #0A1410;
     padding: 0 0.2em;
     border-radius: 0.125rem;
     font-weight: 600;
   }
 
   .catalog-search-empty {
-    color: var(--color-muted);
+    color: var(--muted);
     font-size: 0.9375rem;
-    padding: 1rem;
-    background-color: #fff;
-    border: 1px dashed var(--color-rule);
-    border-radius: var(--radius-md);
+    padding: 1.5rem 1rem;
+    background-color: var(--surface);
+    border: 1px dashed var(--rule);
+    border-radius: var(--radius-card);
     text-align: center;
   }
 </style>

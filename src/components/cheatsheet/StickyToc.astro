@@ -24,6 +24,8 @@
 ---
 
 <script>
+  import { loadProgress } from './step-progress';
+
   const body = document.querySelector('.cheatsheet-body');
   const tocAside = document.querySelector('.cheatsheet-toc');
   const tocList = tocAside?.querySelector('.cheatsheet-toc-list');
@@ -31,17 +33,78 @@
   const sentinel = document.querySelector('.cheatsheet-header-sentinel');
   const sectionIndicator = document.querySelector('[data-section-indicator]');
 
+  /**
+   * Read a heading's display label without the chrome StepChecklist
+   * injects into the Setup H2 (the "k / N done" chip and the "Reset
+   * progress" button). StepChecklist stamps `data-label` with the
+   * original text before it injects — prefer that; otherwise clone the
+   * heading and drop the injected side controls before reading text.
+   */
+  const headingText = (el) => {
+    const label = el.getAttribute('data-label');
+    if (label) return label;
+    const clone = el.cloneNode(true);
+    for (const node of clone.querySelectorAll('.step-header-side')) {
+      node.remove();
+    }
+    return (clone.textContent ?? '').trim();
+  };
+
   // -- TOC build --------------------------------------------------------
   /** @type {HTMLHeadingElement[]} */
   const h2s = body
     ? Array.from(body.querySelectorAll(':scope > h2'))
     : [];
 
+  /**
+   * Step sub-items under a section: the `.step` wrappers StepChecklist
+   * built between this H2 and the next one. Each links to the step H3
+   * anchor and gets a check mark once the step is done.
+   */
+  const stepLinks = [];
+  const buildStepSublist = (h2, li) => {
+    const sub = document.createElement('ol');
+    sub.className = 'cheatsheet-toc-sublist';
+    let sib = h2.nextElementSibling;
+    let count = 0;
+    while (sib && sib.tagName !== 'H2') {
+      if (sib.classList?.contains('step')) {
+        const h3 = sib.querySelector('h3.step-heading');
+        const key = sib.dataset.stepKey;
+        if (h3?.id && key) {
+          const item = document.createElement('li');
+          item.className = 'cheatsheet-toc-step';
+          const a = document.createElement('a');
+          a.href = `#${h3.id}`;
+          a.className = 'cheatsheet-toc-step-link';
+          a.dataset.stepKey = key;
+          const check = document.createElement('span');
+          check.className = 'toc-step-check';
+          check.setAttribute('aria-hidden', 'true');
+          const label = document.createElement('span');
+          // `.step-title` holds the bare title StepChecklist extracted
+          // from `### Step N — Title`; fall back to the step number.
+          label.textContent =
+            h3.querySelector('.step-title')?.textContent?.trim() ||
+            `Step ${key.replace('step-', '')}`;
+          a.appendChild(check);
+          a.appendChild(label);
+          item.appendChild(a);
+          sub.appendChild(item);
+          stepLinks.push(a);
+          count += 1;
+        }
+      }
+      sib = sib.nextElementSibling;
+    }
+    if (count > 0) li.appendChild(sub);
+  };
+
   if (tocAside && tocList) {
     if (h2s.length >= 2) {
       for (const h2 of h2s) {
         if (!h2.id) continue;
-        const text = (h2.textContent ?? '').replace(/\s*\d+\s*\/\s*\d+\s*done\s*$/i, '').trim();
+        const text = headingText(h2);
         if (!text) continue;
         const li = document.createElement('li');
         li.className = 'cheatsheet-toc-item';
@@ -51,6 +114,7 @@
         a.textContent = text;
         a.dataset.tocTarget = h2.id;
         li.appendChild(a);
+        buildStepSublist(h2, li);
         tocList.appendChild(li);
       }
     }
@@ -62,7 +126,32 @@
     }
   }
 
+  // -- Step check marks --------------------------------------------------
+  // Initial state comes straight from storage (StepChecklist ran before
+  // this script but its first progress event fired before we could
+  // subscribe); later updates arrive via `cheatsheet:step-progress`.
+  if (stepLinks.length > 0) {
+    const slug =
+      document.querySelector('.cheatsheet-content')?.getAttribute('data-slug') ??
+      'unknown';
+    const applyStepState = (state) => {
+      for (const a of stepLinks) {
+        const key = a.dataset.stepKey ?? '';
+        a.classList.toggle('is-done', state[key] === true);
+      }
+    };
+    applyStepState(loadProgress(() => localStorage, `cheatsheet-progress:${slug}`));
+    document.addEventListener('cheatsheet:step-progress', (event) => {
+      applyStepState(event.detail?.state ?? {});
+    });
+  }
+
   // -- Sticky-header toggle (issue #91) --------------------------------
+  /** Assigned by the section tracker below so the band toggle can
+      re-evaluate the current section once its own height joins the
+      sticky chrome.
+      @type {(() => void) | null} */
+  let refreshCurrentSection = null;
   if (stickyHeader && sentinel) {
     const stickyObserver = new IntersectionObserver(
       (entries) => {
@@ -75,6 +164,9 @@
           const active = !entry.isIntersecting && rect.top < 0;
           stickyHeader.classList.toggle('is-active', active);
           stickyHeader.setAttribute('aria-hidden', active ? 'false' : 'true');
+          // The band adds ~44px of chrome when it appears — re-evaluate
+          // which section is "current" against the new offset.
+          refreshCurrentSection?.();
         }
       },
       { rootMargin: '0px', threshold: [0, 1] },
@@ -92,23 +184,35 @@
       }
     }
 
-    /** @type {Set<Element>} */
-    const visible = new Set();
+    /**
+     * Bottom edge of the sticky chrome (site header + compact band once
+     * it's active). An h2 counts as the current section as soon as its
+     * top edge reaches this line — a heading parked directly under the
+     * chrome must already report its own section, not the previous one.
+     */
+    const chromeOffset = () => {
+      const header = document.querySelector('.site-header');
+      let offset = (header?.offsetHeight ?? 0) + 8;
+      if (stickyHeader?.classList.contains('is-active')) {
+        offset += stickyHeader.offsetHeight;
+      }
+      return offset;
+    };
+
     const setCurrent = () => {
-      // Pick the topmost visible h2 — that's the section the reader is
-      // currently in. If none are visible (between sections), fall back
-      // to the last one we saw above the fold.
+      // The last h2 whose top edge has reached the chrome line (plus a
+      // small buffer) is the section the reader is in.
+      const limit = chromeOffset() + 16;
       let current = null;
       for (const h2 of h2s) {
-        const rect = h2.getBoundingClientRect();
-        if (rect.top <= window.innerHeight * 0.35) current = h2;
+        if (h2.getBoundingClientRect().top <= limit) current = h2;
         else break;
       }
       for (const a of linkByTarget.values()) {
         if (a) a.classList.remove('is-current');
       }
       if (current) {
-        const text = (current.textContent ?? '').replace(/\s*\d+\s*\/\s*\d+\s*done\s*$/i, '').trim();
+        const text = headingText(current);
         if (sectionIndicator) sectionIndicator.textContent = text;
         const link = linkByTarget.get(current.id);
         if (link) link.classList.add('is-current');
@@ -116,18 +220,22 @@
         sectionIndicator.textContent = '';
       }
     };
+    refreshCurrentSection = setCurrent;
 
-    const sectionObserver = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) visible.add(entry.target);
-          else visible.delete(entry.target);
-        }
+    // rAF-throttled scroll/resize tracking — an IntersectionObserver with
+    // a fixed rootMargin can't express "reached the sticky chrome", since
+    // the chrome height varies with breakpoint and band state.
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        ticking = false;
         setCurrent();
-      },
-      { rootMargin: '-15% 0px -50% 0px', threshold: 0 },
-    );
-    for (const h2 of h2s) sectionObserver.observe(h2);
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
     setCurrent();
   }
 </script>

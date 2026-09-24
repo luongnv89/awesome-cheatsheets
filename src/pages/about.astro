@@ -8,16 +8,17 @@
  *
  * Uses `Layout.astro` (the base shell), NOT `CheatsheetLayout.astro` — the
  * latter is reserved for content-collection entries with the locked 7-section
- * structure. Catalog hero typography classes (`.catalog-main`,
- * `.catalog-hero`, `.catalog-hero-title`, `.catalog-hero-lede`) are reused
- * inline rather than extracted to a partial: for two small chrome pages,
- * inline keeps the call graph flat and avoids premature abstraction.
+ * structure. Catalog hero typography (`.catalog-hero`, `.catalog-hero-title`,
+ * `.catalog-hero-lede`) comes from the shared `src/styles/hero.css` — the
+ * same stylesheet `index.astro` and `404.astro` import, so all three heroes
+ * stay in sync.
  *
  * All internal links honor `import.meta.env.BASE_URL` so the page works on
  * GitHub Pages (base `/awesome-cheatsheets`). External links go to the source
  * repository on GitHub.
  */
 import Layout from '../layouts/Layout.astro';
+import '../styles/hero.css';
 
 const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, '');
 const catalogHref = `${baseUrl}/`;
@@ -124,11 +125,8 @@ const prdUrl = `${repoUrl}/blob/main/PRD.md`;
 
 <style is:global>
   /*
-   * Catalog hero typography — duplicated here intentionally so the about
-   * page styles even when the catalog landing page's stylesheet isn't
-   * loaded. (Astro scopes `is:global` stylesheets per route; the rules in
-   * `index.astro` ship only with `dist/index.html`.) Keep these in sync with
-   * `src/pages/index.astro` and `src/pages/404.astro`.
+   * Hero typography comes from the shared `src/styles/hero.css` (imported
+   * in the frontmatter) — only the about-page chrome below is local.
    */
   .catalog-main {
     max-width: 880px;
@@ -136,62 +134,23 @@ const prdUrl = `${repoUrl}/blob/main/PRD.md`;
     padding: 3rem 1.25rem 4rem;
   }
 
-  .catalog-hero {
-    margin-bottom: 2.5rem;
-    padding: 1.5rem 0 0;
-  }
-
-  .catalog-hero-eyebrow {
-    font-family: var(--font-mono);
-    font-size: 0.8125rem;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--color-amber-deep);
-    margin: 0 0 0.75rem;
-  }
-
-  .catalog-hero-title {
-    font-family: var(--font-heading);
-    font-size: clamp(2rem, 4.5vw, 3rem);
-    font-weight: 800;
-    line-height: 1.05;
-    margin: 0 0 1.25rem 0;
-    color: var(--color-ink);
-    letter-spacing: -0.015em;
-  }
-
-  .catalog-hero-lede {
-    font-size: 1.125rem;
-    line-height: 1.6;
-    color: var(--color-muted);
-    max-width: 64ch;
-    margin: 0;
-  }
-
-  .catalog-hero-lede strong {
-    color: var(--color-ink);
-    font-weight: 700;
-  }
-
-  /* About-page rules. */
   .about-section {
     margin-bottom: 2.5rem;
     padding: 1.75rem;
-    background-color: #fff;
-    border: 1px solid var(--color-rule);
-    border-radius: var(--radius-lg);
-    box-shadow: 0 1px 0 rgba(27, 31, 58, 0.04);
+    background-color: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
   }
 
   .about-section-title {
-    font-family: var(--font-heading);
+    font-family: var(--font-display);
     font-size: 1.5rem;
     font-weight: 700;
-    color: var(--color-ink);
+    color: var(--ink);
     margin: 0 0 1rem 0;
     padding-bottom: 0.5rem;
-    border-bottom: 2px solid var(--color-amber);
+    border-bottom: 2px solid var(--accent-line);
     display: inline-block;
     padding-right: 1.25rem;
     letter-spacing: -0.01em;
@@ -200,7 +159,7 @@ const prdUrl = `${repoUrl}/blob/main/PRD.md`;
   .about-paragraph {
     font-size: 1rem;
     line-height: 1.65;
-    color: var(--color-ink);
+    color: var(--ink);
     margin: 0 0 1rem 0;
     max-width: 65ch;
   }
@@ -209,7 +168,7 @@ const prdUrl = `${repoUrl}/blob/main/PRD.md`;
     list-style: none;
     padding-left: 0;
     margin: 0;
-    color: var(--color-ink);
+    color: var(--ink);
     line-height: 1.65;
     max-width: 65ch;
   }
@@ -227,51 +186,52 @@ const prdUrl = `${repoUrl}/blob/main/PRD.md`;
     width: 8px;
     height: 8px;
     border-radius: 2px;
-    background-color: var(--color-amber);
+    background-color: var(--accent-line);
   }
 
   .about-list strong {
-    color: var(--color-ink);
+    color: var(--ink);
     font-weight: 700;
   }
 
   .about-list a,
   .about-paragraph a {
-    color: var(--color-ink);
+    color: var(--accent-text);
     text-decoration: underline;
-    text-decoration-color: var(--color-amber);
-    text-decoration-thickness: 2px;
+    text-decoration-color: var(--accent-line);
+    text-decoration-thickness: 1.5px;
     text-underline-offset: 3px;
     transition: color 0.12s ease;
   }
   .about-list a:hover,
   .about-paragraph a:hover {
-    color: var(--color-amber-deep);
+    text-decoration-thickness: 2.5px;
   }
 
   .about-list code,
   .about-paragraph code {
     font-family: var(--font-mono);
     font-size: 0.9em;
-    background-color: var(--color-paper-shade);
-    color: var(--color-ink);
+    background-color: var(--surface-2);
+    color: var(--ink);
+    border: 1px solid var(--rule);
     padding: 0.1em 0.35em;
     border-radius: 3px;
   }
 
   .about-footer {
-    border-top: 1px solid var(--color-rule);
+    border-top: 1px solid var(--rule);
     padding-top: 1.5rem;
     margin-top: 2.5rem;
-    color: var(--color-muted);
+    color: var(--muted);
     font-size: 0.95rem;
   }
 
   .about-footer a {
-    color: var(--color-ink);
+    color: var(--ink);
     text-decoration: underline;
-    text-decoration-color: var(--color-amber);
-    text-decoration-thickness: 2px;
+    text-decoration-color: var(--accent-line);
+    text-decoration-thickness: 1.5px;
     text-underline-offset: 3px;
   }
 
@@ -282,7 +242,7 @@ const prdUrl = `${repoUrl}/blob/main/PRD.md`;
     transition: border-color 0.12s ease;
   }
   .about-back-link:hover {
-    border-bottom-color: var(--color-amber) !important;
+    border-bottom-color: var(--accent-line) !important;
   }
 
   .about-license {

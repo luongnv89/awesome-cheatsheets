@@ -5,19 +5,17 @@
  * handles content detection, imports, and vendor prefixing itself.
  */
 @import "tailwindcss";
+@import "./tokens.css";
 
 /*
  * CSS-first theme (replaces `tailwind.config.mjs` `theme.extend.colors`).
- * Brand palette from public/brand/README.md — the same values the layouts
- * also expose as hand-written `--color-*` custom properties:
- *   ink   = deep green-black (body text, back cards of the brand mark)
- *   amber = primary neon-green brand color (the front card)
- *   coral = dog-eared corner accent (forest green for contrast)
- *   paper = mint off-white background, used sparingly
+ * Brand palette — kept aligned with the design tokens in
+ * `src/styles/tokens.css`, which is the single source of truth for
+ * custom properties (light + `[data-theme="dark"]` variants).
  */
 @theme {
   --color-ink: #0A1410;
   --color-amber: #39FF14;
-  --color-coral: #00C853;
-  --color-paper: #F0FFF4;
+  --color-coral: #0B7A35;
+  --color-paper: #FAFAF7;
 }

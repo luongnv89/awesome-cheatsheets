@@ -1,8 +1,14 @@
 ---
 /**
- * Copy buttons on every fenced code block. Wraps each <pre> in a
- * positioned container and injects a button that copies the code text and
- * flips to "Copied" for 1.5s. Skips Mermaid wrappers (handled separately).
+ * Code block chrome. Wraps every fenced code block in a `.code-block`
+ * container with a header bar: a mono language label on the left and a
+ * Copy button on the right. Copy writes the code text and flips the
+ * button to "Copied" for 1.5s. For shell languages a leading "$ " prompt
+ * is stripped per line so the clipboard content is paste-ready. Skips
+ * Mermaid wrappers (handled separately).
+ *
+ * The `.code-block` / `.code-block-copy` hooks are the existing e2e/test
+ * contract — renamed pieces only extend the markup.
  *
  * Extracted from `CheatsheetLayout.astro` (issue #133).
  */
@@ -10,6 +16,7 @@
 
 <script>
   const RESET_MS = 1500;
+  const SHELL_LANGS = new Set(['bash', 'sh', 'shell', 'zsh', 'console', 'powershell']);
   const blocks = document.querySelectorAll('.cheatsheet-content pre');
   blocks.forEach((pre) => {
     if (pre.closest('.mermaid')) return;
@@ -20,21 +27,42 @@
       code.textContent = code.textContent.replace(/\n+$/, '');
     }
 
+    const lang = pre.getAttribute('data-language') ?? '';
+
     const wrapper = document.createElement('div');
     wrapper.className = 'code-block';
     pre.parentNode?.insertBefore(wrapper, pre);
-    wrapper.appendChild(pre);
+
+    const header = document.createElement('div');
+    header.className = 'code-block-header';
+
+    const langEl = document.createElement('span');
+    langEl.className = 'code-block-lang';
+    langEl.textContent = lang || 'code';
 
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'code-block-copy';
     button.setAttribute('aria-label', 'Copy code to clipboard');
+    button.setAttribute('aria-live', 'polite');
     button.textContent = 'Copy';
-    wrapper.appendChild(button);
+
+    header.appendChild(langEl);
+    header.appendChild(button);
+    wrapper.appendChild(header);
+    wrapper.appendChild(pre);
 
     button.addEventListener('click', async () => {
       const code = pre.querySelector('code');
-      const text = (code?.innerText ?? pre.innerText).replace(/\n+$/, '');
+      let text = (code?.innerText ?? pre.innerText).replace(/\n+$/, '');
+      // Strip a leading "$ " prompt per line for shell blocks so the
+      // copied commands paste straight into a terminal.
+      if (SHELL_LANGS.has(lang)) {
+        text = text
+          .split('\n')
+          .map((line) => line.replace(/^\$\s+/, ''))
+          .join('\n');
+      }
       try {
         await navigator.clipboard.writeText(text);
         button.textContent = 'Copied';

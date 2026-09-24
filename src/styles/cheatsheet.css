@@ -8,6 +8,9 @@
  * stale-banner background+foreground combo is also contrast-tested.
  * Anything structural in those rules has to keep the same selectors and
  * stay at WCAG-AA contrast or higher.
+ *
+ * All colours come from `src/styles/tokens.css` so the page themes with
+ * `[data-theme]` like the rest of the site.
  */
 
 /* Cheatsheet pages use a slightly looser body measure than Layout pages
@@ -25,6 +28,11 @@ body {
  * remaining space inside the container carries the sticky TOC aside.
  */
 .cheatsheet-main {
+  /* `width: 100%` is required: auto margins disable cross-axis stretch on
+     this flex item, so without a definite width it would size to
+     min-content — and a wide code block would push the page past the
+     viewport instead of scrolling internally. */
+  width: 100%;
   max-width: 1180px;
   margin: 0 auto;
   padding: 2rem 1.25rem 3rem;
@@ -35,95 +43,93 @@ body {
   font-size: 0.9375rem;
 }
 .cheatsheet-back a {
-  color: var(--color-muted);
+  color: var(--muted);
   text-decoration: none;
   border-bottom: 1px solid transparent;
-  transition: color 0.12s ease, border-color 0.12s ease;
+  transition: color 0.15s ease, border-color 0.15s ease;
 }
 .cheatsheet-back a:hover {
-  color: var(--color-ink);
-  border-bottom-color: var(--color-amber);
+  color: var(--ink);
+  border-bottom-color: var(--accent-line);
 }
 
-/* MAG-style header strip: title + summary on the left, meta column on
-   the right, anchored by a neon-green underline. */
+/* Header — category pill, serif title, summary, then a mono meta row.
+   The neon accent stays on a 2px rule under the block. */
 .cheatsheet-header {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  grid-template-areas:
-    "main meta"
-    "tags tags"
-    "share share";
-  align-items: end;
-  gap: 0.75rem 2rem;
-  margin-bottom: 1.5rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 3px solid var(--color-amber);
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 2px solid var(--accent-line);
 }
-.cheatsheet-header-main { grid-area: main; min-width: 0; }
-.cheatsheet-header-meta {
-  grid-area: meta;
-  text-align: right;
-  font-size: 0.8125rem;
-  color: var(--color-muted);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.375rem;
-  line-height: 1.4;
-}
-.cheatsheet-header-meta-slug {
-  font-family: var(--font-mono);
-  font-weight: 700;
-  color: var(--color-ink);
-  font-size: 0.875rem;
-}
-.cheatsheet-header-meta-row { color: var(--color-muted); }
+.cheatsheet-header-main { min-width: 0; }
 
 .cheatsheet-title {
-  font-size: clamp(1.625rem, 3vw, 2.125rem);
+  font-size: clamp(1.75rem, 3.2vw, 2.375rem);
   font-weight: 700;
-  margin: 0.5rem 0 0.5rem;
-  color: var(--color-ink);
+  margin: 0.6rem 0 0.6rem;
+  color: var(--ink);
   letter-spacing: -0.015em;
+  line-height: 1.15;
 }
 
 .cheatsheet-summary {
-  font-size: 1rem;
-  color: var(--color-muted);
+  font-size: 1.0625rem;
+  color: var(--muted);
   line-height: 1.55;
+  margin: 0 0 0.875rem;
+  max-width: 68ch;
+}
+
+/* Meta row — mono, muted, dot-separated items. */
+.cheatsheet-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem 0;
+  list-style: none;
   margin: 0;
-  max-width: 65ch;
+  padding: 0;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+.cheatsheet-meta-item {
+  display: inline-flex;
+  align-items: center;
+}
+.cheatsheet-meta-item + .cheatsheet-meta-item::before {
+  content: "·";
+  margin: 0 0.6rem;
+  color: var(--rule);
 }
 
 .cheatsheet-tags {
-  grid-area: tags;
   display: flex;
   flex-wrap: wrap;
   gap: 0.375rem;
   list-style: none;
-  margin: 0.25rem 0 0;
+  margin: 0.875rem 0 0;
 }
 .share-buttons-row {
-  grid-area: share;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding-top: 0.5rem;
+  padding-top: 0.75rem;
 }
 .cheatsheet-tag {
   display: inline-flex;
   align-items: center;
   padding: 0.125rem 0.5rem;
-  border-radius: 0.25rem;
-  background-color: var(--color-paper-shade);
-  color: var(--color-ink);
+  border-radius: 9999px;
+  background-color: transparent;
+  border: 1px solid var(--rule);
+  color: var(--muted);
   font-size: 0.75rem;
   font-family: var(--font-mono);
 }
 
-/* Category badges — shared with CatalogCard.astro for visual continuity.
-   Tone is muted on paper so the cheatsheet title stays the focal point. */
+/* Category badges — tint-free outline pills so they read in both themes.
+   Shared with CatalogCard.astro for visual continuity. */
 .catalog-category {
   display: inline-flex;
   align-items: center;
@@ -132,17 +138,19 @@ body {
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: capitalize;
-  border: 1px solid transparent;
+  border: 1px solid currentColor;
   letter-spacing: 0.02em;
+  white-space: nowrap;
+  background-color: transparent;
 }
-.catalog-category-tool       { background-color: #FFF4CC; color: #6F5300; border-color: #F2DD8A; }
-.catalog-category-mcp        { background-color: #E6E1FF; color: #2E2280; border-color: #C2B7F2; }
-.catalog-category-concept    { background-color: #D9F3DE; color: #1B5B2B; border-color: #A8DAB1; }
-.catalog-category-comparison { background-color: #FFE3DF; color: #8A2A1F; border-color: #F2A99F; }
+.catalog-category-tool       { color: var(--cat-tool); }
+.catalog-category-mcp        { color: var(--cat-mcp); }
+.catalog-category-concept    { color: var(--cat-concept); }
+.catalog-category-comparison { color: var(--cat-comparison); }
 
 /* Stale banner — kept at WCAG-AA contrast (asserted in
-   e2e/freshness.test.ts). #fef3c7 background + #92400e foreground gives
-   ~9:1 contrast; values left identical to the prior version. */
+   e2e/freshness.test.ts). Warning-tinted surface + dark amber text gives
+   ~9:1 on light; dark theme swaps to the deep surface + bright amber. */
 .stale-banner {
   display: flex;
   align-items: center;
@@ -151,13 +159,21 @@ body {
   margin-bottom: 1.5rem;
   background-color: #fef3c7;
   border: 1px solid #fcd34d;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-ctl);
   color: #92400e;
   font-weight: 500;
 }
 .stale-banner svg {
   flex-shrink: 0;
   color: #d97706;
+}
+[data-theme="dark"] .stale-banner {
+  background-color: #2A1E05;
+  border-color: #92600A;
+  color: #FBBF24;
+}
+[data-theme="dark"] .stale-banner svg {
+  color: #F59E0B;
 }
 
 /* Freshness chip — selectors and contrast asserted by
@@ -167,23 +183,21 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.25rem 0.625rem;
-  background-color: var(--color-paper-shade);
-  border: 1px solid var(--color-rule);
+  padding: 0.2rem 0.625rem;
+  background-color: var(--surface-2);
+  border: 1px solid var(--rule);
   border-radius: 9999px;
   font-size: 0.75rem;
-  color: var(--color-ink);
+  color: var(--ink);
 }
-.freshness-chip svg { color: var(--color-muted); }
+.freshness-chip svg { color: var(--muted); }
 .absolute-date {
   font-weight: 600;
-  color: var(--color-ink);
+  color: var(--ink);
   font-family: var(--font-mono);
 }
 .relative-date {
-  /* On --color-paper-shade (#DCFCE7), --color-muted (#3A6B4E) gives ~6:1
-     contrast — comfortably above WCAG AA (4.5). */
-  color: var(--color-muted);
+  color: var(--muted);
 }
 
 /* ----- Sticky compact header (issue #91) -----
@@ -200,15 +214,15 @@ body {
 }
 .cheatsheet-sticky-header {
   position: sticky;
-  /* `64px` is the rough site-header height (set on the host page via
-     `--site-header-h` if needed); the value is enough to clear the
-     blurred site nav band without overlapping it. */
-  top: 64px;
+  /* `--site-header-h` is measured live by SiteHeader.astro (the header
+     is one row at every width, but its height still varies); the band
+     parks exactly under it. */
+  top: var(--site-header-h, 4rem);
   z-index: 9;
-  background-color: rgba(240, 255, 244, 0.94);
+  background-color: var(--header-bg);
   backdrop-filter: saturate(180%) blur(6px);
   -webkit-backdrop-filter: saturate(180%) blur(6px);
-  border-bottom: 2px solid var(--color-amber);
+  border-bottom: 2px solid var(--accent-line);
   /* Invisible by default — flipped on by JS once the in-flow header has
      scrolled past. Uses opacity + transform rather than display:none so
      the band has a real height for layout measurement and respects
@@ -217,7 +231,7 @@ body {
   transform: translateY(-100%);
   pointer-events: none;
   transition: opacity 0.18s ease, transform 0.18s ease;
-  /* Pull the band flush with the article's side padding so the green
+  /* Pull the band flush with the article's side padding so the accent
      underline runs edge-to-edge inside the 1180px container. */
   margin-left: -1.25rem;
   margin-right: -1.25rem;
@@ -235,11 +249,11 @@ body {
   min-height: 2.75rem;
 }
 .cheatsheet-sticky-title {
-  font-family: var(--font-heading);
+  font-family: var(--font-display);
   font-size: 1rem;
   font-weight: 700;
   margin: 0;
-  color: var(--color-ink);
+  color: var(--ink);
   /* Truncate overlong titles to a single line so the band stays compact
      on every viewport — the full title is one scroll-up away. */
   white-space: nowrap;
@@ -248,10 +262,45 @@ body {
   min-width: 0;
   flex: 0 1 auto;
 }
+
+/* Segmented step progress in the sticky band — one segment per step,
+   filled with the neon accent when its step is checked. The container is
+   a real progressbar for assistive tech (aria-valuenow updated by JS). */
+.cheatsheet-sticky-progress {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 0 0 auto;
+}
+.step-segments {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.step-segment {
+  display: inline-block;
+  width: 1.1rem;
+  height: 4px;
+  border-radius: 2px;
+  background-color: var(--rule);
+  transition: background-color 0.2s ease;
+}
+.step-segment.is-done {
+  background-color: var(--accent-line);
+}
+.cheatsheet-sticky-steps {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.cheatsheet-sticky-steps:empty { display: none; }
+
 .cheatsheet-sticky-section {
   font-family: var(--font-mono);
   font-size: 0.75rem;
-  color: var(--color-muted);
+  color: var(--muted);
   margin-left: auto;
   white-space: nowrap;
   overflow: hidden;
@@ -262,7 +311,7 @@ body {
 .cheatsheet-sticky-section:empty { display: none; }
 .cheatsheet-sticky-section::before {
   content: "Section: ";
-  color: var(--color-muted);
+  color: var(--muted);
   font-weight: 500;
   margin-right: 0.25em;
 }
@@ -296,7 +345,7 @@ body {
     max-height: calc(100vh - (64px + 4.25rem + 1rem));
     overflow-y: auto;
     padding-left: 1.25rem;
-    border-left: 1px solid var(--color-rule);
+    border-left: 1px solid var(--rule);
     font-size: 0.8125rem;
     line-height: 1.5;
   }
@@ -329,11 +378,11 @@ body {
 }
 .cheatsheet-toc-title {
   font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--color-muted);
+  color: var(--muted);
   margin: 0 0 0.6rem;
 }
 .cheatsheet-toc-list {
@@ -347,40 +396,79 @@ body {
 .cheatsheet-toc-link {
   display: block;
   padding: 0.3rem 0.5rem;
-  color: var(--color-muted);
+  color: var(--muted);
   text-decoration: none;
   border-left: 2px solid transparent;
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  transition: color 0.12s ease, background-color 0.12s ease, border-color 0.12s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
 }
 .cheatsheet-toc-link:hover {
-  color: var(--color-ink);
-  background-color: var(--color-paper-shade);
+  color: var(--ink);
+  background-color: var(--surface-2);
 }
 .cheatsheet-toc-link.is-current {
-  color: var(--color-ink);
-  border-left-color: var(--color-amber);
-  background-color: var(--color-paper-shade);
+  color: var(--ink);
+  border-left-color: var(--accent-line);
+  background-color: var(--surface-2);
   font-weight: 600;
 }
 .cheatsheet-toc-link:focus-visible {
-  outline: 2px solid var(--color-coral);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 1px;
+}
+
+/* Step sub-items under the Setup entry — same link styling, smaller and
+   indented; a check mark appears once the step is done. */
+.cheatsheet-toc-sublist {
+  list-style: none;
+  margin: 0.1rem 0 0.25rem;
+  padding: 0 0 0 0.75rem;
+}
+.cheatsheet-toc-step {
+  margin: 0;
+}
+.cheatsheet-toc-step-link {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  color: var(--muted);
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+.cheatsheet-toc-step-link:hover {
+  color: var(--ink);
+  background-color: var(--surface-2);
+}
+.toc-step-check {
+  display: inline-block;
+  width: 0.9em;
+  color: var(--accent-text);
+  font-weight: 700;
+}
+.cheatsheet-toc-step-link.is-done {
+  color: var(--ink);
+}
+.cheatsheet-toc-step-link.is-done .toc-step-check::before {
+  content: "✓";
+}
+
+/* Below 768px the compact band keeps only title + progress — the
+   "Section:" indicator is wide-viewport chrome. */
+@media (max-width: 767.98px) {
+  .cheatsheet-sticky-section { display: none; }
 }
 
 @media (max-width: 640px) {
   .cheatsheet-main { padding: 1.5rem 1rem 2rem; }
-  .cheatsheet-header {
-    grid-template-columns: 1fr;
-    grid-template-areas: "main" "meta" "tags" "share";
-  }
-  .cheatsheet-header-meta { text-align: left; align-items: flex-start; }
   /* Compact band stays a single-line strip on mobile — issue #91 ac says
-     it must not dominate the viewport. The section indicator is hidden
-     below 640px to keep the band slim. */
+     it must not dominate the viewport. */
   .cheatsheet-sticky-header { margin: 0 -1rem; }
   .cheatsheet-sticky-header-inner { padding: 0.45rem 1rem; min-height: 2.25rem; }
   .cheatsheet-sticky-title { font-size: 0.9375rem; }
-  .cheatsheet-sticky-section { display: none; }
   .cheatsheet-sticky-header .catalog-category { display: none; }
+  .step-segment { width: 0.7rem; }
 }

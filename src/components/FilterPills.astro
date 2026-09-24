@@ -45,11 +45,16 @@ import '../styles/filter-pills.css';
 interface Props {
   /** Unique category values present in the corpus, in display order. */
   categories: readonly string[];
-  /** Unique tag values present in the corpus, in display order. */
+  /** Unique tag values present in the corpus, in display order
+      (most frequent first — see index.astro). */
   tags: readonly string[];
+  /** How many tag pills render before the "+N more" expander hides the
+      rest. An active tag outside this set is force-shown client-side. */
+  maxVisibleTags?: number;
 }
 
-const { categories, tags } = Astro.props;
+const { categories, tags, maxVisibleTags = 10 } = Astro.props;
+const hiddenTagCount = Math.max(0, tags.length - maxVisibleTags);
 ---
 
 <div
@@ -81,9 +86,12 @@ const { categories, tags } = Astro.props;
   {tags.length > 0 && (
     <div class="catalog-filter-row" role="group" aria-label="Filter by tag">
       <span class="catalog-filter-label">Tag</span>
-      <ul class="catalog-filter-pills" role="list">
-        {tags.map((value) => (
-          <li>
+      <ul class="catalog-filter-pills" id="catalog-tag-pills" role="list">
+        {tags.map((value, i) => (
+          <li
+            class={i >= maxVisibleTags ? 'catalog-filter-optional' : undefined}
+            hidden={i >= maxVisibleTags || undefined}
+          >
             <button
               type="button"
               class="catalog-filter-pill"
@@ -96,6 +104,17 @@ const { categories, tags } = Astro.props;
           </li>
         ))}
       </ul>
+      {hiddenTagCount > 0 && (
+        <button
+          type="button"
+          class="catalog-filter-more"
+          aria-expanded="false"
+          aria-controls="catalog-tag-pills"
+          data-more-count={hiddenTagCount}
+        >
+          +{hiddenTagCount} more
+        </button>
+      )}
     </div>
   )}
 

@@ -29,7 +29,10 @@
     const { default: mermaid } = await import('mermaid');
     mermaid.initialize({
       startOnLoad: false,
-      theme: 'neutral',
+      theme:
+        document.documentElement.getAttribute('data-theme') === 'dark'
+          ? 'dark'
+          : 'neutral',
       securityLevel: 'strict',
       layout: 'dagre',
       look: 'classic',

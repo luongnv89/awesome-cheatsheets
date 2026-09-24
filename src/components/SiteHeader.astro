@@ -13,12 +13,30 @@ const repoUrl = 'https://github.com/luongnv89/awesome-cheatsheets';
   <div class="site-header-inner">
     <a class="site-brand" href={`${baseUrl}/`} aria-label="Awesome AI Cheatsheets — home">
       <img
-        class="site-brand-logo"
+        class="site-brand-logo site-brand-logo-light"
         src={`${baseUrl}/brand/full.svg`}
         alt=""
         width="180"
         height="64"
         decoding="async"
+      />
+      <img
+        class="site-brand-logo site-brand-logo-dark"
+        src={`${baseUrl}/brand/white.svg`}
+        alt=""
+        width="180"
+        height="64"
+        decoding="async"
+        aria-hidden="true"
+      />
+      <img
+        class="site-brand-mark"
+        src={`${baseUrl}/brand/mark.svg`}
+        alt=""
+        width="34"
+        height="34"
+        decoding="async"
+        aria-hidden="true"
       />
     </a>
     <nav class="site-nav" aria-label="Primary">
@@ -27,6 +45,77 @@ const repoUrl = 'https://github.com/luongnv89/awesome-cheatsheets';
       <a class="site-nav-link site-nav-link-external" href={repoUrl} rel="noopener">
         GitHub
       </a>
+      <button
+        type="button"
+        class="theme-toggle"
+        aria-label="Switch to dark theme"
+        aria-pressed="false"
+      >
+        <svg class="theme-icon-moon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+        </svg>
+        <svg class="theme-icon-sun" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v2"></path><path d="M12 20v2"></path>
+          <path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path>
+          <path d="M2 12h2"></path><path d="M20 12h2"></path>
+          <path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path>
+        </svg>
+      </button>
     </nav>
   </div>
 </header>
+
+<script>
+  /**
+   * Theme toggle — flips `data-theme` on <html> and persists the choice in
+   * localStorage under `theme` ("light" | "dark"). The initial value is
+   * applied pre-paint by the `is:inline` script in each layout's <head>,
+   * so this handler only deals with user toggles. Storage access is
+   * guarded — a blocked localStorage must not break the button.
+   */
+  /**
+   * Keep `--site-header-h` in sync with the rendered header height so
+   * sticky chrome that parks under it (the cheatsheet compact band) sits
+   * flush at every breakpoint — the header is a single row below 640px,
+   * so a fixed token can't cover both cases.
+   */
+  const siteHeader = document.querySelector<HTMLElement>('.site-header');
+  if (siteHeader) {
+    const setHeaderHeight = () => {
+      document.documentElement.style.setProperty(
+        '--site-header-h',
+        `${siteHeader.offsetHeight}px`,
+      );
+    };
+    setHeaderHeight();
+    if (typeof ResizeObserver !== 'undefined') {
+      new ResizeObserver(setHeaderHeight).observe(siteHeader);
+    }
+    window.addEventListener('resize', setHeaderHeight);
+  }
+
+  const themeToggle = document.querySelector<HTMLButtonElement>('.theme-toggle');
+  if (themeToggle) {
+    const apply = (theme: string) => {
+      document.documentElement.setAttribute('data-theme', theme);
+      const dark = theme === 'dark';
+      themeToggle.setAttribute('aria-pressed', dark ? 'true' : 'false');
+      themeToggle.setAttribute(
+        'aria-label',
+        dark ? 'Switch to light theme' : 'Switch to dark theme',
+      );
+    };
+    apply(document.documentElement.getAttribute('data-theme') ?? 'light');
+    themeToggle.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      apply(next);
+      try {
+        localStorage.setItem('theme', next);
+      } catch {
+        /* storage disabled — session-only toggle */
+      }
+    });
+  }
+</script>

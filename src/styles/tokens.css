@@ -1,0 +1,117 @@
+/*
+ * Design tokens — "premium field manual" system.
+ *
+ * Single source of truth for every colour, font stack, radius, and shadow
+ * used across the site. Light is the default theme; `[data-theme="dark"]`
+ * on <html> swaps the palette. Both layouts run a tiny `is:inline` script
+ * in <head> before first paint that sets `data-theme` from localStorage
+ * (`theme`) with a `prefers-color-scheme` fallback, so there is no flash.
+ *
+ * Accent discipline: `--accent-line` (brand neon) is reserved for lines,
+ * borders, progress fills, and focus underlines — never text on light,
+ * never a large background. `--accent-text` is the readable counterpart
+ * for links and accent text. Code blocks stay dark in both themes.
+ *
+ * Legacy `--color-*` names are aliased at the bottom so older rules keep
+ * working while they are migrated to the semantic names.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* Surfaces & text */
+  --bg: #FAFAF7;
+  --surface: #FFFFFF;
+  --surface-2: #F3F4EF;
+  --ink: #0A1410;
+  --muted: #5B6360;
+  --rule: #E3E5DF;
+
+  /* Accent */
+  --accent-line: #39FF14;
+  --accent-text: #0B7A35;
+  --accent-soft: rgb(11 122 53 / 0.08);
+
+  /* Code (dark in both themes) */
+  --code-bg: #0E1713;
+  --code-ink: #E6EDE9;
+  --code-rule: #22332B;
+
+  /* Status — text and borders only */
+  --danger: #EF4444;
+  --warning: #B45309;
+  --info: #2563EB;
+  --important: #6D28D9;
+
+  /* Category accents — tint-free outline pills (border + text only). */
+  --cat-tool: #0B7A35;
+  --cat-mcp: #5B21B6;
+  --cat-concept: #9A3412;
+  --cat-comparison: #B91C1C;
+
+  /* Depth */
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px -12px rgb(0 0 0 / 0.12);
+  --header-bg: rgb(250 250 247 / 0.95);
+  --focus-ring: var(--accent-text);
+  /* Measured at runtime by SiteHeader.astro; fallback = desktop height. */
+  --site-header-h: 4rem;
+
+  /* Radii */
+  --radius-card: 12px;
+  --radius-ctl: 8px;
+  --radius-sm: 6px;
+
+  /* Typography — system stacks only (no-cdn gate forbids webfonts). */
+  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Charter, "Book Antiqua", Georgia, serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", "Helvetica Neue", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, monospace;
+
+  /* Legacy aliases — migrate call sites to the semantic names above. */
+  --font-heading: var(--font-display);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--muted);
+  --color-amber: var(--accent-line);
+  --color-amber-deep: var(--accent-text);
+  --color-coral: var(--accent-text);
+  --color-coral-deep: var(--accent-text);
+  --color-paper: var(--bg);
+  --color-paper-shade: var(--surface-2);
+  --color-rule: var(--rule);
+  --color-muted: var(--muted);
+  --color-text: var(--ink);
+  --radius-md: var(--radius-ctl);
+  --radius-lg: var(--radius-card);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #0A1410;
+  --surface: #101C17;
+  --surface-2: #16241E;
+  --ink: #E8EEEA;
+  --muted: #9AA7A1;
+  --rule: #22332B;
+
+  --accent-line: #39FF14;
+  --accent-text: #5CFF3D;
+  --accent-soft: rgb(92 255 61 / 0.1);
+
+  --code-bg: #07100C;
+  --code-ink: #E6EDE9;
+  --code-rule: #1D2E25;
+
+  --danger: #F87171;
+  --warning: #F59E0B;
+  --info: #60A5FA;
+  --important: #C4B5FD;
+
+  --cat-tool: #5CFF3D;
+  --cat-mcp: #C4B5FD;
+  --cat-concept: #F59E0B;
+  --cat-comparison: #F87171;
+
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px -12px rgb(0 0 0 / 0.55);
+  --header-bg: rgb(10 20 16 / 0.95);
+  --focus-ring: var(--accent-line);
+}

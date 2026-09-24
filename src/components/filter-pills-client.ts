@@ -53,6 +53,27 @@ export function initCatalogFilter(): void {
     const emptyEl = document.querySelector<HTMLElement>(
       ".catalog-filter-empty",
     );
+    // "+N more" expander for the long tag tail. The hidden pills stay in
+    // the DOM (selectors and counts still resolve); only visibility is
+    // gated. An active pill outside the visible set is force-shown by
+    // `syncPillStates` below.
+    const moreBtn = root.querySelector<HTMLButtonElement>(
+      ".catalog-filter-more",
+    );
+    const optionalItems = Array.from(
+      root.querySelectorAll<HTMLElement>("li.catalog-filter-optional"),
+    );
+    function setTagsExpanded(expanded: boolean): void {
+      for (const li of optionalItems) li.hidden = !expanded;
+      if (moreBtn) {
+        moreBtn.setAttribute("aria-expanded", String(expanded));
+        const count = moreBtn.dataset.moreCount ?? String(optionalItems.length);
+        moreBtn.textContent = expanded ? "Fewer" : `+${count} more`;
+      }
+    }
+    moreBtn?.addEventListener("click", () =>
+      setTagsExpanded(moreBtn.getAttribute("aria-expanded") !== "true"),
+    );
     const items = Array.from(
       list.querySelectorAll<HTMLElement>(".catalog-list-item"),
     );
@@ -126,6 +147,9 @@ export function initCatalogFilter(): void {
         pill.setAttribute("aria-pressed", isActive ? "true" : "false");
         if (isActive) {
           pill.classList.add("is-active");
+          // An active tag outside the top-N set must stay visible — the
+          // "+N more" collapse is presentation-only.
+          pill.closest("li")?.removeAttribute("hidden");
         } else {
           pill.classList.remove("is-active");
         }

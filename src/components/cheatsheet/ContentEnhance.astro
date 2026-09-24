@@ -1,0 +1,69 @@
+---
+/**
+ * Miscellaneous body enhancements that don't fit the other enhancers:
+ *
+ *  - Wraps every `.cheatsheet-body table` in a `.table-scroll` div so
+ *    wide reference tables scroll horizontally on narrow viewports.
+ *  - Groups Best Practices `### Do` / `### Don't` subsections into
+ *    `.bp-card` wrappers inside a `.bp-grid`, so the pair renders as two
+ *    side-by-side cards on wide viewports (CSS in `[slug]/index.astro`).
+ *
+ * Runs after StepChecklist (document order in CheatsheetLayout) so step
+ * bodies are already wrapped — `### Do` headings never match the step
+ * pattern, so the two enhancers stay disjoint.
+ */
+---
+
+<script>
+  // -- Table scroll wrappers ----------------------------------------------
+  document.querySelectorAll('.cheatsheet-body table').forEach((table) => {
+    if (table.parentElement?.classList.contains('table-scroll')) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'table-scroll';
+    table.parentNode?.insertBefore(wrap, table);
+    wrap.appendChild(table);
+  });
+
+  // -- Best Practices Do/Don't cards --------------------------------------
+  // The markdown renderer turns ASCII apostrophes typographic, so
+  // `### Don't` arrives as "Don’t" — accept both apostrophes.
+  const BP_RE = /^(do|don['’]?t)\s*$/i;
+  const h3s = document.querySelectorAll('.cheatsheet-body h3');
+  /** @type {Element[]} */
+  const cards = [];
+  h3s.forEach((h3) => {
+    const label = (h3.textContent ?? '').trim();
+    if (!BP_RE.test(label)) return;
+
+    // Collect the subsection body: siblings until the next heading.
+    /** @type {Element[]} */
+    const nodes = [];
+    let sib = h3.nextElementSibling;
+    while (sib && sib.tagName !== 'H2' && sib.tagName !== 'H3') {
+      nodes.push(sib);
+      sib = sib.nextElementSibling;
+    }
+
+    const card = document.createElement('div');
+    card.className = `bp-card ${/^do\s*$/i.test(label) ? 'bp-do' : 'bp-dont'}`;
+    h3.parentNode?.insertBefore(card, h3);
+    card.appendChild(h3);
+    for (const node of nodes) card.appendChild(node);
+    cards.push(card);
+  });
+
+  // Wrap each contiguous run of cards in a `.bp-grid` (the Do/Don't pair
+  // sits side-by-side ≥900px via CSS).
+  for (const card of cards) {
+    if (card.parentElement?.classList.contains('bp-grid')) continue;
+    const grid = document.createElement('div');
+    grid.className = 'bp-grid';
+    card.parentNode?.insertBefore(grid, card);
+    let node = card;
+    while (node && node.classList?.contains('bp-card')) {
+      const next = node.nextElementSibling;
+      grid.appendChild(node);
+      node = next;
+    }
+  }
+</script>

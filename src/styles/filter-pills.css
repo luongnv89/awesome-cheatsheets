@@ -9,17 +9,14 @@
  * the selectors below.
  *
  * Active pill = brand neon on ink (ink #0A1410 on neon #39FF14 hits ~14:1
- * contrast, comfortably above WCAG AA 4.5).
+ * contrast, comfortably above WCAG AA 4.5). Rows scroll horizontally on
+ * narrow viewports so the bar stays one line per axis.
  */
 .catalog-filter {
-  margin: 0 0 1.75rem 0;
-  padding: 1rem 1.25rem;
-  background-color: #fff;
-  border: 1px solid var(--color-rule);
-  border-radius: var(--radius-lg);
+  margin: 0 0 1.5rem 0;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.6rem;
 }
 
 .catalog-filter[hidden] {
@@ -28,29 +25,53 @@
 
 .catalog-filter-row {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 0.5rem;
+  /* The row is a flex item of `.catalog-filter` — `min-width: 0` lets it
+     shrink below its min-content so `overflow-x: auto` scrolls the pills
+     instead of stretching the page. */
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+/* Widen back to wrapping rows once there is room — the horizontal scroll
+   is a small-viewport affordance, not the default. */
+@media (min-width: 768px) {
+  .catalog-filter-row {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
 }
 
 .catalog-filter-label {
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: 0.68rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--color-muted);
+  letter-spacing: 0.12em;
+  color: var(--muted);
   min-width: 4.5rem;
+  flex: 0 0 auto;
 }
 
 .catalog-filter-pills {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 0.375rem;
   list-style: none;
   padding: 0;
   margin: 0;
+  flex: 0 0 auto;
 }
+@media (min-width: 768px) {
+  /* Once the row stops scrolling, the list must shrink to the row's width
+     (`flex: 0 0 auto` would pin it at max-content and the wrap would never
+     engage, overflowing the page). */
+  .catalog-filter-pills { flex-wrap: wrap; flex: 0 1 auto; min-width: 0; }
+}
+.catalog-filter-pills li { flex: 0 0 auto; }
 
 .catalog-filter-pill {
   display: inline-flex;
@@ -59,40 +80,61 @@
   font-size: 0.8125rem;
   font-family: var(--font-mono);
   line-height: 1.4;
-  color: var(--color-ink);
-  background-color: var(--color-paper);
-  border: 1px solid var(--color-rule);
+  color: var(--ink);
+  background-color: transparent;
+  border: 1px solid var(--rule);
   border-radius: 9999px;
   cursor: pointer;
+  white-space: nowrap;
   transition:
     background-color 0.12s ease,
     border-color 0.12s ease,
-    color 0.12s ease,
-    transform 0.12s ease;
+    color 0.12s ease;
 }
 
 .catalog-filter-pill:hover {
-  background-color: var(--color-paper-shade);
-  border-color: var(--color-ink-soft);
+  background-color: var(--surface-2);
+  border-color: var(--muted);
 }
 
 .catalog-filter-pill:focus-visible {
-  outline: 2px solid var(--color-coral);
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* "+N more" expander — same footprint as a pill but reads as an action. */
+.catalog-filter-more {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3125rem 0.75rem;
+  font-size: 0.8125rem;
+  font-family: var(--font-mono);
+  line-height: 1.4;
+  color: var(--accent-text);
+  background-color: transparent;
+  border: 1px dashed var(--rule);
+  border-radius: 9999px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex: 0 0 auto;
+  transition:
+    border-color 0.12s ease,
+    color 0.12s ease;
+}
+.catalog-filter-more:hover {
+  border-color: var(--accent-text);
+}
+.catalog-filter-more:focus-visible {
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
 
 .catalog-filter-pill.is-active,
 .catalog-filter-pill[aria-pressed="true"] {
-  background-color: var(--color-amber);
-  border-color: var(--color-amber-deep);
-  color: var(--color-ink);
+  background-color: var(--accent-line);
+  border-color: var(--accent-line);
+  color: #0A1410;
   font-weight: 700;
-}
-
-.catalog-filter-pill.is-active:hover,
-.catalog-filter-pill[aria-pressed="true"]:hover {
-  background-color: #FFCD3A;
-  border-color: var(--color-amber-deep);
 }
 
 .catalog-filter-controls {
@@ -115,9 +157,10 @@
   padding: 0.3125rem 0.75rem;
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--color-ink);
+  font-family: var(--font-mono);
+  color: var(--accent-text);
   background-color: transparent;
-  border: 1px solid var(--color-ink);
+  border: 1px solid var(--accent-text);
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition:
@@ -127,13 +170,12 @@
 
 .catalog-filter-clear:hover,
 .catalog-filter-empty-clear:hover {
-  background-color: var(--color-ink);
-  color: #fff;
+  background-color: var(--accent-soft);
 }
 
 .catalog-filter-clear:focus-visible,
 .catalog-filter-empty-clear:focus-visible {
-  outline: 2px solid var(--color-coral);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
 
@@ -145,7 +187,7 @@
 .catalog-filter-status {
   margin: 0;
   font-size: 0.8125rem;
-  color: var(--color-muted);
+  color: var(--muted);
   font-family: var(--font-mono);
 }
 
@@ -160,11 +202,11 @@
   flex-direction: column;
   align-items: center;
   gap: 1rem;
-  padding: 2rem 1.5rem;
-  background-color: #fff;
-  border: 1px dashed var(--color-rule);
-  border-radius: var(--radius-lg);
-  color: var(--color-muted);
+  padding: 2.5rem 1.5rem;
+  background-color: var(--surface);
+  border: 1px dashed var(--rule);
+  border-radius: var(--radius-card);
+  color: var(--muted);
   font-size: 1rem;
   text-align: center;
 }
@@ -175,6 +217,10 @@
 
 .catalog-filter-empty-text {
   margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--ink);
 }
 
 .catalog-list-item[hidden] {

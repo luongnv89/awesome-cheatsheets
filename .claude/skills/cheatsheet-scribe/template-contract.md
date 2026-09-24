@@ -76,6 +76,56 @@ An H2 heading conforms if it equals the canonical name OR starts with the canoni
 
 ---
 
+## Optional Structured Blocks (extended template)
+
+The detail page renders a step timeline, meta chips, and alert callouts
+from optional structure inside the locked sections. Everything below is
+OPTIONAL — a cheatsheet with none of it still passes lint — but when a
+block is present it must parse (`STEP_RULES` in `tools/contract/steps.ts`).
+
+### Steps
+
+`### Step N — Title` H3s under `## Step-by-Step Setup & Optimization`,
+numbered `1..N` contiguously (em/en/hyphen dash all match). Recommended:
+3–7 steps, one action per numbered item, each command in its own fenced
+block with a language tag (no `$ ` prompts, `<UPPER_SNAKE>` placeholders).
+
+### Step meta line
+
+The FIRST paragraph directly after a step heading may be a meta line —
+segments joined by ` · `:
+
+```md
+**Goal:** A working `tool` binary on PATH · **Time:** ~5 min · **Level:** beginner
+```
+
+- `**Time:**` must match `^~?\d+\s*(min|mins|minutes|h|hr|hours)$`
+- `**Level:**` must be one of `beginner` | `intermediate` | `advanced`
+
+### Verify line
+
+`**Verify:** <content>` — at least 10 characters after the marker. Names
+the command/output proving the step worked; renders as a check callout.
+
+### Prerequisites
+
+An optional `## Prerequisites` H2 containing a `- [ ]` task list. Only
+legal BEFORE `## Installation` in the H2 sequence (`prerequisites-out-of-order`).
+
+### GitHub alerts
+
+Blockquotes whose first line is `[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`,
+`[!WARNING]`, or `[!CAUTION]` render as styled callouts (and natively on
+GitHub). Use them for tips/warnings instead of bold prose.
+
+### Validator rule ids
+
+`step-sequence`, `step-meta-invalid`, `prerequisites-out-of-order`,
+`verify-empty` — registered alongside the v1 rules in
+`tools/validator/rules.ts`.
+
+---
+
 ## One-Liner Rule
 
 - **Marker:** `**One-line:**`

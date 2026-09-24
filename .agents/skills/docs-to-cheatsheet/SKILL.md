@@ -70,12 +70,44 @@ src/content/cheatsheets/<slug>/<slug>.md
 When this repository's template contract exists, obey it. Use these sections in order unless the repo contract says otherwise:
 
 1. `**One-line:** <short value proposition>` before the first H2
-2. `## Installation`
-3. `## Step-by-Step Setup & Optimization`
-4. `## Best Practices`
-5. `## Quick Command Reference`
-6. `## Expected Outcomes`
-7. `## Reference` with a collapsed `<details>` block
+2. `## Prerequisites` — optional `- [ ]` task list, only before Installation
+3. `## Installation`
+4. `## Step-by-Step Setup & Optimization`
+5. `## Best Practices`
+6. `## Quick Command Reference`
+7. `## Expected Outcomes`
+8. `## Reference` with a collapsed `<details>` block
+
+Steps under `## Step-by-Step Setup & Optimization` are `### Step N — Title`
+H3s numbered 1..N (aim for 3–7). Every step gets a meta line and a Verify
+line:
+
+```markdown
+### Step 1 — Install and verify
+
+**Goal:** A working `tool` binary on PATH · **Time:** ~5 min · **Level:** beginner
+
+1. Install:
+   ```bash
+   curl -fsSL https://example.dev/install.sh | sh
+   ```
+2. Check the version:
+   ```bash
+   tool --version
+   ```
+
+**Verify:** `tool --version` prints a version number.
+
+> [!TIP]
+> One-line tip that saves time.
+```
+
+Step rules: one action per numbered item; every command in its own fenced
+code block with a language tag; commands copy-paste ready (no `$ ` prompts,
+`<UPPER_SNAKE>` placeholders); `**Time:**` like `~5 min` or `1 h`;
+`**Level:**` one of `beginner`/`intermediate`/`advanced`; `**Verify:**`
+names an existing command's expected output (≥10 chars). Use GitHub alerts
+(`> [!TIP]`, `> [!WARNING]`, …) for tips and warnings rather than bold prose.
 
 Use checkable todo items for actionable content:
 
@@ -184,20 +216,21 @@ Recommended structure inside the main setup section:
 ```markdown
 ## Step-by-Step Setup & Optimization
 
-### 1. Basic working setup
-- [ ] ...
+### Step 1 — Basic working setup
 
-### 2. Daily workflow
-- [ ] ...
+**Goal:** <what the reader has when done> · **Time:** ~10 min · **Level:** beginner
 
-### 3. Configuration baseline
-- [ ] ...
+1. <action>:
+   ```bash
+   <command>
+   ```
 
-### 4. Advanced optimization
-- [ ] ...
+**Verify:** <command and expected output>.
 
-### 5. Maintenance and troubleshooting
-- [ ] ...
+### Step 2 — Daily workflow
+### Step 3 — Configuration baseline
+### Step 4 — Advanced optimization
+### Step 5 — Maintenance and troubleshooting
 ```
 
 ### Phase 7: Validate and review

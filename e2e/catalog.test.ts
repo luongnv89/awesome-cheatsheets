@@ -21,7 +21,7 @@ test.describe("Catalog landing page", () => {
       page.getByRole("heading", { name: "Awesome AI Cheatsheets", level: 1 }),
     ).toBeVisible();
     await expect(page.locator(".catalog-hero-lede")).toContainText(
-      "format + freshness + comparability",
+      "Step-by-step setup guides",
     );
   });
 
