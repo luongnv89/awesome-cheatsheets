@@ -30,18 +30,9 @@
  * @see ../src/content/cheatsheets/hermes-agent/hermes-agent.md (PoC reference)
  */
 
-import { CATEGORIES, STATUSES } from "./contract/primitives.js";
-import { frontmatterSchema } from "./contract/frontmatter.js";
-import {
-  ONE_LINER_RULE,
-  REFERENCE_RULE,
-  REQUIRED_SECTIONS,
-  SECTION_MATCH_RULE,
-} from "./contract/sections.js";
-import { MERMAID_RULES } from "./contract/mermaid.js";
-
 // ---------------------------------------------------------------------------
-// Public re-exports — unchanged surface (issue #134 split)
+// Public re-exports — the #134 surface minus the unused CONTRACT aggregate
+// (issue #138, F-DEAD-001)
 // ---------------------------------------------------------------------------
 
 export {
@@ -63,23 +54,3 @@ export {
   type RequiredSection,
 } from "./contract/sections.js";
 export { MERMAID_RULES } from "./contract/mermaid.js";
-
-// ---------------------------------------------------------------------------
-// Aggregate
-// ---------------------------------------------------------------------------
-
-/**
- * Convenience aggregate so consumers can `import { CONTRACT }` and get the
- * whole rule set as a single namespaced object. Treat the export as
- * read-only.
- */
-export const CONTRACT = {
-  frontmatterSchema,
-  REQUIRED_SECTIONS,
-  SECTION_MATCH_RULE,
-  ONE_LINER_RULE,
-  REFERENCE_RULE,
-  MERMAID_RULES,
-  CATEGORIES,
-  STATUSES,
-} as const;
