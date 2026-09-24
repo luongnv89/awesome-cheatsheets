@@ -67,6 +67,38 @@ pages: write
 id-token: write
 ```
 
+## Security headers
+
+GitHub Pages cannot emit custom HTTP response headers, so the site carries
+its policy in two layers (issue #144):
+
+- **`src/components/SecurityHeaders.astro`** — rendered into the `<head>` of
+  every page by both layouts. It delivers the subset browsers honor without
+  HTTP headers: a meta `Content-Security-Policy` and a meta `referrer`
+  policy (`strict-origin-when-cross-origin`). The CSP is scoped to what the
+  build emits — `'unsafe-inline'` on `script-src`/`style-src` is required by
+  the inlined consent gate, inlined module scripts, `onclick` handlers, and
+  `<style is:global>` blocks — plus the path-scoped
+  `https://www.googletagmanager.com/gtag/` origin the consent-gated
+  analytics loader uses, and `https://*.google-analytics.com` on
+  `connect-src` for its collect endpoints.
+- **`public/_headers`** — the `_headers` convention honored by Netlify and
+  Cloudflare Pages. On GitHub Pages it is deployed but inert; it activates
+  automatically if the site ever moves to a host that reads it. It carries
+  the headers meta tags cannot express: `X-Frame-Options: DENY`,
+  `frame-ancestors 'none'` inside the CSP, `X-Content-Type-Options`,
+  `Referrer-Policy`, and `Permissions-Policy`.
+
+Known limitation: on GitHub Pages there is no way to set `frame-ancestors`
+or `X-Frame-Options` (the CSP spec ignores `frame-ancestors` in meta
+delivery, and Pages offers no header hook), so clickjacking protection is
+declared-only until the site is hosted somewhere that honors `_headers`.
+
+Keep the two CSP directive lists in sync — the only intentional difference
+is `frame-ancestors` (headers-only). The `no-cdn-check` gate allowlists the
+`/gtag/` prefix used by both layers; any other `googletagmanager.com` URL is
+still flagged.
+
 ## One-time repository setting
 
 In GitHub, set:

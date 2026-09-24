@@ -20,6 +20,7 @@
 import '../styles/base.css';
 import '../styles/chrome.css';
 import ConsentManager from '../components/ConsentManager.astro';
+import SecurityHeaders from '../components/SecurityHeaders.astro';
 import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 
@@ -46,6 +47,7 @@ const metaDescription =
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={metaDescription} />
     <meta name="theme-color" content="#0A1410" />
+    <SecurityHeaders />
     <link rel="canonical" href={canonicalUrl} />
     <link rel="icon" type="image/svg+xml" href={`${baseUrl}/brand/favicon.svg`} />
 

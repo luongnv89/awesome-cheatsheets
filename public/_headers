@@ -1,0 +1,20 @@
+# Security headers (issue #144, F-SEC-003).
+#
+# This file follows the `_headers` convention honored by Netlify and
+# Cloudflare Pages. The site currently deploys to GitHub Pages, which does
+# not support custom response headers — GH Pages serves this file verbatim
+# as a static asset instead. On GitHub Pages the enforceable equivalents
+# live in `src/components/SecurityHeaders.astro` (meta CSP + referrer meta),
+# rendered into every page head by both layouts. `frame-ancestors` and
+# `X-Frame-Options` cannot be expressed via meta tags, so this file is the
+# only place clickjacking protection is declared; it activates automatically
+# if the site ever moves to a host that honors `_headers`. Keep the CSP
+# directives below in sync with the meta CSP in SecurityHeaders.astro —
+# the only intentional difference is `frame-ancestors` (headers-only).
+
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=()
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com/gtag/; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://*.google-analytics.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
