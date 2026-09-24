@@ -4,15 +4,32 @@ This guide covers local development for the Astro site and TypeScript authoring 
 
 ## Prerequisites
 
-- Node.js `>=20`
+- Node.js `>=20` (`engines.node` in `package.json`). GitHub Actions still pins Node 20.
 - pnpm `10.28.0` via the `packageManager` field in `package.json`
 - Git
+- Local verification of this guide used Node v26.7.0 and pnpm 10.28.0.
+
+There is no `.env` requirement for `pnpm build` or the unit-test suite (`pnpm test`). Do not create a `.env` file for those commands.
 
 Install dependencies:
 
 ```bash
-pnpm install
+pnpm install --frozen-lockfile
 ```
+
+## Agent-runnable environment
+
+An agent can install and verify this repo from this file alone:
+
+```bash
+pnpm install --frozen-lockfile
+pnpm type-check
+pnpm test
+pnpm build
+pnpm test:e2e
+```
+
+`pnpm test` is the unit suite (Vitest, `tools/**/*.test.ts`). `pnpm test:e2e` builds the site and runs Playwright. Build and unit test need no `.env`.
 
 ## Common commands
 
