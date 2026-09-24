@@ -1,7 +1,7 @@
 # AGENTS.md
 
 ## Project
-Static catalog of AI cheatsheets (Astro) plus a TypeScript validator and lint CLI. Published entries live in `src/content/cheatsheets/` and must keep the template contract. Unit tests cover `tools/` only.
+Static catalog of AI cheatsheets (Astro) plus a TypeScript validator and lint CLI. Published entries live in `src/content/cheatsheets/` and must keep the template contract. Unit tests cover `tools/` and `src/` helpers.
 
 ## Commands
 Build and test commands stay in `CLAUDE.md` and the Pre.1 notes in `docs/DEVELOPMENT.md` (`## Agent-runnable environment`). Do not copy that command list here.

@@ -8,7 +8,7 @@ Static catalog of AI cheatsheets (Astro) plus a TypeScript validator and lint CL
 - Dev: `pnpm dev`
 - Build: `pnpm build` (Astro, then Pagefind into `dist/`)
 - Preview: `pnpm preview`
-- Test (unit): `pnpm test` (Vitest, `tools/**/*.test.ts` only; audit baseline 82/82)
+- Test (unit): `pnpm test` (Vitest, `tools/**/*.test.ts` and `src/**/*.test.ts`; audit baseline 82/82)
 - Test (one file): `pnpm test tools/validator/__tests__/frontmatter.test.ts`
 - Test (e2e): `pnpm test:e2e` (builds the site, then Playwright)
 - Types: `pnpm type-check`
