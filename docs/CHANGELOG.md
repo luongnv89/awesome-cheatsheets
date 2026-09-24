@@ -9,7 +9,7 @@ This project follows a lightweight changelog for public-facing changes. Dates us
 - Thirteen post-launch cheatsheets — ASM, Claude Code, Codex, Herdr, Obsidian,
   Oh My Pi (omp), OpenClaw, OpenCode, Agent Skills, Harness Engineering,
   Sub-agents, MCP, and the Prompt Engineering comparison — bringing the
-  catalog to 15 published entries.
+  catalog to 15 entries (6 published, 9 in draft).
 
 ### Fixed
 
