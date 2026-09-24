@@ -37,6 +37,13 @@ interface FoundLink {
 }
 
 /**
+ * Bound on simultaneously in-flight link probes. An unbounded `Promise.all`
+ * fan-out opens one socket per distinct URL — a link-heavy sheet can exhaust
+ * file descriptors or trip host rate limits (issue #139 / F-PERF-002).
+ */
+const MAX_IN_FLIGHT = 8;
+
+/**
  * Walk the AST and collect every http(s) URL we can find, recording the line
  * of the first occurrence per URL.
  */
@@ -98,6 +105,15 @@ async function probe(url: string, timeoutMs: number): Promise<string | undefined
       redirect: "follow",
       signal: controller.signal,
     });
+    // Release the connection before returning: an unconsumed body keeps the
+    // keep-alive socket open and stalls the pool (issue #139 / F-BUG-004).
+    // Best-effort — a stream that rejects cancellation still lets us report
+    // the status we already received.
+    try {
+      await res.body?.cancel();
+    } catch {
+      /* ignore — the HTTP status is already known */
+    }
     if (res.status >= 200 && res.status < 400) return undefined;
     return `HTTP ${res.status}`;
   } catch (err) {
@@ -128,17 +144,31 @@ export async function checkLinks(
   const timeoutMs = options.linkTimeoutMs ?? 5_000;
   const links = collectLinks(tree);
 
-  // Probe in parallel — link checks are I/O bound; even a dozen serial 5 s
-  // timeouts would dominate the validator's wall time otherwise.
-  const results = await Promise.all(
-    links.map(async (link) => {
-      const reason = await probe(link.url, timeoutMs);
-      return { link, reason };
-    }),
+  // Probe with a bounded worker pool — link checks are I/O bound, but an
+  // unbounded fan-out opens one socket per distinct URL (issue #139 /
+  // F-PERF-002). MAX_IN_FLIGHT caps concurrent probes while keeping the
+  // pool saturated.
+  const results: ({ link: FoundLink; reason: string | undefined } | undefined)[] =
+    new Array(links.length);
+  let nextIndex = 0;
+  const workers = Array.from(
+    { length: Math.min(MAX_IN_FLIGHT, links.length) },
+    async () => {
+      while (nextIndex < links.length) {
+        const index = nextIndex;
+        nextIndex += 1;
+        const link = links[index];
+        if (link === undefined) return; // noUncheckedIndexedAccess guard.
+        results[index] = { link, reason: await probe(link.url, timeoutMs) };
+      }
+    },
   );
+  await Promise.all(workers);
 
   const errors: ValidationError[] = [];
-  for (const { link, reason } of results) {
+  for (const result of results) {
+    if (result === undefined) continue;
+    const { link, reason } = result;
     if (reason === undefined) continue;
     errors.push(
       makeError(

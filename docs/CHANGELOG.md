@@ -4,6 +4,16 @@ This project follows a lightweight changelog for public-facing changes. Dates us
 
 ## Unreleased
 
+### Fixed
+
+- Link check probes now cancel the response body before returning and run
+  through a bounded pool (`MAX_IN_FLIGHT = 8`) instead of an unbounded
+  `Promise.all` fan-out — no more leaked keep-alive sockets or descriptor
+  storms on link-heavy sheets (#139).
+- Step checkboxes no longer crash when `cheatsheet-progress:*` localStorage
+  holds a non-object JSON payload; malformed values reset to empty progress
+  (#139).
+
 ### Changed
 
 - Validator `ValidateOptions`: replaced the `skipLinks` boolean with a

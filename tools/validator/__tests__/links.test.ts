@@ -88,6 +88,45 @@ describe("link rule (mocked fetch)", () => {
     expect(linkErrors[0]?.message).toMatch(/timeout after 25 ms/);
   });
 
+  it("cancels the response body before returning (socket release)", async () => {
+    // An unconsumed body keeps the keep-alive socket open; probe() must
+    // cancel (or drain) it before resolving — issue #139 / F-BUG-004.
+    const cancel = vi.fn().mockResolvedValue(undefined);
+    const mockFetch = vi.fn().mockResolvedValue({
+      status: 200,
+      body: { cancel },
+    });
+    vi.stubGlobal("fetch", mockFetch);
+
+    const result = await validate(fixture("with-link.md"), {});
+    const linkErrors = result.errors.filter((e) => e.rule === "link-broken");
+    expect(linkErrors).toEqual([]);
+    expect(cancel).toHaveBeenCalled();
+  });
+
+  it("caps in-flight probes under the concurrency limit", async () => {
+    // many-links.md has 12 distinct URLs > the in-flight cap; a delayed
+    // fetch records the peak parallelism — issue #139 / F-PERF-002.
+    let inFlight = 0;
+    let maxInFlight = 0;
+    const mockFetch = vi.fn().mockImplementation(async () => {
+      inFlight += 1;
+      maxInFlight = Math.max(maxInFlight, inFlight);
+      await new Promise((resolve) => setTimeout(resolve, 5));
+      inFlight -= 1;
+      return { status: 200, body: null };
+    });
+    vi.stubGlobal("fetch", mockFetch);
+
+    const result = await validate(fixture("many-links.md"), {});
+    const linkErrors = result.errors.filter((e) => e.rule === "link-broken");
+    expect(linkErrors).toEqual([]);
+    expect(mockFetch).toHaveBeenCalledTimes(12);
+    // Still parallel — the cap bounds concurrency, it doesn't serialize.
+    expect(maxInFlight).toBeGreaterThan(1);
+    expect(maxInFlight).toBeLessThanOrEqual(8);
+  });
+
   it('links: "skip" bypasses the network entirely', async () => {
     const mockFetch = vi.fn();
     vi.stubGlobal("fetch", mockFetch);
