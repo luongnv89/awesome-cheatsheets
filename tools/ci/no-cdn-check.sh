@@ -23,8 +23,8 @@
 #   bash tools/ci/no-cdn-check.sh some/dir   # scans the given directory
 #
 # Exit codes:
-#   0 — no CDN URLs found (or directory is empty)
-#   1 — at least one CDN URL found, OR directory is missing
+#   0 — no non-allowlisted CDN URLs found (or directory is empty)
+#   1 — at least one non-allowlisted CDN URL found, OR directory is missing
 #   2 — usage error
 #
 # Patterns covered:
@@ -37,6 +37,18 @@
 #   https://ajax.googleapis.com      Google-hosted libraries
 #   https://*.jsdelivr.net           jsDelivr
 #   https://stackpath.bootstrapcdn.com  StackPath BootstrapCDN
+#   https://*.googletagmanager.com   Google Tag Manager (see allowlist below)
+#
+# Allowlist (explicit — each entry names the source file that justifies it):
+#   https://www.googletagmanager.com/gtag/js
+#     The consent-gated Google Analytics loader emitted by
+#     src/components/ConsentManager.astro. The URL string is inlined into
+#     every built page, but the request is only ever fired after the visitor
+#     accepts analytics cookies (issue #122). Any *other*
+#     googletagmanager.com URL — gtm.js, ns.html, a different path or
+#     subdomain — is still flagged. The allowlist is applied per line by
+#     stripping sanctioned URLs and re-testing the remainder, so a line that
+#     mixes an allowlisted URL with a real CDN URL still fails.
 #
 # Notes for maintainers:
 #   - The pattern list is conservative: it catches the most common drift
@@ -67,7 +79,15 @@ fi
 # Combined alternation. Each branch starts with `https://`. The `.` in `cdn.`,
 # `cdnjs.`, and `maxcdn.` is regex-escaped because in extended-regex grep `.`
 # would otherwise match any character.
-pattern='https://cdn\.|https://unpkg\.com|https://cdnjs\.|https://fonts\.googleapis\.com|https://fonts\.gstatic\.com|https://maxcdn\.|https://ajax\.googleapis\.com|https://[a-z0-9.-]*jsdelivr\.net|https://stackpath\.bootstrapcdn\.com'
+pattern='https://cdn\.|https://unpkg\.com|https://cdnjs\.|https://fonts\.googleapis\.com|https://fonts\.gstatic\.com|https://maxcdn\.|https://ajax\.googleapis\.com|https://[a-z0-9.-]*jsdelivr\.net|https://stackpath\.bootstrapcdn\.com|https://[a-z0-9.-]*googletagmanager\.com'
+
+# Explicit allowlist (see the header). Each entry is a URL *prefix*: the match
+# plus any trailing URL characters are stripped from a line before the line is
+# re-tested against `pattern`. Keep entries narrow — a full path plus its `?`
+# boundary, never a bare host — and name the source file that justifies each
+# one. The trailing `\?` means `/gtag/js` is only allowed in its emitted query
+# form; a bare `/gtag/js` or a look-alike path (`/gtag/json`, …) is flagged.
+allowlist_pattern='https://www\.googletagmanager\.com/gtag/js\?'
 
 # `grep -rnE` walks the tree, prints `path:lineno:matchline`. We capture and
 # inspect the output so we can render a contributor-friendly error block. Use
@@ -80,33 +100,54 @@ if [ -z "$matches" ]; then
   exit 0
 fi
 
-echo "✗ no-cdn-check: external CDN URL(s) found in $target" >&2
-echo "" >&2
-# Show each offender as `file:line: matched-url`. The matched URL is extracted
-# with a second grep so the contributor sees the exact substring that tripped
-# the check, not the full surrounding HTML line.
-#
 # `url_pattern` is the same set of hosts as `pattern` but with a trailing path
 # fragment so the message shows the *full* offending URL rather than just the
 # host prefix. We don't use this pattern for the initial scan because the
 # initial scan is line-oriented and we want minimal false negatives on
 # unusual quoting; the per-match extraction is allowed to be slightly more
 # permissive about what counts as a "URL".
-url_pattern='https://[a-zA-Z0-9._/-]*(cdn\.|unpkg\.com|cdnjs\.|fonts\.googleapis\.com|fonts\.gstatic\.com|maxcdn\.|ajax\.googleapis\.com|jsdelivr\.net|stackpath\.bootstrapcdn\.com)[a-zA-Z0-9._/?&=%-]*'
+url_pattern='https://[a-zA-Z0-9._/-]*(cdn\.|unpkg\.com|cdnjs\.|fonts\.googleapis\.com|fonts\.gstatic\.com|maxcdn\.|ajax\.googleapis\.com|jsdelivr\.net|stackpath\.bootstrapcdn\.com|googletagmanager\.com)[a-zA-Z0-9._/?&=%-]*'
 
+# Allowlist pass: for every matched line, strip sanctioned URL occurrences and
+# re-test the remainder against `pattern`. A line is a violation only when a
+# non-allowlisted match survives — so a line carrying both the consent-snippet
+# URL and, say, an unpkg URL is still reported.
+violations=""
+allowed_count=0
 while IFS= read -r line; do
   [ -z "$line" ] && continue
   file_and_line="${line%%:*}"
   rest="${line#*:}"
   lineno="${rest%%:*}"
   body="${rest#*:}"
-  url="$(printf '%s\n' "$body" | grep -oE "$url_pattern" | head -n1)"
-  if [ -z "$url" ]; then
-    # Fall back to the host prefix if the extended extractor didn't latch.
-    url="$(printf '%s\n' "$body" | grep -oE "$pattern" | head -n1)"
+
+  stripped="$(printf '%s\n' "$body" | sed -E "s|${allowlist_pattern}[a-zA-Z0-9._/?&=%-]*||g")"
+  if ! printf '%s\n' "$stripped" | grep -qE "$pattern"; then
+    hits="$(printf '%s\n' "$body" | grep -oE "$allowlist_pattern" | wc -l | tr -d ' ')"
+    allowed_count=$((allowed_count + hits))
+    continue
   fi
-  echo "  ${file_and_line}:${lineno}: ${url:-<see full line>}" >&2
+
+  # Report the first surviving URL — extracted from `stripped` so the printed
+  # offender is never the allowlisted one.
+  url="$(printf '%s\n' "$stripped" | grep -oE "$url_pattern" | head -n1)"
+  if [ -z "$url" ]; then
+    url="$(printf '%s\n' "$stripped" | grep -oE "$pattern" | head -n1)"
+  fi
+  violations="${violations}  ${file_and_line}:${lineno}: ${url:-<see full line>}\n"
 done <<< "$matches"
+
+if [ -z "$violations" ]; then
+  echo "✓ no-cdn-check: $target is CDN-free ($allowed_count allowlisted consent-gated URL(s) ignored)."
+  exit 0
+fi
+
+echo "✗ no-cdn-check: external CDN URL(s) found in $target" >&2
+echo "" >&2
+# Show each offender as `file:line: matched-url` (collected above, with the
+# allowlisted URLs already stripped so the printed offender is never the
+# sanctioned consent snippet).
+printf '%b' "$violations" >&2
 
 echo "" >&2
 echo "  Fix: remove the external dependency or self-host the asset." >&2

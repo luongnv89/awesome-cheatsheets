@@ -164,6 +164,56 @@ describe("tools/ci/no-cdn-check.sh", () => {
     });
   }
 
+  // Issue #122: googletagmanager.com is denylisted, with one explicit,
+  // documented allowlist entry for the consent-gated gtag loader emitted by
+  // src/components/ConsentManager.astro.
+  describe("googletagmanager.com allowlist (issue #122)", () => {
+    // The exact line ConsentManager.astro inlines into every built page.
+    const consentSnippetLine =
+      '      s.src = "https://www.googletagmanager.com/gtag/js?id=" + GA_ID;';
+
+    it("ignores the consent-gated gtag/js URL", () => {
+      writeFileSync(
+        join(workdir, "index.html"),
+        `<!doctype html>\n<script>\n${consentSnippetLine}\n</script>\n`,
+      );
+      const result = runScript(workdir);
+      expect(result.status).toBe(0);
+      expect(result.stdout).toContain("CDN-free");
+      expect(result.stdout).toContain("allowlisted");
+    });
+
+    it("flags a non-allowlisted googletagmanager path (gtm.js)", () => {
+      writeFileSync(
+        join(workdir, "index.html"),
+        `<script src="https://www.googletagmanager.com/gtm.js?id=GTM-ABC123"></script>\n`,
+      );
+      const result = runScript(workdir);
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain("googletagmanager.com/gtm.js");
+    });
+
+    it("flags a non-allowlisted googletagmanager path (ns.html)", () => {
+      writeFileSync(
+        join(workdir, "index.html"),
+        `<iframe src="https://www.googletagmanager.com/ns.html?id=GTM-ABC123"></iframe>\n`,
+      );
+      const result = runScript(workdir);
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain("ns.html");
+    });
+
+    it("still flags a real CDN URL on the same line as the allowlisted URL", () => {
+      writeFileSync(
+        join(workdir, "index.html"),
+        `${consentSnippetLine}\n<script src="https://unpkg.com/evil.js"></script>${consentSnippetLine}\n`,
+      );
+      const result = runScript(workdir);
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain("unpkg.com/evil.js");
+    });
+  });
+
   it("exits 1 with a build hint when the directory is missing", () => {
     const missing = join(workdir, "absent");
     const result = runScript(missing);
