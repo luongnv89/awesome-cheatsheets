@@ -38,6 +38,10 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["tools/**/*.test.ts", "src/**/*.test.ts"],
+    // Tests that lint a mermaid-bearing cheatsheet pay a one-time jsdom +
+    // mermaid engine init (~5s cold, worse under parallel-file contention);
+    // the 5s default sits inside that cost, so give the suite headroom.
+    testTimeout: 15000,
     env: {
       CHEATSHEET_LINT_SKIP_LINKS: "1",
     },

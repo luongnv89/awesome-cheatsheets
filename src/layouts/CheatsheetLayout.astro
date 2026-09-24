@@ -267,8 +267,10 @@ const metaDescription = frontmatter.summary;
      * Lazy mermaid renderer — only loads the (~3 MB) library when a cheatsheet
      * actually contains a <div class="mermaid"> emitted by remark-mermaid.ts.
      * Bundled from node_modules by Astro, so the no-cdn-check gate stays
-     * green. `securityLevel: 'loose'` is required to allow inline `<br/>` in
-     * node labels (the strict default strips them).
+     * green. `securityLevel: 'strict'` (F-BUG-001): 'loose' skips DOMPurify on
+     * labels and the serialized SVG and enables `click … call` callbacks — an
+     * XSS vector via hostile fences. Strict still renders `<br/>` line breaks
+     * (DOMPurify's allowlist keeps `<br>`) and sanitizes away `on*` handlers.
      * `layout: 'dagre'` + `look: 'classic'` pin the pre-12 rendering: Mermaid
      * 12 otherwise defaults to the bundled ELK layout engine and the `neo`
      * look, which would re-layout and restyle existing diagrams.
@@ -279,7 +281,7 @@ const metaDescription = frontmatter.summary;
         mermaid.initialize({
           startOnLoad: false,
           theme: 'neutral',
-          securityLevel: 'loose',
+          securityLevel: 'strict',
           layout: 'dagre',
           look: 'classic',
         });
