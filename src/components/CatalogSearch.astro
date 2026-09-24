@@ -62,6 +62,8 @@ const baseUrl = (import.meta.env.BASE_URL || "/").replace(/\/$/, "") + "/";
 </div>
 
 <script>
+  import { sanitizeExcerpt } from "./pagefind-excerpt";
+
   /**
    * Wire up Pagefind on the catalog page. Loads asynchronously so missing
    * Pagefind assets (e.g., when running `astro dev` without a build) just
@@ -153,8 +155,11 @@ const baseUrl = (import.meta.env.BASE_URL || "/").replace(/\/$/, "") + "/";
         titleEl.textContent = titleText;
         const excerpt = document.createElement("p");
         excerpt.className = "catalog-search-result-excerpt";
-        // hit.excerpt is HTML with <mark> wrappers — Pagefind sanitizes it.
-        excerpt.innerHTML = hit.excerpt;
+        // hit.excerpt is HTML built from indexed content — sanitize it
+        // through a <mark>-only whitelist so highlighting survives without
+        // letting any other markup form live elements (issue #144). The
+        // `?? ""` guard keeps a missing excerpt from breaking the render.
+        excerpt.innerHTML = sanitizeExcerpt(hit.excerpt ?? "");
         a.appendChild(titleEl);
         a.appendChild(excerpt);
         li.appendChild(a);

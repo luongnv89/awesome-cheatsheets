@@ -40,15 +40,19 @@
 #   https://*.googletagmanager.com   Google Tag Manager (see allowlist below)
 #
 # Allowlist (explicit — each entry names the source file that justifies it):
-#   https://www.googletagmanager.com/gtag/js
+#   https://www.googletagmanager.com/gtag/
 #     The consent-gated Google Analytics loader emitted by
-#     src/components/ConsentManager.astro. The URL string is inlined into
-#     every built page, but the request is only ever fired after the visitor
-#     accepts analytics cookies (issue #122). Any *other*
-#     googletagmanager.com URL — gtm.js, ns.html, a different path or
-#     subdomain — is still flagged. The allowlist is applied per line by
-#     stripping sanctioned URLs and re-testing the remainder, so a line that
-#     mixes an allowlisted URL with a real CDN URL still fails.
+#     src/components/ConsentManager.astro (`/gtag/js?id=…`). The URL string is
+#     inlined into every built page, but the request is only ever fired after
+#     the visitor accepts analytics cookies (issue #122). The same /gtag/
+#     prefix is also referenced — as a path-scoped CSP source expression —
+#     by the Content-Security-Policy meta tag in
+#     src/components/SecurityHeaders.astro and the Pages header config in
+#     public/_headers (issue #144). Any *other* googletagmanager.com URL —
+#     gtm.js, ns.html, a different path or subdomain — is still flagged. The
+#     allowlist is applied per line by stripping sanctioned URLs and
+#     re-testing the remainder, so a line that mixes an allowlisted URL with
+#     a real CDN URL still fails.
 #
 # Notes for maintainers:
 #   - The pattern list is conservative: it catches the most common drift
@@ -83,11 +87,13 @@ pattern='https://cdn\.|https://unpkg\.com|https://cdnjs\.|https://fonts\.googlea
 
 # Explicit allowlist (see the header). Each entry is a URL *prefix*: the match
 # plus any trailing URL characters are stripped from a line before the line is
-# re-tested against `pattern`. Keep entries narrow — a full path plus its `?`
-# boundary, never a bare host — and name the source file that justifies each
-# one. The trailing `\?` means `/gtag/js` is only allowed in its emitted query
-# form; a bare `/gtag/js` or a look-alike path (`/gtag/json`, …) is flagged.
-allowlist_pattern='https://www\.googletagmanager\.com/gtag/js\?'
+# re-tested against `pattern`. Keep entries narrow — a path boundary, never a
+# bare host — and name the source file that justifies each one. The `/gtag/`
+# prefix covers the consent-gated loader (`/gtag/js?id=…`) and the CSP
+# source expression (`/gtag/`) written by SecurityHeaders.astro and
+# public/_headers; a look-alike path outside `/gtag/` (`/gtm.js`, `/ns.html`,
+# `/gtm-json`, …) is still flagged.
+allowlist_pattern='https://www\.googletagmanager\.com/gtag/'
 
 # `grep -rnE` walks the tree, prints `path:lineno:matchline`. We capture and
 # inspect the output so we can render a contributor-friendly error block. Use

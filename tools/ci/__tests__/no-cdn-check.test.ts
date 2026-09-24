@@ -212,6 +212,28 @@ describe("tools/ci/no-cdn-check.sh", () => {
       expect(result.status).toBe(1);
       expect(result.stderr).toContain("unpkg.com/evil.js");
     });
+
+    // Issue #144: the /gtag/ allowlist also covers the path-scoped CSP
+    // source expression written by SecurityHeaders.astro / public/_headers.
+    it("ignores the /gtag/ path-scoped CSP source expression", () => {
+      writeFileSync(
+        join(workdir, "index.html"),
+        `<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://www.googletagmanager.com/gtag/">\n`,
+      );
+      const result = runScript(workdir);
+      expect(result.status).toBe(0);
+      expect(result.stdout).toContain("CDN-free");
+    });
+
+    it("still flags a googletagmanager URL outside /gtag/", () => {
+      writeFileSync(
+        join(workdir, "index.html"),
+        `<script src="https://www.googletagmanager.com/gtm-json?id=GTM-ABC123"></script>\n`,
+      );
+      const result = runScript(workdir);
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain("googletagmanager.com");
+    });
   });
 
   it("exits 1 with a build hint when the directory is missing", () => {
