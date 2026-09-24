@@ -1,0 +1,133 @@
+---
+/**
+ * Table of contents + sticky-header coordinator — issues #91 and #92.
+ *
+ * - Builds a TOC from h2 headings in `.cheatsheet-body` and inserts it
+ *   into the `.cheatsheet-toc` aside. If the article has fewer than two
+ *   h2s the aside is left hidden (a single-item TOC is noise).
+ *
+ * - Watches `.cheatsheet-header-sentinel` with IntersectionObserver to
+ *   toggle `.cheatsheet-sticky-header.is-active` once the in-flow
+ *   header has scrolled out. No scroll listener — IntersectionObserver
+ *   is the right tool here: it fires only on threshold crossings, so
+ *   the band can't flicker mid-scroll.
+ *
+ * - Watches each h2 with a second IntersectionObserver to:
+ *     a) highlight the current section in the TOC,
+ *     b) populate the inline section indicator in the sticky band.
+ *
+ * Reduced motion is respected via CSS (no transitions if the user has
+ * `prefers-reduced-motion: reduce`).
+ *
+ * Extracted from `CheatsheetLayout.astro` (issue #133).
+ */
+---
+
+<script>
+  const body = document.querySelector('.cheatsheet-body');
+  const tocAside = document.querySelector('.cheatsheet-toc');
+  const tocList = tocAside?.querySelector('.cheatsheet-toc-list');
+  const stickyHeader = document.querySelector('.cheatsheet-sticky-header');
+  const sentinel = document.querySelector('.cheatsheet-header-sentinel');
+  const sectionIndicator = document.querySelector('[data-section-indicator]');
+
+  // -- TOC build --------------------------------------------------------
+  /** @type {HTMLHeadingElement[]} */
+  const h2s = body
+    ? Array.from(body.querySelectorAll(':scope > h2'))
+    : [];
+
+  if (tocAside && tocList) {
+    if (h2s.length >= 2) {
+      for (const h2 of h2s) {
+        if (!h2.id) continue;
+        const text = (h2.textContent ?? '').replace(/\s*\d+\s*\/\s*\d+\s*done\s*$/i, '').trim();
+        if (!text) continue;
+        const li = document.createElement('li');
+        li.className = 'cheatsheet-toc-item';
+        const a = document.createElement('a');
+        a.href = `#${h2.id}`;
+        a.className = 'cheatsheet-toc-link';
+        a.textContent = text;
+        a.dataset.tocTarget = h2.id;
+        li.appendChild(a);
+        tocList.appendChild(li);
+      }
+    }
+    // Hide the aside if we ended up with <2 entries — keeps the grid
+    // collapsed to a single column via `:has(.cheatsheet-toc[hidden])`
+    // when there's nothing useful to show.
+    if (tocList.children.length < 2) {
+      tocAside.setAttribute('hidden', '');
+    }
+  }
+
+  // -- Sticky-header toggle (issue #91) --------------------------------
+  if (stickyHeader && sentinel) {
+    const stickyObserver = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          // Sentinel sits where the full header used to be. When it
+          // leaves the top of the viewport (intersectionRatio drops to
+          // 0 while boundingClientRect.top < 0), the compact band
+          // takes over.
+          const rect = entry.boundingClientRect;
+          const active = !entry.isIntersecting && rect.top < 0;
+          stickyHeader.classList.toggle('is-active', active);
+          stickyHeader.setAttribute('aria-hidden', active ? 'false' : 'true');
+        }
+      },
+      { rootMargin: '0px', threshold: [0, 1] },
+    );
+    stickyObserver.observe(sentinel);
+  }
+
+  // -- Section indicator + TOC active-link (issue #92) ------------------
+  if (h2s.length > 0) {
+    /** @type {Map<string, HTMLAnchorElement | null>} */
+    const linkByTarget = new Map();
+    if (tocList) {
+      for (const a of tocList.querySelectorAll('a.cheatsheet-toc-link')) {
+        linkByTarget.set(a.dataset.tocTarget ?? '', a);
+      }
+    }
+
+    /** @type {Set<Element>} */
+    const visible = new Set();
+    const setCurrent = () => {
+      // Pick the topmost visible h2 — that's the section the reader is
+      // currently in. If none are visible (between sections), fall back
+      // to the last one we saw above the fold.
+      let current = null;
+      for (const h2 of h2s) {
+        const rect = h2.getBoundingClientRect();
+        if (rect.top <= window.innerHeight * 0.35) current = h2;
+        else break;
+      }
+      for (const a of linkByTarget.values()) {
+        if (a) a.classList.remove('is-current');
+      }
+      if (current) {
+        const text = (current.textContent ?? '').replace(/\s*\d+\s*\/\s*\d+\s*done\s*$/i, '').trim();
+        if (sectionIndicator) sectionIndicator.textContent = text;
+        const link = linkByTarget.get(current.id);
+        if (link) link.classList.add('is-current');
+      } else if (sectionIndicator) {
+        sectionIndicator.textContent = '';
+      }
+    };
+
+    const sectionObserver = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) visible.add(entry.target);
+          else visible.delete(entry.target);
+        }
+        setCurrent();
+      },
+      { rootMargin: '-15% 0px -50% 0px', threshold: 0 },
+    );
+    for (const h2 of h2s) sectionObserver.observe(h2);
+    setCurrent();
+  }
+</script>

@@ -1,0 +1,35 @@
+---
+/**
+ * Site footer — brand mark + name, license line, source link, and the
+ * consent-manager "Cookie preferences" button (`window.__consent?.reopen()`
+ * is wired by `ConsentManager.astro`). Shared by `Layout.astro` and
+ * `CheatsheetLayout.astro` so the chrome markup has a single source (issue
+ * #133, F-CLEAN-009). Its styles live in `src/styles/chrome.css`
+ * (`.site-footer*`), which both layouts import.
+ */
+const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, '');
+const repoUrl = 'https://github.com/luongnv89/awesome-cheatsheets';
+---
+
+<footer class="site-footer" role="contentinfo">
+  <div class="site-footer-inner">
+    <a class="site-footer-brand" href={`${baseUrl}/`} aria-label="Awesome AI Cheatsheets — home">
+      <img
+        class="site-footer-logo"
+        src={`${baseUrl}/brand/mark.svg`}
+        alt=""
+        width="40"
+        height="40"
+        decoding="async"
+      />
+      <span class="site-footer-name">Awesome AI Cheatsheets</span>
+    </a>
+    <p class="site-footer-meta">
+      Code under MIT, content under CC-BY 4.0.
+      <a href={repoUrl} rel="noopener">Source on GitHub</a> ·
+      <button type="button" class="site-footer-link-button" onclick="window.__consent?.reopen()">
+        Cookie preferences
+      </button>.
+    </p>
+  </div>
+</footer>
