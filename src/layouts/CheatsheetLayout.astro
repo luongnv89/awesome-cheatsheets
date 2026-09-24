@@ -30,6 +30,9 @@ import MermaidLoader from '../components/cheatsheet/MermaidLoader.astro';
 import StepChecklist from '../components/cheatsheet/StepChecklist.astro';
 import StickyToc from '../components/cheatsheet/StickyToc.astro';
 import CodeCopyButtons from '../components/cheatsheet/CodeCopyButtons.astro';
+// Staleness rule lives in `tools/utils/freshness.ts` — the single source of
+// truth shared with CatalogCard.astro and the freshness CI (issue #135).
+import { daysSinceUpdate, isStale } from '../../tools/utils/freshness.js';
 
 interface Props {
   title: string;
@@ -53,12 +56,10 @@ interface Props {
 const { title, frontmatter, isDraft = false } = Astro.props;
 
 const today = new Date();
-const lastUpdated = new Date(frontmatter.last_updated);
-const hasValidDate = !isNaN(lastUpdated.getTime());
-const daysSinceUpdate = hasValidDate
-  ? Math.floor((today.getTime() - lastUpdated.getTime()) / (1000 * 60 * 60 * 24))
-  : 0;
-const isStale = hasValidDate && daysSinceUpdate > frontmatter.stale_after_days;
+const days = daysSinceUpdate(frontmatter.last_updated, today);
+const hasValidDate = days !== null;
+const daysCount = days ?? 0;
+const stale = isStale(frontmatter.last_updated, frontmatter.stale_after_days, today);
 
 function getRelativeTime(days: number): string {
   if (days <= 0) return "today";
@@ -70,7 +71,7 @@ function getRelativeTime(days: number): string {
   return `${Math.floor(days / 30)} months ago`;
 }
 
-const relativeTime = getRelativeTime(daysSinceUpdate);
+const relativeTime = getRelativeTime(daysCount);
 const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, '');
 const slug = Astro.url.pathname.replace(/\/$/, '').split('/').pop() ?? '';
 
@@ -119,7 +120,7 @@ const metaDescription = frontmatter.summary;
           ? undefined
           : `title:${frontmatter.title}, category:${frontmatter.category}, last_updated:${frontmatter.last_updated}`}
       >
-        {isStale && (
+        {stale && (
           <div class="stale-banner" role="alert">
             <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
