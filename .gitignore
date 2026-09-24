@@ -9,6 +9,7 @@ build/
 
 # Vitest coverage
 coverage/
+.vitest/
 
 # Playwright
 test-results/
