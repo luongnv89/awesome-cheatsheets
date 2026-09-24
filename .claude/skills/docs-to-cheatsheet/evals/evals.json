@@ -1,0 +1,43 @@
+{
+  "skill_name": "docs-to-cheatsheet",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Create a concise checklist cheatsheet from the official Claude Code docs: https://docs.anthropic.com/en/docs/claude-code/overview",
+      "expected_output": "The agent identifies Claude Code, checks for an existing cheatsheet, maps official docs navigation, researches community best-practice sources, and proposes an implementation plan before writing files.",
+      "files": [],
+      "expectations": [
+        "Identifies the tool name and slug from the documentation URL",
+        "Checks src/content/cheatsheets for an existing Claude Code cheatsheet before drafting",
+        "Reports official docs page counts or a navigation coverage summary",
+        "Includes a plan approval gate before creating or editing the cheatsheet",
+        "Plans checklist-style output from installation through advanced usage"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Update our Codex cheatsheet using the current official Codex documentation page: https://developers.openai.com/codex/",
+      "expected_output": "The agent enters update mode if an existing Codex cheatsheet is present, preserves useful content, proposes a source-backed update plan, and waits for approval.",
+      "files": [],
+      "expectations": [
+        "Searches for an existing Codex cheatsheet by slug, title, and links",
+        "Uses update mode instead of blindly overwriting",
+        "Distinguishes official docs from community best-practice articles",
+        "Asks for approval before modifying the existing cheatsheet",
+        "Plans validation with the repository cheatsheet lint command when available"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Make a cheatsheet from https://example.invalid/no-tool-here and include all install commands you think are likely.",
+      "expected_output": "The agent refuses to fabricate commands, explains that the tool cannot be identified or the docs are inaccessible, and asks for a valid official docs URL or tool name.",
+      "files": [],
+      "expectations": [
+        "Does not invent install commands, flags, versions, or URLs",
+        "Flags that the documentation URL is inaccessible or insufficient",
+        "Asks a focused clarification question or requests a valid official docs URL",
+        "Does not create a cheatsheet without source-backed information"
+      ]
+    }
+  ]
+}

@@ -16,14 +16,18 @@ name: lint
 on:
   pull_request:
     paths:
-      - ".claude/skills/cheatsheet-scribe/**"
+      - "skills/**"
+      - ".claude/skills/**"
+      - ".agents/skills/**"
       - "tools/**"
       - "scribe-fixtures/**"
       - "src/content/cheatsheets/**"
   push:
     branches: [main]
     paths:
-      - ".claude/skills/cheatsheet-scribe/**"
+      - "skills/**"
+      - ".claude/skills/**"
+      - ".agents/skills/**"
       - "tools/**"
       - "scribe-fixtures/**"
       - "src/content/cheatsheets/**"
