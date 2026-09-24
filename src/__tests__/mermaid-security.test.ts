@@ -3,7 +3,8 @@
  *
  * ```mermaid fences are emitted by `src/plugins/remark-mermaid.ts` as escaped
  * text inside `<div class="mermaid">`, then rendered client-side by the lazy
- * loader in `src/layouts/CheatsheetLayout.astro`. The loader's `securityLevel`
+ * loader in `src/components/cheatsheet/MermaidLoader.astro` (included by
+ * `CheatsheetLayout.astro`). The loader's `securityLevel`
  * is the XSS gate: mermaid 12's 'loose' skips DOMPurify on labels and on the
  * serialized SVG, enables `click … call` callbacks, and skips URL sanitizing —
  * so a hostile fence could land a live event handler in the DOM. 'strict'
@@ -27,8 +28,8 @@ import remarkParse from "remark-parse";
 import { remarkMermaid } from "../plugins/remark-mermaid.js";
 import { parseMermaid } from "../../tools/validator/mermaid-engine.js";
 
-const LAYOUT_PATH = fileURLToPath(
-  new URL("../layouts/CheatsheetLayout.astro", import.meta.url),
+const LOADER_PATH = fileURLToPath(
+  new URL("../components/cheatsheet/MermaidLoader.astro", import.meta.url),
 );
 const ENGINE_PATH = fileURLToPath(
   new URL("../../tools/validator/mermaid-engine.ts", import.meta.url),
@@ -88,10 +89,10 @@ describe("hostile mermaid fence → emitted HTML", () => {
 });
 
 describe("renderer configuration", () => {
-  it("CheatsheetLayout pins securityLevel 'strict' and never 'loose'", () => {
-    const layout = readFileSync(LAYOUT_PATH, "utf8");
-    expect(layout).not.toMatch(/securityLevel:\s*['"]loose['"]/);
-    expect(layout).toMatch(/securityLevel:\s*['"]strict['"]/);
+  it("the client-side mermaid loader pins securityLevel 'strict' and never 'loose'", () => {
+    const loader = readFileSync(LOADER_PATH, "utf8");
+    expect(loader).not.toMatch(/securityLevel:\s*['"]loose['"]/);
+    expect(loader).toMatch(/securityLevel:\s*['"]strict['"]/);
   });
 
   it("the headless validator engine pins the same 'strict' level as the site", () => {

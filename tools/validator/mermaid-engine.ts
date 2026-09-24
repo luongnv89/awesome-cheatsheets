@@ -46,7 +46,8 @@ async function createEngine(): Promise<MermaidEngine> {
   const mermaid = (await import("mermaid")).default;
   // `securityLevel: "strict"` is mermaid 12's default — pinned explicitly so
   // the validator parses under the same security level the site renders with
-  // (see CheatsheetLayout.astro) even if a future mermaid changes the default.
+  // (see src/components/cheatsheet/MermaidLoader.astro) even if a future
+  // mermaid changes the default.
   mermaid.initialize({ startOnLoad: false, securityLevel: "strict" });
 
   return {

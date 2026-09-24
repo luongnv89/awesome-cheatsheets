@@ -1,0 +1,30 @@
+---
+/**
+ * Lazy mermaid renderer — only loads the (~3 MB) library when a cheatsheet
+ * actually contains a <div class="mermaid"> emitted by remark-mermaid.ts.
+ * Bundled from node_modules by Astro, so the no-cdn-check gate stays
+ * green. `securityLevel: 'strict'` (F-BUG-001): 'loose' skips DOMPurify on
+ * labels and the serialized SVG and enables `click … call` callbacks — an
+ * XSS vector via hostile fences. Strict still renders `<br/>` line breaks
+ * (DOMPurify's allowlist keeps `<br>`) and sanitizes away `on*` handlers.
+ * `layout: 'dagre'` + `look: 'classic'` pin the pre-12 rendering: Mermaid
+ * 12 otherwise defaults to the bundled ELK layout engine and the `neo`
+ * look, which would re-layout and restyle existing diagrams.
+ *
+ * Extracted from `CheatsheetLayout.astro` (issue #133).
+ */
+---
+
+<script>
+  if (document.querySelector('.mermaid')) {
+    const { default: mermaid } = await import('mermaid');
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'neutral',
+      securityLevel: 'strict',
+      layout: 'dagre',
+      look: 'classic',
+    });
+    await mermaid.run({ querySelector: '.mermaid' });
+  }
+</script>

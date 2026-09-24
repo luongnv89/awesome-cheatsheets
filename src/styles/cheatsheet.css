@@ -1,0 +1,386 @@
+/*
+ * Cheatsheet detail-page styles — imported by `CheatsheetLayout.astro`
+ * after `chrome.css` (issue #133 — split out of the layout's former
+ * 545-line `<style is:global>` block, F-CLEAN-005).
+ *
+ * The `.freshness-chip`, `.absolute-date`, `.relative-date`, and
+ * `.stale-banner` selectors are asserted by `e2e/freshness.test.ts`; the
+ * stale-banner background+foreground combo is also contrast-tested.
+ * Anything structural in those rules has to keep the same selectors and
+ * stay at WCAG-AA contrast or higher.
+ */
+
+/* Cheatsheet pages use a slightly looser body measure than Layout pages
+   (1.6 vs 1.55) — kept deliberately divergent when the shared body rule
+   moved to chrome.css. */
+body {
+  line-height: 1.6;
+}
+
+/* ----- Cheatsheet page ----- */
+/*
+ * Article is centered in a 1180px container matching the site header,
+ * footer, and catalog. The body itself stays a single column (see
+ * `.cheatsheet-body` in `[slug]/index.astro`); on wide viewports the
+ * remaining space inside the container carries the sticky TOC aside.
+ */
+.cheatsheet-main {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 3rem;
+  flex: 1 0 auto;
+}
+.cheatsheet-back {
+  margin: 0 0 1rem 0;
+  font-size: 0.9375rem;
+}
+.cheatsheet-back a {
+  color: var(--color-muted);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: color 0.12s ease, border-color 0.12s ease;
+}
+.cheatsheet-back a:hover {
+  color: var(--color-ink);
+  border-bottom-color: var(--color-amber);
+}
+
+/* MAG-style header strip: title + summary on the left, meta column on
+   the right, anchored by a neon-green underline. */
+.cheatsheet-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "main meta"
+    "tags tags"
+    "share share";
+  align-items: end;
+  gap: 0.75rem 2rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 3px solid var(--color-amber);
+}
+.cheatsheet-header-main { grid-area: main; min-width: 0; }
+.cheatsheet-header-meta {
+  grid-area: meta;
+  text-align: right;
+  font-size: 0.8125rem;
+  color: var(--color-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.375rem;
+  line-height: 1.4;
+}
+.cheatsheet-header-meta-slug {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--color-ink);
+  font-size: 0.875rem;
+}
+.cheatsheet-header-meta-row { color: var(--color-muted); }
+
+.cheatsheet-title {
+  font-size: clamp(1.625rem, 3vw, 2.125rem);
+  font-weight: 700;
+  margin: 0.5rem 0 0.5rem;
+  color: var(--color-ink);
+  letter-spacing: -0.015em;
+}
+
+.cheatsheet-summary {
+  font-size: 1rem;
+  color: var(--color-muted);
+  line-height: 1.55;
+  margin: 0;
+  max-width: 65ch;
+}
+
+.cheatsheet-tags {
+  grid-area: tags;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  list-style: none;
+  margin: 0.25rem 0 0;
+}
+.share-buttons-row {
+  grid-area: share;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+}
+.cheatsheet-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  background-color: var(--color-paper-shade);
+  color: var(--color-ink);
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+}
+
+/* Category badges — shared with CatalogCard.astro for visual continuity.
+   Tone is muted on paper so the cheatsheet title stays the focal point. */
+.catalog-category {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1875rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  border: 1px solid transparent;
+  letter-spacing: 0.02em;
+}
+.catalog-category-tool       { background-color: #FFF4CC; color: #6F5300; border-color: #F2DD8A; }
+.catalog-category-mcp        { background-color: #E6E1FF; color: #2E2280; border-color: #C2B7F2; }
+.catalog-category-concept    { background-color: #D9F3DE; color: #1B5B2B; border-color: #A8DAB1; }
+.catalog-category-comparison { background-color: #FFE3DF; color: #8A2A1F; border-color: #F2A99F; }
+
+/* Stale banner — kept at WCAG-AA contrast (asserted in
+   e2e/freshness.test.ts). #fef3c7 background + #92400e foreground gives
+   ~9:1 contrast; values left identical to the prior version. */
+.stale-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  margin-bottom: 1.5rem;
+  background-color: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: var(--radius-md);
+  color: #92400e;
+  font-weight: 500;
+}
+.stale-banner svg {
+  flex-shrink: 0;
+  color: #d97706;
+}
+
+/* Freshness chip — selectors and contrast asserted by
+   e2e/freshness.test.ts. .absolute-date and .relative-date are read by the
+   tests; keep both. */
+.freshness-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.625rem;
+  background-color: var(--color-paper-shade);
+  border: 1px solid var(--color-rule);
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  color: var(--color-ink);
+}
+.freshness-chip svg { color: var(--color-muted); }
+.absolute-date {
+  font-weight: 600;
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+}
+.relative-date {
+  /* On --color-paper-shade (#DCFCE7), --color-muted (#3A6B4E) gives ~6:1
+     contrast — comfortably above WCAG AA (4.5). */
+  color: var(--color-muted);
+}
+
+/* ----- Sticky compact header (issue #91) -----
+   Sits below the site header so the two sticky bands stack cleanly.
+   Hidden by default (visually + a11y); the JS toggles `.is-active` once
+   the in-flow `.cheatsheet-header` scrolls past the top of the viewport,
+   watched by an IntersectionObserver on `.cheatsheet-header-sentinel`. */
+.cheatsheet-header-sentinel {
+  /* Zero-height sentinel parked at the top of the article. Once it scrolls
+     out of view, the sticky band takes over — see the script in
+     StickyToc.astro. */
+  height: 1px;
+  margin: 0;
+}
+.cheatsheet-sticky-header {
+  position: sticky;
+  /* `64px` is the rough site-header height (set on the host page via
+     `--site-header-h` if needed); the value is enough to clear the
+     blurred site nav band without overlapping it. */
+  top: 64px;
+  z-index: 9;
+  background-color: rgba(240, 255, 244, 0.94);
+  backdrop-filter: saturate(180%) blur(6px);
+  -webkit-backdrop-filter: saturate(180%) blur(6px);
+  border-bottom: 2px solid var(--color-amber);
+  /* Invisible by default — flipped on by JS once the in-flow header has
+     scrolled past. Uses opacity + transform rather than display:none so
+     the band has a real height for layout measurement and respects
+     prefers-reduced-motion via the global rule in chrome.css. */
+  opacity: 0;
+  transform: translateY(-100%);
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  /* Pull the band flush with the article's side padding so the green
+     underline runs edge-to-edge inside the 1180px container. */
+  margin-left: -1.25rem;
+  margin-right: -1.25rem;
+}
+.cheatsheet-sticky-header.is-active {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.cheatsheet-sticky-header-inner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 1.25rem;
+  min-height: 2.75rem;
+}
+.cheatsheet-sticky-title {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--color-ink);
+  /* Truncate overlong titles to a single line so the band stays compact
+     on every viewport — the full title is one scroll-up away. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+.cheatsheet-sticky-section {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-muted);
+  margin-left: auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+.cheatsheet-sticky-section:empty { display: none; }
+.cheatsheet-sticky-section::before {
+  content: "Section: ";
+  color: var(--color-muted);
+  font-weight: 500;
+  margin-right: 0.25em;
+}
+
+/* ----- Content grid + TOC aside (issue #92) -----
+   On narrow viewports `.cheatsheet-content` is a plain block (TOC aside
+   is rendered above the body in source order but `display: none` keeps
+   it out of layout — only revealed at ≥1024px). On wide viewports it
+   becomes a 2-column grid: aside on the right, body on the left. */
+.cheatsheet-content {
+  display: block;
+}
+.cheatsheet-toc {
+  display: none;
+}
+@media (min-width: 1024px) {
+  .cheatsheet-content {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 16rem;
+    gap: 2.5rem;
+    align-items: start;
+  }
+  .cheatsheet-toc {
+    display: block;
+    grid-column: 2;
+    grid-row: 1;
+    position: sticky;
+    /* Stay below the sticky compact title band so they don't overlap.
+       `4.25rem` is the approximate height of the compact band. */
+    top: calc(64px + 4.25rem);
+    max-height: calc(100vh - (64px + 4.25rem + 1rem));
+    overflow-y: auto;
+    padding-left: 1.25rem;
+    border-left: 1px solid var(--color-rule);
+    font-size: 0.8125rem;
+    line-height: 1.5;
+  }
+  .cheatsheet-toc[hidden] {
+    /* Keep `[hidden]` working alongside the `display: block` override
+       above. When the page has fewer than 2 h2s the script leaves the
+       attribute set; the article should reclaim the full grid width. */
+    display: none;
+  }
+  /* When the aside is hidden the body should fill both columns instead
+     of leaving a dead right column. */
+  .cheatsheet-content:has(.cheatsheet-toc[hidden]) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  /* Pull the body up into row 1 of the grid (alongside the aside)
+     instead of below it — keeps reading column anchored top-left. */
+  .cheatsheet-body {
+    grid-column: 1;
+    grid-row: 1;
+  }
+}
+@media (min-width: 1600px) {
+  .cheatsheet-content {
+    grid-template-columns: minmax(0, 1fr) 18rem;
+    gap: 3rem;
+  }
+  .cheatsheet-toc {
+    top: calc(64px + 4.25rem);
+  }
+}
+.cheatsheet-toc-title {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  margin: 0 0 0.6rem;
+}
+.cheatsheet-toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.cheatsheet-toc-item {
+  margin: 0;
+}
+.cheatsheet-toc-link {
+  display: block;
+  padding: 0.3rem 0.5rem;
+  color: var(--color-muted);
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  transition: color 0.12s ease, background-color 0.12s ease, border-color 0.12s ease;
+}
+.cheatsheet-toc-link:hover {
+  color: var(--color-ink);
+  background-color: var(--color-paper-shade);
+}
+.cheatsheet-toc-link.is-current {
+  color: var(--color-ink);
+  border-left-color: var(--color-amber);
+  background-color: var(--color-paper-shade);
+  font-weight: 600;
+}
+.cheatsheet-toc-link:focus-visible {
+  outline: 2px solid var(--color-coral);
+  outline-offset: 1px;
+}
+
+@media (max-width: 640px) {
+  .cheatsheet-main { padding: 1.5rem 1rem 2rem; }
+  .cheatsheet-header {
+    grid-template-columns: 1fr;
+    grid-template-areas: "main" "meta" "tags" "share";
+  }
+  .cheatsheet-header-meta { text-align: left; align-items: flex-start; }
+  /* Compact band stays a single-line strip on mobile — issue #91 ac says
+     it must not dominate the viewport. The section indicator is hidden
+     below 640px to keep the band slim. */
+  .cheatsheet-sticky-header { margin: 0 -1rem; }
+  .cheatsheet-sticky-header-inner { padding: 0.45rem 1rem; min-height: 2.25rem; }
+  .cheatsheet-sticky-title { font-size: 0.9375rem; }
+  .cheatsheet-sticky-section { display: none; }
+  .cheatsheet-sticky-header .catalog-category { display: none; }
+}
