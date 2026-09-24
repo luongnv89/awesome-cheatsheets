@@ -18,7 +18,7 @@ From the catalog page you can:
 
 ## Categories
 
-Cheatsheets use the categories defined in `src/content/config.ts`:
+Cheatsheets use the categories defined in `src/content.config.ts`:
 
 | Category | Use |
 |---|---|

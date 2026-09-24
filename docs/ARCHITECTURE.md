@@ -35,7 +35,7 @@ Key files:
 | `src/pages/index.astro` | Catalog landing page. |
 | `src/pages/cheatsheets/[slug]/index.astro` | Detail page for each cheatsheet. |
 | `src/layouts/CheatsheetLayout.astro` | Shared cheatsheet page presentation. |
-| `src/content/config.ts` | Content collection schema for frontmatter. |
+| `src/content.config.ts` | Content collection schema for frontmatter. |
 | `src/plugins/remark-mermaid.ts` | Mermaid rendering support for diagrams. |
 
 ## Content model
@@ -46,7 +46,7 @@ Cheatsheets live at:
 src/content/cheatsheets/<slug>/<slug>.md
 ```
 
-Frontmatter is validated by the Astro collection schema in `src/content/config.ts`. Required concepts include title, category, summary, freshness metadata, tags, status, and links.
+Frontmatter is validated by the Astro collection schema in `src/content.config.ts`. Required concepts include title, category, summary, freshness metadata, tags, status, and links.
 
 The validator adds template-specific checks that go beyond frontmatter:
 

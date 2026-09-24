@@ -8,7 +8,7 @@ Build and test commands stay in `CLAUDE.md` and the Pre.1 notes in `docs/DEVELOP
 
 ## Layout
 - `src/pages/`, `src/components/`, `src/layouts/` — site UI
-- `src/content/cheatsheets/` — markdown entries; `src/content/config.ts` — collection schema
+- `src/content/cheatsheets/` — markdown entries; `src/content.config.ts` — collection schema
 - `tools/validator/`, `tools/cli/`, `tools/ci/` — lint, tests, CI helpers
 - `e2e/` — Playwright
 - `skills/cheatsheet-scribe/` — authoring skill

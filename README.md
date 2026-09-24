@@ -113,7 +113,7 @@ The production site is configured in [`astro.config.mjs`](./astro.config.mjs):
 - `base`: `/awesome-cheatsheets`
 - `output`: static HTML
 
-Cheatsheet metadata is validated by [`src/content/config.ts`](./src/content/config.ts). The most important frontmatter fields are `category`, `summary`, `last_updated`, `stale_after_days`, `tags`, `status`, and `links.homepage`.
+Cheatsheet metadata is validated by [`src/content.config.ts`](./src/content.config.ts). The most important frontmatter fields are `category`, `summary`, `last_updated`, `stale_after_days`, `tags`, `status`, and `links.homepage`.
 
 ## Documentation
 

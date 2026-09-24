@@ -19,7 +19,7 @@ Static catalog of AI cheatsheets (Astro) plus a TypeScript validator and lint CL
 
 ## Layout
 - `src/pages/`, `src/components/`, `src/layouts/` — site UI
-- `src/content/cheatsheets/` — markdown entries; `src/content/config.ts` — collection schema
+- `src/content/cheatsheets/` — markdown entries; `src/content.config.ts` — collection schema
 - `tools/validator/`, `tools/cli/`, `tools/ci/` — lint, tests, CI helpers
 - `e2e/` — Playwright
 - `skills/cheatsheet-scribe/` — authoring skill (copies also exist under `.claude/skills/` and `.agents/skills/`)

@@ -72,7 +72,7 @@ pnpm --silent cheatsheet:lint src/content/cheatsheets/pi-dev/pi-dev.md --format=
 
 ## Content schema
 
-Astro validates cheatsheet frontmatter in `src/content/config.ts`.
+Astro validates cheatsheet frontmatter in `src/content.config.ts`.
 
 Important fields:
 
