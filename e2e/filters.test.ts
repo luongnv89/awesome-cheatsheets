@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { parse } from "yaml";
 
@@ -37,6 +37,9 @@ const PUBLISHED_TAGS = Array.from(
       .filter((entry) => entry.isDirectory())
       .flatMap((entry) => {
         const file = join(CHEATSHEETS_DIR, entry.name, `${entry.name}.md`);
+        // A dir without `<slug>.md` contributes no collection entry — same
+        // as Astro's getCollection, so it contributes no tags either.
+        if (!existsSync(file)) return [];
         const frontmatter = readFileSync(file, "utf8").match(
           /^---\r?\n([\s\S]*?)\r?\n---/,
         );
@@ -81,7 +84,8 @@ test.describe("Catalog filter pills", () => {
     await expect(tagPills).toHaveCount(PUBLISHED_TAGS.length);
     // Sample a few values to confirm rendering — we don't need to match
     // exact order since the source iterates a Set sorted alphabetically.
-    for (const tag of ["mcp", "cli", "memory"]) {
+    // Samples come from the derived set so the corpus can't drift them.
+    for (const tag of PUBLISHED_TAGS.slice(0, 3)) {
       await expect(
         page.locator(
           `.catalog-filter-pill[data-filter-axis="tag"][data-filter-value="${tag}"]`,
