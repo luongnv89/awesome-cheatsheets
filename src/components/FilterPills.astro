@@ -33,6 +33,11 @@
  *    toggling, card filtering, Pagefind coexistence).
  *  - `../styles/filter-pills.css` — global styles (imported below, same
  *    convention as `chrome.css` in the layouts).
+ *
+ * The zero-match empty state (issue #142) is rendered by
+ * `src/pages/index.astro` as `.catalog-filter-empty` next to `.catalog-list`;
+ * the client toggles its `hidden` attribute, and its Clear filters button
+ * shares the `data-filter-clear` hook with the in-bar button below.
  */
 
 import '../styles/filter-pills.css';
