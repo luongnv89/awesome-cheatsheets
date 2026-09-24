@@ -1,16 +1,20 @@
 import { defineConfig } from 'astro/config';
 import { unified } from '@astrojs/markdown-remark';
 import mdx from '@astrojs/mdx';
+import tailwindcss from '@tailwindcss/vite';
 import { remarkMermaid } from './src/plugins/remark-mermaid.ts';
 
 export default defineConfig({
   integrations: [
-    // @astrojs/tailwind is deprecated and peer-capped at Astro 5, so Tailwind 3
-    // is wired through `postcss.config.mjs` + `src/styles/base.css` instead.
     mdx({
       remarkPlugins: [remarkMermaid],
     })
   ],
+  vite: {
+    // Tailwind 4 is wired through the official Vite plugin (the canonical
+    // Astro path); the theme lives in `src/styles/base.css` via `@theme`.
+    plugins: [tailwindcss()],
+  },
   markdown: {
     // Astro 7 renders Markdown with Sätteri by default; stay on the unified()
     // pipeline so the custom remark-mermaid plugin keeps working unchanged.

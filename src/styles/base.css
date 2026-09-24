@@ -1,10 +1,23 @@
 /*
- * Tailwind base/stylesheet — replaces `@astrojs/tailwind`'s injected
- * `@astrojs/tailwind/base.css` (which contained exactly these three
- * directives) now that the deprecated integration is gone (it is peer-capped
- * at Astro 5 and cannot follow this repo to Astro 7). Processed through the
- * project PostCSS pipeline (`postcss.config.mjs`: tailwindcss + autoprefixer).
+ * Tailwind 4 entry stylesheet — replaces the v3 `@tailwind` directives and
+ * `tailwind.config.mjs`/`postcss.config.mjs` pipeline. Processed by the
+ * official `@tailwindcss/vite` plugin (wired in `astro.config.mjs`), which
+ * handles content detection, imports, and vendor prefixing itself.
  */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+/*
+ * CSS-first theme (replaces `tailwind.config.mjs` `theme.extend.colors`).
+ * Brand palette from public/brand/README.md — the same values the layouts
+ * also expose as hand-written `--color-*` custom properties:
+ *   ink   = deep green-black (body text, back cards of the brand mark)
+ *   amber = primary neon-green brand color (the front card)
+ *   coral = dog-eared corner accent (forest green for contrast)
+ *   paper = mint off-white background, used sparingly
+ */
+@theme {
+  --color-ink: #0A1410;
+  --color-amber: #39FF14;
+  --color-coral: #00C853;
+  --color-paper: #F0FFF4;
+}
