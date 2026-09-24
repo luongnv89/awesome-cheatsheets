@@ -52,6 +52,15 @@ describe("loadProgress", () => {
     expect(loadProgress(storage, "k")).toEqual({ "step-2": true });
   });
 
+  it("returns {} when resolving the storage object itself throws", () => {
+    // window.localStorage access can throw SecurityError when the browser
+    // blocks storage — the thunk form keeps even that inside the guard.
+    const state = loadProgress(() => {
+      throw new Error("SecurityError: access denied");
+    }, "k");
+    expect(state).toEqual({});
+  });
+
   it("returns {} when storage.getItem throws (disabled storage)", () => {
     const storage = {
       getItem: (_key: string): string | null => {

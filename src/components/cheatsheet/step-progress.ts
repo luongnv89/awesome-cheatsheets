@@ -28,17 +28,24 @@ export function parseProgress(raw: string | null): Record<string, boolean> {
   return parsed as Record<string, boolean>;
 }
 
+/** The slice of `Storage` the progress read needs — injectable for tests. */
+type ProgressStorage = { getItem(key: string): string | null };
+
 /**
- * Read progress state for `storageKey`. Swallows storage access errors
- * (disabled storage, SecurityError) the same way it swallows bad JSON —
- * progress is nice-to-have, never worth breaking the page over.
+ * Read progress state for `storageKey`. `storage` may be passed lazily —
+ * `() => localStorage` — because even *accessing* `window.localStorage`
+ * can throw SecurityError when the browser blocks storage; the thunk keeps
+ * that throw inside the guard too. Swallows storage access errors the same
+ * way it swallows bad JSON — progress is nice-to-have, never worth
+ * breaking the page over.
  */
 export function loadProgress(
-  storage: { getItem(key: string): string | null },
+  storage: ProgressStorage | (() => ProgressStorage),
   storageKey: string,
 ): Record<string, boolean> {
   try {
-    return parseProgress(storage.getItem(storageKey));
+    const s = typeof storage === "function" ? storage() : storage;
+    return parseProgress(s.getItem(storageKey));
   } catch {
     return {};
   }

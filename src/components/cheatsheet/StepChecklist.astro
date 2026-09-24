@@ -22,8 +22,11 @@
     const slug = container.getAttribute('data-slug') ?? 'unknown';
     const storageKey = `cheatsheet-progress:${slug}`;
     // Guarded read — non-object JSON payloads in localStorage are rejected
-    // rather than crashing strict-mode property writes (issue #139).
-    const state = loadProgress(localStorage, storageKey);
+    // rather than crashing strict-mode property writes (issue #139). The
+    // thunk keeps even `localStorage` *access* inside the guard: reading
+    // window.localStorage itself can throw SecurityError when the browser
+    // blocks storage.
+    const state = loadProgress(() => localStorage, storageKey);
     const persist = () => {
       try {
         localStorage.setItem(storageKey, JSON.stringify(state));
