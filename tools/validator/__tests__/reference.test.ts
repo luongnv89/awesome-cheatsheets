@@ -12,14 +12,14 @@ const fixture = (name: string): string =>
 
 describe("reference rule", () => {
   it("passes on the valid fixture (has <details>)", async () => {
-    const result = await validate(fixture("valid.md"), { skipLinks: true });
+    const result = await validate(fixture("valid.md"), { links: "skip" });
     const refErrors = result.errors.filter((e) => e.rule.startsWith("reference-"));
     expect(refErrors).toEqual([]);
   });
 
   it("emits reference-details-missing when <details> is absent", async () => {
     const result = await validate(fixture("no-reference-details.md"), {
-      skipLinks: true,
+      links: "skip",
     });
     expect(result.ok).toBe(false);
     expect(result.errors.some((e) => e.rule === "reference-details-missing")).toBe(true);

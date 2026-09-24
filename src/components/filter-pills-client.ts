@@ -29,9 +29,6 @@ export function initCatalogFilter(): void {
   const searchInput = document.querySelector<HTMLInputElement>(
     ".catalog-search-input",
   );
-  const sectionTitle = document.querySelector<HTMLElement>(
-    ".catalog-section-title",
-  );
 
   if (root && list) {
     const pills = Array.from(
@@ -185,7 +182,7 @@ export function initCatalogFilter(): void {
       writeUrl(active);
       syncPillStates(active);
       applyFilter(active);
-      root!.dispatchEvent(
+      root.dispatchEvent(
         new CustomEvent("catalog-filter:changed", {
           detail: {
             categories: Array.from(active.categories),
@@ -200,7 +197,7 @@ export function initCatalogFilter(): void {
       writeUrl(empty);
       syncPillStates(empty);
       applyFilter(empty);
-      root!.dispatchEvent(
+      root.dispatchEvent(
         new CustomEvent("catalog-filter:changed", {
           detail: { categories: [], tags: [] },
         }),
@@ -223,10 +220,8 @@ export function initCatalogFilter(): void {
     function syncWithSearch(): void {
       if (!searchInput) return;
       const hasQuery = searchInput.value.trim().length > 0;
-      root!.hidden = hasQuery;
-      if (sectionTitle) {
-        // The search component already toggles the title; we don't fight it.
-      }
+      // The section title is already toggled by the search component.
+      root.hidden = hasQuery;
     }
     if (searchInput) {
       searchInput.addEventListener("input", syncWithSearch);

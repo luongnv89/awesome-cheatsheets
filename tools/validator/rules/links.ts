@@ -2,7 +2,7 @@
  * External link rule — extract every `http(s)://` URL from the AST and HEAD-
  * check it with a configurable timeout (default 5_000 ms per AC #5).
  *
- * The rule is opt-out via `skipLinks: true` or the `CHEATSHEET_LINT_SKIP_LINKS`
+ * The rule is opt-out via `links: "skip"` or the `CHEATSHEET_LINT_SKIP_LINKS`
  * environment variable — required for offline test runs and to keep CI cheap.
  *
  * URLs are collected from:
@@ -25,7 +25,11 @@
 
 import type { Image, Link, Root } from "mdast";
 
-import { makeError, type ValidationError } from "../types.js";
+import {
+  makeError,
+  type LinkCheckMode,
+  type ValidationError,
+} from "../types.js";
 
 interface FoundLink {
   url: string;
@@ -110,16 +114,16 @@ async function probe(url: string, timeoutMs: number): Promise<string | undefined
 /**
  * Run the link check.
  *
- * `skipLinks` (or env `CHEATSHEET_LINT_SKIP_LINKS=1`) short-circuits the
+ * `links: "skip"` (or env `CHEATSHEET_LINT_SKIP_LINKS=1`) short-circuits the
  * whole check — returns `[]` immediately. This is the default for tests and
  * for the smoke script in the resolver plan.
  */
 export async function checkLinks(
   tree: Root,
-  options: { linkTimeoutMs?: number; skipLinks?: boolean },
+  options: { linkTimeoutMs?: number; links?: LinkCheckMode },
 ): Promise<ValidationError[]> {
   const skipFromEnv = process.env["CHEATSHEET_LINT_SKIP_LINKS"] === "1";
-  if (options.skipLinks || skipFromEnv) return [];
+  if (options.links === "skip" || skipFromEnv) return [];
 
   const timeoutMs = options.linkTimeoutMs ?? 5_000;
   const links = collectLinks(tree);

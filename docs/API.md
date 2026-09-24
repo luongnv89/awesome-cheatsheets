@@ -10,7 +10,7 @@ Entry point:
 import { validate } from "./tools/validator/index.js";
 
 const result = await validate("src/content/cheatsheets/hermes-agent/hermes-agent.md", {
-  skipLinks: true,
+  links: "skip",
 });
 ```
 
@@ -31,7 +31,7 @@ Options:
 
 | Option | Type | Description |
 |---|---|---|
-| `skipLinks` | `boolean` | Skip external link checks. Also available with `CHEATSHEET_LINT_SKIP_LINKS=1`. |
+| `links` | `"check" \| "skip"` | External link-check mode (`"check"` is the default). Also available with `CHEATSHEET_LINT_SKIP_LINKS=1`. |
 | `linkTimeoutMs` | `number` | Override the default external link timeout. |
 
 Rules are implemented under `tools/validator/rules/` and exported rule IDs live in `tools/validator/rules.ts`.

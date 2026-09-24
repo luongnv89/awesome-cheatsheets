@@ -37,17 +37,26 @@ export interface ValidationResult {
 }
 
 /**
+ * External link-check mode for {@link ValidateOptions.links}.
+ *
+ * - `"check"` — probe external URLs (the default when the field is omitted
+ *   and `CHEATSHEET_LINT_SKIP_LINKS` is unset).
+ * - `"skip"`  — bypass the network check entirely. Tests should pass this
+ *   explicitly to remain offline and deterministic.
+ */
+export type LinkCheckMode = "check" | "skip";
+
+/**
  * Options accepted by `validate()`.
  *
  * - `linkTimeoutMs` — request timeout for the external-link check. Defaults
  *   to 5_000 ms (5 s), per AC #5.
- * - `skipLinks`     — when `true`, skip the network check entirely (the
- *   default in test environments via vitest config env vars). Tests should
- *   pass this explicitly to remain offline and deterministic.
+ * - `links`         — link-check mode; `"skip"` disables the network check
+ *   entirely (the default in test environments via vitest config env vars).
  */
 export interface ValidateOptions {
   linkTimeoutMs?: number;
-  skipLinks?: boolean;
+  links?: LinkCheckMode;
 }
 
 /**

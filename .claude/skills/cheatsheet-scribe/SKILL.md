@@ -140,7 +140,7 @@ if (!result.ok) {
 - `one-liner-missing`, `one-liner-too-short`
 - `reference-details-missing`
 - `mermaid-missing-in-mental-model`, `mermaid-fence-broken`, `mermaid-empty`
-- `link-broken` (optional, skip via `skipLinks: true`)
+- `link-broken` (optional, skip via `links: "skip"`)
 
 Do NOT duplicate validation logic in this skill — the validator decides, the skill orchestrates.
 

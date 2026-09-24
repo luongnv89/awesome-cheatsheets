@@ -2,6 +2,15 @@
 
 This project follows a lightweight changelog for public-facing changes. Dates use `YYYY-MM-DD`.
 
+## Unreleased
+
+### Changed
+
+- Validator `ValidateOptions`: replaced the `skipLinks` boolean with a
+  `links: "check" | "skip"` mode string (`LinkCheckMode`). The
+  `pnpm cheatsheet:lint --no-links` flag and the
+  `CHEATSHEET_LINT_SKIP_LINKS=1` environment variable are unchanged.
+
 ## 0.1.0 — 2026-05-19
 
 Initial public launch readiness baseline.

@@ -28,7 +28,7 @@ describe("Hermes regeneration acceptance test (Issue #13)", () => {
   });
 
   it("produces output that passes lint with zero errors", async () => {
-    const result = await validate(HERMES_CHEATSHEET, { skipLinks: true });
+    const result = await validate(HERMES_CHEATSHEET, { links: "skip" });
     expect(result.ok).toBe(true);
     expect(result.errors).toHaveLength(0);
   });

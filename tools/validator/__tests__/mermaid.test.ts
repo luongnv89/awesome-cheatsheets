@@ -34,14 +34,14 @@ const COMPLEX_VALID_DIAGRAM = resolve(
 
 describe("mermaid rule", () => {
   it("passes on the valid fixture with no Mermaid blocks", async () => {
-    const result = await validate(fixture("valid.md"), { skipLinks: true });
+    const result = await validate(fixture("valid.md"), { links: "skip" });
     const mermaidErrors = result.errors.filter((e) => e.rule.startsWith("mermaid-"));
     expect(mermaidErrors).toEqual([]);
   });
 
   it("emits mermaid-fence-broken when a ```mermaid fence is unclosed", async () => {
     const result = await validate(fixture("broken-mermaid.md"), {
-      skipLinks: true,
+      links: "skip",
     });
     expect(result.ok).toBe(false);
     expect(result.errors.some((e) => e.rule === "mermaid-fence-broken")).toBe(true);
@@ -49,7 +49,7 @@ describe("mermaid rule", () => {
 
   it("emits mermaid-parse-failed when a closed fence holds an unparseable diagram", async () => {
     const result = await validate(fixture("unparseable-mermaid.md"), {
-      skipLinks: true,
+      links: "skip",
     });
     expect(result.ok).toBe(false);
     const parseErrors = result.errors.filter(
@@ -64,7 +64,7 @@ describe("mermaid rule", () => {
   });
 
   it("does not false-positive on a complex, valid diagram", async () => {
-    const result = await validate(COMPLEX_VALID_DIAGRAM, { skipLinks: true });
+    const result = await validate(COMPLEX_VALID_DIAGRAM, { links: "skip" });
     const parseErrors = result.errors.filter(
       (e) => e.rule === "mermaid-parse-failed",
     );

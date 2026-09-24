@@ -122,6 +122,43 @@ function checkRawFences(rawSource: string): ValidationError[] {
 }
 
 /**
+ * Locate the AST window of the H2 section matching `regex`: the index of the
+ * section's heading and the index where the section ends (the next H2, or
+ * `tree.children.length` at EOF). `null` when the section is absent.
+ */
+function findSectionWindow(
+  tree: Root,
+  regex: RegExp,
+): { start: number; end: number } | null {
+  let start = -1;
+  for (let i = 0; i < tree.children.length; i++) {
+    const node = tree.children[i];
+    if (node === undefined) continue;
+    if (node.type !== "heading") continue;
+    const heading = node as Heading;
+    if (heading.depth !== 2) continue;
+    if (regex.test(mdastToString(heading).trim())) {
+      start = i;
+      break;
+    }
+  }
+
+  if (start === -1) return null;
+
+  let end = tree.children.length;
+  for (let i = start + 1; i < tree.children.length; i++) {
+    const node = tree.children[i];
+    if (node === undefined) continue;
+    if (node.type === "heading" && (node as Heading).depth === 2) {
+      end = i;
+      break;
+    }
+  }
+
+  return { start, end };
+}
+
+/**
  * Check that every section in {@link MERMAID_RULES.requiredIn} contains at
  * least one Mermaid block. Sections are matched by walking H2 headings and
  * slicing the AST window until the next H2 (or EOF).
@@ -134,34 +171,11 @@ function checkRequiredSectionMermaids(tree: Root): ValidationError[] {
 
   for (const requiredName of MERMAID_RULES.requiredIn) {
     const regex = SECTION_MATCH_RULE.toRegExp(requiredName);
-
-    let startIdx = -1;
-    for (let i = 0; i < tree.children.length; i++) {
-      const node = tree.children[i];
-      if (node === undefined) continue;
-      if (node.type !== "heading") continue;
-      const heading = node as Heading;
-      if (heading.depth !== 2) continue;
-      if (regex.test(mdastToString(heading).trim())) {
-        startIdx = i;
-        break;
-      }
-    }
-
-    if (startIdx === -1) continue; // covered by `section-missing`
-
-    let endIdx = tree.children.length;
-    for (let i = startIdx + 1; i < tree.children.length; i++) {
-      const node = tree.children[i];
-      if (node === undefined) continue;
-      if (node.type === "heading" && (node as Heading).depth === 2) {
-        endIdx = i;
-        break;
-      }
-    }
+    const range = findSectionWindow(tree, regex);
+    if (range === null) continue; // covered by `section-missing`
 
     let hasMermaid = false;
-    for (let i = startIdx + 1; i < endIdx; i++) {
+    for (let i = range.start + 1; i < range.end; i++) {
       const node = tree.children[i];
       if (node === undefined) continue;
       // Only look at top-level code blocks; Mermaid fences nested in lists
@@ -174,7 +188,7 @@ function checkRequiredSectionMermaids(tree: Root): ValidationError[] {
     }
 
     if (!hasMermaid) {
-      const heading = tree.children[startIdx];
+      const heading = tree.children[range.start];
       const line = heading?.position?.start.line;
       errors.push(
         makeError(

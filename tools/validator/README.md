@@ -36,7 +36,7 @@ Hermes lint-clean.
 This invariant is gated by:
 
 - `__tests__/hermes-regression.test.ts` — inline-snapshot regression test that
-  asserts `validate(hermes, { skipLinks: true })` returns
+  asserts `validate(hermes, { links: "skip" })` returns
   `{ ok: true, errors: [] }`. Vitest re-runs it on every commit.
 - `.github/workflows/lint.yml` — CI step that additionally runs
   `pnpm cheatsheet:lint src/content/cheatsheets/hermes-agent/hermes-agent.md --no-links`
@@ -53,7 +53,7 @@ import { validate } from "tools/validator";
 
 const result = await validate(
   "src/content/cheatsheets/hermes-agent/hermes-agent.md",
-  { skipLinks: true }, // or { linkTimeoutMs: 10_000 } in production
+  { links: "skip" }, // or { linkTimeoutMs: 10_000 } in production
 );
 
 if (!result.ok) {
