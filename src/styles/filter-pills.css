@@ -1,0 +1,144 @@
+/*
+ * Filter pills styling (extracted from FilterPills.astro for issue #134 —
+ * the component imports this file from its frontmatter, matching the
+ * `chrome.css` convention). Imported via `src/components/FilterPills.astro`.
+ *
+ * The pill component's logic (URL-sync, aria-pressed toggling, multi-select
+ * semantics) lives in `src/components/filter-pills-client.ts` and is
+ * asserted by e2e/filters.test.ts — only restyle, do not rename any of
+ * the selectors below.
+ *
+ * Active pill = brand neon on ink (ink #0A1410 on neon #39FF14 hits ~14:1
+ * contrast, comfortably above WCAG AA 4.5).
+ */
+.catalog-filter {
+  margin: 0 0 1.75rem 0;
+  padding: 1rem 1.25rem;
+  background-color: #fff;
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.catalog-filter[hidden] {
+  display: none;
+}
+
+.catalog-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.catalog-filter-label {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-muted);
+  min-width: 4.5rem;
+}
+
+.catalog-filter-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.catalog-filter-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3125rem 0.75rem;
+  font-size: 0.8125rem;
+  font-family: var(--font-mono);
+  line-height: 1.4;
+  color: var(--color-ink);
+  background-color: var(--color-paper);
+  border: 1px solid var(--color-rule);
+  border-radius: 9999px;
+  cursor: pointer;
+  transition:
+    background-color 0.12s ease,
+    border-color 0.12s ease,
+    color 0.12s ease,
+    transform 0.12s ease;
+}
+
+.catalog-filter-pill:hover {
+  background-color: var(--color-paper-shade);
+  border-color: var(--color-ink-soft);
+}
+
+.catalog-filter-pill:focus-visible {
+  outline: 2px solid var(--color-coral);
+  outline-offset: 2px;
+}
+
+.catalog-filter-pill.is-active,
+.catalog-filter-pill[aria-pressed="true"] {
+  background-color: var(--color-amber);
+  border-color: var(--color-amber-deep);
+  color: var(--color-ink);
+  font-weight: 700;
+}
+
+.catalog-filter-pill.is-active:hover,
+.catalog-filter-pill[aria-pressed="true"]:hover {
+  background-color: #FFCD3A;
+  border-color: var(--color-amber-deep);
+}
+
+.catalog-filter-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 1.5rem;
+}
+
+.catalog-filter-clear {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3125rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-ink);
+  background-color: transparent;
+  border: 1px solid var(--color-ink);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition:
+    background-color 0.12s ease,
+    color 0.12s ease;
+}
+
+.catalog-filter-clear:hover {
+  background-color: var(--color-ink);
+  color: #fff;
+}
+
+.catalog-filter-clear:focus-visible {
+  outline: 2px solid var(--color-coral);
+  outline-offset: 2px;
+}
+
+.catalog-filter-clear[hidden] {
+  display: none;
+}
+
+.catalog-filter-status {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--color-muted);
+  font-family: var(--font-mono);
+}
+
+.catalog-list-item[hidden] {
+  display: none;
+}
