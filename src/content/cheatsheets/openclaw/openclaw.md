@@ -51,6 +51,8 @@ First-run checklist:
 
 ### Step 1 — Separate config, credentials, and workspace
 
+**Goal:** Config and credentials outside the workspace, which acts as the agent's home · **Time:** ~10 min · **Level:** beginner
+
 OpenClaw stores app configuration and credentials outside the agent workspace. Treat the workspace as the agent's home directory and memory surface.
 
 ```bash
@@ -60,7 +62,11 @@ openclaw onboard
 
 Keep sensitive files out of the workspace unless the agent truly needs them. Remember that the workspace is a default working directory, not a complete sandbox by itself.
 
+**Verify:** `openclaw onboard` completed and `~/openclaw-workspace` holds no sensitive files.
+
 ### Step 2 — Add one channel at a time
+
+**Goal:** One low-risk channel live on a dedicated account · **Time:** ~15 min · **Level:** beginner
 
 Start with a low-risk channel and a dedicated account or number.
 
@@ -70,7 +76,11 @@ Start with a low-risk channel and a dedicated account or number.
 | Personal account | Only after permissions and logs are understood. |
 | Team channel | Use explicit rules, scoped bots, and visible audit trails. |
 
+**Verify:** Your first channel runs on a dedicated test account, not a personal one.
+
 ### Step 3 — Configure the agent boundary
+
+**Goal:** A written operating policy the assistant must follow · **Time:** ~10 min · **Level:** intermediate
 
 Write a short operating policy for the assistant:
 
@@ -84,7 +94,11 @@ Write a short operating policy for the assistant:
 
 If your install supports sandbox settings, enable them for tools that can read or write outside the workspace.
 
+**Verify:** Your policy covers asking before messaging others and never revealing secrets.
+
 ### Step 4 — Connect integrations deliberately
+
+**Goal:** Each integration's blast radius recorded before it's enabled · **Time:** ~15 min · **Level:** intermediate
 
 OpenClaw's value comes from channels and plugins, but each integration expands the blast radius. For each new integration, record:
 
@@ -93,7 +107,11 @@ OpenClaw's value comes from channels and plugins, but each integration expands t
 - How to revoke credentials.
 - Which prompts require confirmation.
 
+**Verify:** Every enabled integration has its read access, actions, and revocation path written down.
+
 ### Step 5 — Operate like a production service
+
+**Goal:** The gateway running as a service with backup, monitoring, and key rotation · **Time:** ~30 min · **Level:** advanced
 
 Run the gateway as a local service or server process only after backup and recovery are clear.
 
@@ -103,6 +121,8 @@ openclaw onboard
 ```
 
 Monitor logs, rotate provider keys periodically, and keep the channel list small enough to audit.
+
+**Verify:** `openclaw --help` runs, logs are monitored, and the channel list is small enough to audit.
 
 ## Best Practices
 

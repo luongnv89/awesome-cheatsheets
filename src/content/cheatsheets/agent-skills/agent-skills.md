@@ -51,6 +51,8 @@ First-run checklist:
 
 ### Step 1 — Decide whether a skill is warranted
 
+**Goal:** A clear yes/no on whether a workflow deserves a skill · **Time:** ~5 min · **Level:** beginner
+
 Use a skill when a workflow repeats and has stable steps.
 
 | Use a skill for | Keep as a prompt for |
@@ -59,7 +61,11 @@ Use a skill when a workflow repeats and has stable steps.
 | Procedures with templates, examples, or scripts. | Tasks where requirements change every time. |
 | Domain rules that should travel between sessions. | Temporary issue-specific context. |
 
+**Verify:** Your workflow sits in the "Use a skill for" column — it repeats and has stable steps.
+
 ### Step 2 — Write the trigger and scope
+
+**Goal:** A description that routes the skill without over-triggering · **Time:** ~10 min · **Level:** beginner
 
 The description is the routing contract. Make it specific enough that the agent knows when to load the skill.
 
@@ -72,7 +78,11 @@ description: Review API changes for compatibility, auth, error shape, and docs u
 
 Avoid vague descriptions such as "helps with coding" because they cause over-triggering.
 
+**Verify:** Your description says what the skill does and when to load it — no vague "helps with coding" phrasing.
+
 ### Step 3 — Package resources safely
+
+**Goal:** A packaged skill directory whose scripts are documented and safe · **Time:** ~15 min · **Level:** intermediate
 
 Skills can include instructions, templates, scripts, sample outputs, and checklists. Keep executable scripts small and reviewable.
 
@@ -87,7 +97,11 @@ skill-name/
 
 Document every script input and side effect. Prefer read-only scripts unless the skill's purpose is explicitly to write files.
 
+**Verify:** Every script in the package lists its inputs and side effects, and scripts are read-only unless writing is the point.
+
 ### Step 4 — Test invocation paths
+
+**Goal:** Proof the skill triggers only when it should · **Time:** ~15 min · **Level:** intermediate
 
 Run three checks:
 
@@ -95,9 +109,15 @@ Run three checks:
 2. Natural trigger: ask for the task without naming the skill.
 3. Negative trigger: ask for a nearby task that should not load the skill.
 
+**Verify:** All three checks pass — `/skill-name` loads it, an unnamed request loads it, and a nearby task does not.
+
 ### Step 5 — Maintain a skill library
 
+**Goal:** A skill library that stays current as processes change · **Time:** ~10 min · **Level:** intermediate
+
 Review skills periodically. Archive unused skills, merge duplicates, and update examples after process changes. Treat skills like docs plus code: version them, review them, and test them.
+
+**Verify:** Unused skills are archived, duplicates merged, and each skill is versioned and reviewed like docs plus code.
 
 ## Best Practices
 

@@ -52,7 +52,9 @@ links:
 
 ## Step-by-Step Setup & Optimization
 
-### 1. Basic working setup
+### Step 1 — Basic working setup
+
+**Goal:** Signed in, a default model picked, and one bounded task completed · **Time:** ~15 min · **Level:** beginner
 
 - [ ] On first launch, stay on the Sign in tab, pick a provider, and finish the browser login. Sign in to more than one provider if you need them. Press Esc when you are done.
 - [ ] If you already exported an API key, press Esc to leave the provider step. Example for one terminal:
@@ -79,7 +81,11 @@ links:
 
 - [ ] Later, reopen sign-in with `/login` and change the session model with `/model`. Subscription and API routes are different IDs: ChatGPT uses `openai-codex`; the OpenAI API uses `openai` and `OPENAI_API_KEY`.
 
-### 2. Daily workflow
+**Verify:** `omp --continue` resumes your session and `/model` shows your chosen default.
+
+### Step 2 — Daily workflow
+
+**Goal:** A steady loop of bounded tasks, steered turns, and reviewed diffs · **Time:** ~20 min · **Level:** beginner
 
 - [ ] State the outcome, the paths that must not change, and the check that should pass. A successful tool card means that action finished, not that the task is correct.
 - [ ] Review the diff in the transcript or with `git diff`. File edits land in the working tree immediately and are not committed unless you ask.
@@ -103,7 +109,11 @@ links:
 - [ ] Before parallel writers start, set Tasks → Isolation to Auto in `/settings`, and ask for isolated workspaces. Isolation needs a Git repo. It separates checkouts. It is not a sandbox, and subagents cannot answer approval prompts.
 - [ ] Check the status line for model, directory, Git state, context, and mode before assuming omp is stuck. If it will inspect but not edit, look for Plan mode or an approval prompt first.
 
-### 3. Configuration baseline
+**Verify:** You steered a turn, reviewed the diff with `git diff`, and checked the status line before assuming omp was stuck.
+
+### Step 3 — Configuration baseline
+
+**Goal:** Effective config inspected and approval mode set deliberately · **Time:** ~15 min · **Level:** intermediate
 
 - [ ] A config file is optional. Inspect the effective values from the project directory. `omp config path` prints the agent directory; the file is `config.yml` inside it.
 
@@ -152,7 +162,11 @@ links:
 
 - [ ] Add a short root `AGENTS.md` for build commands and boundaries. Start a new session with `/new` after editing it, then confirm the loaded file under `/extensions`.
 
-### 4. Advanced optimization
+**Verify:** `omp config get tools.approvalMode` returns `write` (or your chosen mode) from the launch directory.
+
+### Step 4 — Advanced optimization
+
+**Goal:** Context, models, LSP, skills, and MCP tuned for your project · **Time:** ~30 min · **Level:** advanced
 
 - [ ] Watch context with `/context`. Automatic compaction is on by default. When the window is tight, compact with a focus, or shake bulky output without a summary:
 
@@ -168,7 +182,11 @@ links:
 - [ ] Add a skill only for a repeated playbook. Copy `SKILL.md` to `~/.omp/agent/skills/<name>/SKILL.md` or `.omp/skills/<name>/SKILL.md`, then `/reload-plugins` or start a new session. Project skills are discovered from parent directories up to the repository boundary. `.omp/config.yml` is not. Invoke a skill with `/skill:<name>` or let the description match. Read a repo skill before trusting it. Skills do not add permissions.
 - [ ] Add an MCP server with `/mcp add`, then `/mcp test <name>`. Prefer `${ENV_VAR}` over a committed token. A project `stdio` server runs a command as your user, so read `.omp/mcp.json` before opening an unfamiliar repo. Disable a discovered server with `/mcp disable <name>`.
 
-### 5. Maintenance and troubleshooting
+**Verify:** `/session` lists your detected language server and `/context` shows the window after compaction.
+
+### Step 5 — Maintenance and troubleshooting
+
+**Goal:** Sessions recovered and common issues diagnosed · **Time:** ~15 min · **Level:** intermediate
 
 - [ ] After a disconnect, return to the project and run `omp -c`. If that is the wrong session, run `omp -r` and search. Completed entries survive. An in-flight tail may not.
 - [ ] If keystrokes move a list, a picker has focus. Press Esc. If the display is garbled, press Alt+L. If you forgot a chord, run `/hotkeys`.
@@ -176,6 +194,8 @@ links:
 - [ ] If a setting seems ignored, run `omp config get <key>` from the launch directory. A later `--config`, flag, or environment override can win. `omp config set` never writes `.omp/config.yml`. Restart after editing YAML outside `/settings`.
 - [ ] Treat `~/.omp/agent/sessions/` as sensitive. It can hold prompts, source, tool output, and secrets. Use `omp --no-session` only when you accept that the run cannot be resumed. HTML export and `/share` links are readable by anyone who has the file or the full link.
 - [ ] Use `omp --profile <name>` when auth, sessions, and settings must stay separate. Resume only sees the active profile.
+
+**Verify:** `omp -c` resumed the right session and `omp config get <key>` explains any ignored setting.
 
 ## Best Practices
 

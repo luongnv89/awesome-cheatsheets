@@ -48,6 +48,8 @@ First-run checklist:
 
 ### Step 1 — Split roles by cognitive boundary
 
+**Goal:** Roles that each own a distinct context and output · **Time:** ~15 min · **Level:** intermediate
+
 Good sub-agents own a distinct context and output.
 
 | Role | Good output |
@@ -58,7 +60,11 @@ Good sub-agents own a distinct context and output.
 | Reviewer | Findings classified as must-fix or note. |
 | Release helper | Changelog, migration notes, and publish checklist. |
 
+**Verify:** Each sub-agent role maps to one output type from the table — no overlapping jobs.
+
 ### Step 2 — Write a handoff contract
+
+**Goal:** Every delegation spelling out its input and required return shape · **Time:** ~15 min · **Level:** intermediate
 
 Every delegation should say what input the sub-agent receives and what it must return.
 
@@ -72,7 +78,11 @@ Return:
 
 Avoid asking a sub-agent to both implement and approve its own work.
 
+**Verify:** Your contract names the verdict field and return items — and no agent approves its own work.
+
 ### Step 3 — Isolate context intentionally
+
+**Goal:** Sub-agents receiving only the context their task needs · **Time:** ~10 min · **Level:** intermediate
 
 Sub-agents are useful because they do not inherit every detail from the main session. Pass only the issue number, relevant files, branch or PR, and expected output.
 
@@ -81,13 +91,23 @@ Review PR #123 against issue #45. Do not redesign. Report only correctness,
 security, tests, and acceptance-criteria gaps.
 ```
 
+**Verify:** Your delegation passed only the issue, relevant files, and expected output — nothing more.
+
 ### Step 4 — Manage concurrency and dependencies
+
+**Goal:** Independent work parallel, dependent work sequential · **Time:** ~10 min · **Level:** intermediate
 
 Parallelize independent work such as docs research or separate review passes. Keep dependent work sequential: analysis before implementation, implementation before review, review before merge.
 
+**Verify:** Your parallel tasks share no dependency, and review still runs before merge.
+
 ### Step 5 — Summarize and discard heavy context
 
+**Goal:** The main session keeping only verdicts and next actions · **Time:** ~10 min · **Level:** intermediate
+
 The main agent should keep only concise results: issue, branch, PR, verdict, and next action. Store longer artifacts in files, comments, or PR descriptions.
+
+**Verify:** The main context holds issue, branch, verdict, and next action — long artifacts live in files.
 
 ## Best Practices
 

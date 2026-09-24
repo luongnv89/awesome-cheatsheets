@@ -52,6 +52,8 @@ Provider credentials are configured through OpenCode auth and provider settings.
 
 ### Step 1 — Start with one provider
 
+**Goal:** One provider authenticated and answering in your repo · **Time:** ~10 min · **Level:** beginner
+
 OpenCode is powered by provider definitions and supports many hosted and local models. Begin with one reliable provider before adding fallbacks.
 
 ```bash
@@ -61,7 +63,11 @@ opencode
 
 Use `/connect` or the documented auth flow to add keys. Confirm the chosen model can read, edit, and run checks in your repo before adding more providers.
 
+**Verify:** `opencode auth login` succeeded and a first prompt ran inside `opencode`.
+
 ### Step 2 — Add project instructions
+
+**Goal:** Concise, versioned project guidance covering stack, checks, and boundaries · **Time:** ~10 min · **Level:** beginner
 
 Create project guidance that explains the stack, checks, and file boundaries. Keep it concise and versioned.
 
@@ -73,7 +79,11 @@ Create project guidance that explains the stack, checks, and file boundaries. Ke
 - Mention the GitHub issue in commits and PRs
 ```
 
+**Verify:** Your instructions file names the package manager, the check command, and what's off-limits.
+
 ### Step 3 — Use CLI commands for automation
+
+**Goal:** Repeatable jobs driven through documented CLI subcommands · **Time:** ~15 min · **Level:** intermediate
 
 OpenCode can be driven interactively or through documented CLI subcommands.
 
@@ -85,7 +95,11 @@ opencode agent --help
 
 Use command-line invocation for repeatable jobs such as summarizing a repo, applying a focused patch, or running a review prompt in CI-like scripts.
 
+**Verify:** `opencode --help` lists the subcommands your scripts will call.
+
 ### Step 4 — Route models by task
+
+**Goal:** The right model posture per task type · **Time:** ~10 min · **Level:** intermediate
 
 | Task | Model posture |
 |---|---|
@@ -94,7 +108,11 @@ Use command-line invocation for repeatable jobs such as summarizing a repo, appl
 | Formatting or docs | Fast model plus deterministic lint/format tools. |
 | Sensitive code | Local or approved provider only, with strict review. |
 
+**Verify:** Each task type maps to a model posture — cheap for exploration, strong for architecture.
+
 ### Step 5 — Close every loop with checks
+
+**Goal:** Every task ending in a named check plus a reviewable diff · **Time:** ~10 min · **Level:** intermediate
 
 Ask OpenCode to name the exact command it will run before executing it.
 
@@ -104,6 +122,8 @@ pnpm test
 ```
 
 Treat the diff, command output, and acceptance criteria as the review artifact.
+
+**Verify:** The named check ran and the diff, output, and acceptance criteria all agree.
 
 ## Best Practices
 

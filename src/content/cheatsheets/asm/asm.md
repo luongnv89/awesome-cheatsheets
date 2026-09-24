@@ -54,6 +54,8 @@ which -a asm
 
 ### Step 1 — Inventory your skill estate
 
+**Goal:** A picture of every skill ASM can see across global and project scopes · **Time:** ~5 min · **Level:** beginner
+
 Start by seeing what ASM can discover across global and project scopes.
 
 ```bash
@@ -76,7 +78,11 @@ asm search "code review" --json
 
 Use the TUI (`asm`) for exploration and the CLI for repeatable commands.
 
+**Verify:** `asm list` returns your installed skills and `asm stats` prints counts per scope.
+
 ### Step 2 — Configure providers and scopes
+
+**Goal:** Providers and scopes set so commands hit only the agents you use · **Time:** ~10 min · **Level:** beginner
 
 ASM ships with 18 built-in providers enabled by default, including Claude Code, Codex, OpenClaw, Agents, Cursor, Windsurf, Cline, Roo Code, Continue, GitHub Copilot, Aider, OpenCode, Zed, Augment, Amp, Gemini CLI, Google Antigravity, and Hermes.
 
@@ -96,7 +102,11 @@ asm search "frontend" --tool codex --scope both
 asm inspect my-skill --json
 ```
 
+**Verify:** `asm config show` lists your enabled providers, and `asm list --tool claude --scope global` filters to them.
+
 ### Step 3 — Install skills safely
+
+**Goal:** Skills installed from the registry or GitHub, with risk previewed first · **Time:** ~10 min · **Level:** intermediate
 
 Install from the ASM Registry by bare or scoped name:
 
@@ -131,7 +141,11 @@ asm audit security github:user/repo
 asm install github:user/repo -p claude --yes --json
 ```
 
+**Verify:** `asm list` shows the newly installed skill, and `asm audit security` reported no blockers for untrusted sources.
+
 ### Step 4 — Clean, disable, update, and export
+
+**Goal:** A deduplicated, current skill set with a backup manifest · **Time:** ~15 min · **Level:** intermediate
 
 Find duplicates and remove redundant installs:
 
@@ -170,7 +184,11 @@ asm export > skills-manifest.json
 asm import skills-manifest.json
 ```
 
+**Verify:** `asm outdated` shows no pending updates (or only ones you deferred) and `skills-manifest.json` exists.
+
 ### Step 5 — Develop skills with a live local loop
+
+**Goal:** A scaffolded skill symlinked into an agent so edits show up immediately · **Time:** ~15 min · **Level:** advanced
 
 Scaffold a new skill:
 
@@ -201,7 +219,11 @@ asm install github:you/awesome-skill --force
 asm install github:you/awesome-skill -p claude --yes --json
 ```
 
+**Verify:** `asm list` shows the linked skill, and an edit in the source folder is visible to the agent without reinstalling.
+
 ### Step 6 — Audit and evaluate skill quality
+
+**Goal:** Security and quality scores for a skill before you ship or trust it · **Time:** ~10 min · **Level:** advanced
 
 Run a security audit before publishing or installing unknown skills:
 
@@ -224,7 +246,11 @@ Verification checks basic index eligibility: valid frontmatter, meaningful body,
 
 Quality evaluation goes deeper: structure, frontmatter, clarity, prompt engineering, context efficiency, safety, testability, and naming.
 
+**Verify:** `asm audit security my-skill` reports no findings and `asm eval ./my-skill` prints a quality report.
+
 ### Step 7 — Publish and distribute
+
+**Goal:** Your skill installable by name from the ASM Registry · **Time:** ~15 min · **Level:** advanced
 
 Publish a GitHub-hosted skill to the ASM Registry so users can install it by name:
 
@@ -249,7 +275,11 @@ asm bundle show my-workflow
 asm bundle remove my-workflow
 ```
 
+**Verify:** `asm publish --dry-run ./my-skill` completes its validation pipeline without errors.
+
 ### Step 8 — Automate with JSON and machine output
+
+**Goal:** ASM wired into scripts and CI with stable machine output · **Time:** ~10 min · **Level:** advanced
 
 Use JSON for ad-hoc scripts and `--machine` for stable CI envelopes.
 
@@ -269,6 +299,8 @@ asm install --help
 asm audit security --help
 asm eval --help
 ```
+
+**Verify:** `asm list --json` emits parseable JSON and `asm --help` runs on your installed version.
 
 ## Best Practices
 

@@ -45,6 +45,8 @@ First-run checklist:
 
 ### Step 1 — Learn the topology
 
+**Goal:** The six MCP components and who controls each one · **Time:** ~10 min · **Level:** beginner
+
 | Component | Role |
 |---|---|
 | Host | The user-facing AI app or IDE. |
@@ -54,7 +56,11 @@ First-run checklist:
 | Resource | Application-controlled context such as files or records. |
 | Prompt | Reusable prompt template exposed by the server. |
 
+**Verify:** You can explain host vs client vs server and name a tool, a resource, and a prompt.
+
 ### Step 2 — Start with read-only capabilities
+
+**Goal:** Working read paths before any write action exists · **Time:** ~30 min · **Level:** intermediate
 
 Before exposing write actions, build resources and read-only tools.
 
@@ -67,7 +73,11 @@ tools/call            # call one action with validated inputs
 
 Write tools should have explicit names, narrow schemas, and auditable side effects.
 
+**Verify:** `resources/list` and `tools/list` return your read-only capabilities before any write tool exists.
+
 ### Step 3 — Design tool schemas for intent
+
+**Goal:** Tool names and schemas that say what user outcome they support · **Time:** ~20 min · **Level:** intermediate
 
 A good tool name says what user outcome it supports.
 
@@ -88,11 +98,19 @@ A good tool name says what user outcome it supports.
 
 Avoid generic tools like `run_any_sql` or `shell` unless the host adds strong approvals.
 
+**Verify:** Every tool name states an outcome and its schema is narrow — no generic `run_any_sql` or `shell`.
+
 ### Step 4 — Treat auth as part of the boundary
+
+**Goal:** Credentials scoped and stored outside prompts · **Time:** ~15 min · **Level:** intermediate
 
 Store credentials in the server environment or host-approved secret storage, not in prompts. Scope tokens to the minimum API permissions and log only metadata needed for debugging.
 
+**Verify:** Tokens live in server env or host-approved storage — never in prompts — with minimum scopes.
+
 ### Step 5 — Debug in layers
+
+**Goal:** A fixed order for isolating which layer is failing · **Time:** ~10 min · **Level:** intermediate
 
 When a server does not work, isolate the layer:
 
@@ -101,6 +119,8 @@ When a server does not work, isolate the layer:
 3. Do `list` calls show expected tools/resources/prompts?
 4. Does a minimal valid call succeed?
 5. Are auth, network, or schema errors surfaced clearly?
+
+**Verify:** You identified which numbered layer fails first instead of guessing.
 
 ## Best Practices
 

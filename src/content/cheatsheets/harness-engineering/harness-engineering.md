@@ -44,6 +44,8 @@ First-run checklist:
 
 ### Step 1 — Define the work envelope
 
+**Goal:** Written answers for what the agent may know, do, store, and be judged by · **Time:** ~15 min · **Level:** intermediate
+
 A harness starts by specifying what the agent is allowed to know and do.
 
 | Surface | Harness question |
@@ -53,7 +55,11 @@ A harness starts by specifying what the agent is allowed to know and do.
 | State | Where are plans, logs, checkpoints, and handoffs stored? |
 | Feedback | Which tests, reviews, evals, and metrics judge progress? |
 
+**Verify:** Each row of the table has a concrete answer — context, tools, state, and feedback are all specified.
+
 ### Step 2 — Convert intent into operating instructions
+
+**Goal:** A concise runbook that turns goals into repeatable loops · **Time:** ~20 min · **Level:** intermediate
 
 Write a concise runbook that turns vague goals into repeatable loops.
 
@@ -67,7 +73,11 @@ Write a concise runbook that turns vague goals into repeatable loops.
 6. Write handoff notes and open a PR.
 ```
 
+**Verify:** Your runbook names the check to run after each slice and how a task is handed off.
+
 ### Step 3 — Build feedback loops before autonomy
+
+**Goal:** Fast checks in place before the agent runs unsupervised · **Time:** ~30 min · **Level:** intermediate
 
 An agent without feedback drifts. Add fast checks first:
 
@@ -76,7 +86,11 @@ An agent without feedback drifts. Add fast checks first:
 - Reviewer prompts focused on acceptance criteria and regressions.
 - Handoff notes that make the next session cheaper.
 
+**Verify:** A failing check actually blocks the agent — run one and confirm it catches a regression.
+
 ### Step 4 — Add memory and artifacts deliberately
+
+**Goal:** Durable artifacts carrying the facts that must survive sessions · **Time:** ~20 min · **Level:** intermediate
 
 Use durable artifacts for facts that should survive sessions:
 
@@ -87,7 +101,11 @@ Use durable artifacts for facts that should survive sessions:
 | Eval fixtures | Inputs and expected outputs for recurring tasks. |
 | Handoff notes | What changed, what failed, and what remains. |
 
+**Verify:** Each artifact type in the table exists and is being updated — rules, decisions, fixtures, handoffs.
+
 ### Step 5 — Measure the harness, not just the model
+
+**Goal:** Metrics that tell you the harness — not the model — is the bottleneck · **Time:** ~15 min · **Level:** advanced
 
 Track metrics that the team can improve without changing models:
 
@@ -96,6 +114,8 @@ Track metrics that the team can improve without changing models:
 - Rework caused by missing context.
 - Commands blocked by policy.
 - Follow-up issues created after merge.
+
+**Verify:** You can state your current first-run pass rate and rework rate from the metrics above.
 
 ## Best Practices
 

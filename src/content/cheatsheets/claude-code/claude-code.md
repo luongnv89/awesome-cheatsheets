@@ -49,6 +49,8 @@ If `claude install` is not available in your environment, follow the current ins
 
 ### Step 1 — Ground Claude in the repository
 
+**Goal:** A `CLAUDE.md` at the repo root carrying only durable project facts · **Time:** ~10 min · **Level:** beginner
+
 Create or update `CLAUDE.md` at the repo root with only durable facts:
 
 ```md
@@ -61,7 +63,11 @@ Create or update `CLAUDE.md` at the repo root with only durable facts:
 
 Use `/memory` and `/context` to confirm what loaded. Keep memory short; project rules belong in `CLAUDE.md`, while personal preferences belong in user memory.
 
+**Verify:** `/memory` and `/context` show your `CLAUDE.md` content loaded.
+
 ### Step 2 — Choose a permission posture
+
+**Goal:** A permission level matched to how much you trust the repo · **Time:** ~5 min · **Level:** beginner
 
 Start strict, then relax only for trusted repos.
 
@@ -72,7 +78,11 @@ Start strict, then relax only for trusted repos.
 | CI-style automation | Allowlisted commands and hooks that fail unsafe actions |
 | Secrets or production | Separate sandbox, no broad filesystem or network access |
 
+**Verify:** Your posture matches the table — strict on unknown repos, relaxed only where trusted.
+
 ### Step 3 — Add deterministic hooks
+
+**Goal:** Guardrails enforced by hooks instead of prompt wording · **Time:** ~15 min · **Level:** intermediate
 
 Hooks make repeated guardrails deterministic instead of prompt-dependent. Common hooks run formatters after edits, reject dangerous commands, or notify when a task finishes.
 
@@ -91,7 +101,11 @@ Hooks make repeated guardrails deterministic instead of prompt-dependent. Common
 
 Keep hook commands fast and idempotent. If a hook can delete files, publish packages, deploy, or rewrite history, require human review.
 
+**Verify:** Make an edit and watch the hook fire — e.g. the formatter runs on the saved file.
+
 ### Step 4 — Connect external context with MCP
+
+**Goal:** External tools exposed to Claude through typed MCP interfaces · **Time:** ~15 min · **Level:** intermediate
 
 Use MCP servers for tools Claude should discover and call through a typed interface: issue trackers, docs search, databases, observability, or local project utilities.
 
@@ -102,13 +116,19 @@ Use MCP servers for tools Claude should discover and call through a typed interf
 
 Prefer narrow MCP servers over broad shell access. Name tools by user intent, document inputs, and log side effects.
 
+**Verify:** `/mcp` lists your connected servers and tools; `/doctor` reports no loading errors.
+
 ### Step 5 — Work in small issue loops
+
+**Goal:** A repeatable loop that keeps every change reviewable · **Time:** ~10 min · **Level:** intermediate
 
 1. Ask Claude to restate the issue and acceptance criteria.
 2. Request a short plan before edits.
 3. Let it edit one coherent slice.
 4. Run the project checks.
 5. Review the diff yourself before commit or PR.
+
+**Verify:** Each loop ends with project checks passing and a diff you reviewed yourself.
 
 ## Best Practices
 

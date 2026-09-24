@@ -99,7 +99,9 @@ flatpak install flathub md.obsidian.Obsidian
 
 ## Step-by-Step Setup & Optimization
 
-### Step 1 — Enable Core Plugins (5 min)
+### Step 1 — Enable Core Plugins
+
+**Goal:** The essential first-party plugins switched on · **Time:** ~5 min · **Level:** beginner
 
 Open **Settings (⚙)** → **Core plugins** and turn on the essentials:
 
@@ -112,21 +114,34 @@ Open **Settings (⚙)** → **Core plugins** and turn on the essentials:
 - **Search** & **Command Palette** (`Ctrl/Cmd + P`)
 - **Canvas** — visual mind-mapping (optional)
 
-> **Why:** Core plugins are first-party and zero-risk. Get value from them before reaching for community plugins.
+> [!NOTE]
+> Core plugins are first-party and zero-risk. Get value from them before reaching for community plugins.
 
-### Step 2 — Set Conventions Before You Have Notes (5 min)
+**Verify:** Daily Notes, Backlinks, and Quick Switcher are enabled under Settings → Core plugins.
+
+### Step 2 — Set Conventions Before You Have Notes
+
+**Goal:** File, attachment, and naming conventions fixed before the vault grows · **Time:** ~5 min · **Level:** beginner
 
 - **Settings → Files & Links:** set a default location for new notes (root or a `Notes` folder), and an **Attachments** folder for images/PDFs so media doesn't litter the root.
 - **Settings → Appearance:** pick a theme. The built-in light/dark themes are fine to start; community themes can come later.
 - Decide **naming conventions now**: lowercase tags (`#project`, not `#Project`), and a rule for singular vs. plural. Consistency makes search and tags actually work.
 
-### Step 3 — Create a Home MOC + Daily Folder (5 min)
+**Verify:** Settings → Files & Links shows your default note location and attachments folder, and your tag casing rule is written down.
+
+### Step 3 — Create a Home MOC + Daily Folder
+
+**Goal:** A `Home MOC` dashboard and a `Daily/` folder wired to Daily Notes · **Time:** ~5 min · **Level:** beginner
 
 1. Create `Home MOC.md` (or `Home.md`) as your dashboard — a hand-maintained index page that links to your major MOCs and active projects.
 2. Make a `Daily/` folder and point Daily Notes at it (**Settings → Daily Notes → New file location**).
 3. Optionally set a **Daily Note template** (a `Templates/` folder + the Templates plugin) with your standard headings (e.g. `## Captured`, `## Tasks`, `## Log`).
 
-### Step 4 — Learn the Core Loop: Link As You Write (10 min)
+**Verify:** `Home MOC.md` exists and Daily Notes creates new files inside `Daily/`.
+
+### Step 4 — Learn the Core Loop: Link As You Write
+
+**Goal:** The link-as-you-write habit and core note syntax · **Time:** ~10 min · **Level:** beginner
 
 This is the single highest-leverage habit in Obsidian.
 
@@ -144,9 +159,14 @@ This is the single highest-leverage habit in Obsidian.
   ```
 - Open the **Backlinks** pane to see what links *in*. Open **Graph View** to see clusters.
 
-> **Rule of thumb:** aim for **3+ links per new note**. If a note connects to nothing, it will be lost. Links beat folders for retrieval.
+> [!TIP]
+> Aim for **3+ links per new note**. If a note connects to nothing, it will be lost. Links beat folders for retrieval.
+
+**Verify:** A new note links to 3+ others via `[[` and shows incoming links in the Backlinks pane.
 
 ### Step 5 — Add 3–5 Community Plugins (only when you feel the need)
+
+**Goal:** 3–5 community plugins added only where real friction exists · **Time:** ~15 min · **Level:** intermediate
 
 **Settings → Community plugins → Browse.** Don't install everything — add a plugin when a real friction appears.
 
@@ -156,9 +176,14 @@ Commonly recommended starters:
 - **Templater** — more powerful templating than the core plugin.
 - **Style Settings** — UI knobs for themes that support it.
 
-> **Why minimal:** every plugin is third-party code with a startup and maintenance cost. More plugins = more breakage on Obsidian updates and slower launches.
+> [!WARNING]
+> Every plugin is third-party code with a startup and maintenance cost. More plugins = more breakage on Obsidian updates and slower launches.
+
+**Verify:** Settings → Community plugins lists only the plugins you deliberately added.
 
 ### Step 6 — Dataview: Turn Notes Into Dynamic Lists (intermediate)
+
+**Goal:** Dataview queries rendering live lists from note metadata · **Time:** ~20 min · **Level:** intermediate
 
 With the **Dataview** plugin enabled, embed a query in a fenced `dataview` block. Queries read the properties and `file.*` metadata across your vault.
 
@@ -181,7 +206,11 @@ WHERE !completed
 
 > Dataview has its own query language (DQL) plus a JS API. Start with `LIST` and `TASK`; reach for `TABLE` and JS only when you need them.
 
+**Verify:** A `dataview` block in a note renders your recent-daily-notes list.
+
 ### Step 7 — Back Up With Git (free, versioned)
+
+**Goal:** The vault under Git with volatile UI state ignored · **Time:** ~15 min · **Level:** intermediate
 
 Because the vault is plain text, Git is a natural fit.
 
@@ -196,7 +225,11 @@ Then push to a private remote and commit regularly (or use the community **Obsid
 
 > **Why:** Git gives you history, rollback, and recovery for free — and Markdown means every backup is human-readable forever.
 
+**Verify:** Your `git commit -m "init vault"` succeeded and `.gitignore` excludes `.obsidian/workspace*`.
+
 ### Step 8 — Pick a Workflow & Iterate (ongoing)
+
+**Goal:** One lightweight framework adapted to your vault, not adopted whole · **Time:** ~15 min · **Level:** intermediate
 
 Choose a light framework and adapt it — don't adopt it whole on day one:
 
@@ -205,6 +238,8 @@ Choose a light framework and adapt it — don't adopt it whole on day one:
 - **Source separation** — keep raw references (clippings, papers) in one place; process them into linked evergreen notes in your own words.
 
 Review the **Graph weekly**, spot clusters, and promote recurring themes into new MOCs.
+
+**Verify:** You picked PARA, Zettelkasten, or source separation — and your folders reflect the choice.
 
 ## Best Practices
 

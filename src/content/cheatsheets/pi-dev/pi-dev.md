@@ -79,6 +79,8 @@ links:
 
 ### Step 1 — Basic working setup
 
+**Goal:** Pi running with default tools and a checkpoint habit before edits · **Time:** ~10 min · **Level:** beginner
+
 - Start with the default core: Pi gives the model `read`, `write`, `edit`, and `bash`; read-only `grep`, `find`, and `ls` are also available through tool options.
 - Send a first prompt that asks Pi to learn the project before editing:
 
@@ -93,7 +95,11 @@ links:
   pi --tools read,grep,find,ls -p "Review the code for risky changes"
   ```
 
+**Verify:** Pi answered your repo summary and `pi --tools read,grep,find,ls -p` ran a read-only review.
+
 ### Step 2 — Project context and repeatable instructions
+
+**Goal:** `AGENTS.md` rules loaded from the repo root plus global defaults · **Time:** ~10 min · **Level:** beginner
 
 - Add project rules to `AGENTS.md` in the repo root:
 
@@ -119,7 +125,11 @@ links:
   pi --no-context-files -p "Summarize this repository without project instructions"
   ```
 
+**Verify:** `/reload` picked up your `AGENTS.md` and Pi follows its rules in the next prompt.
+
 ### Step 3 — Daily editor workflow
+
+**Goal:** Files, shell output, and steering handled from the editor · **Time:** ~15 min · **Level:** beginner
 
 - Reference files from the editor with `@`, or pass files on the command line:
 
@@ -144,7 +154,11 @@ links:
 - Use `Ctrl+G` to open `$VISUAL` or `$EDITOR` for longer prompts.
 - Queue guidance while the agent works: `Enter` steers after current tool calls, `Alt+Enter` queues a follow-up, `Escape` aborts.
 
+**Verify:** `pi @README.md` summarized a file and `!npm run lint` fed its output into context.
+
 ### Step 4 — Providers, models, and thinking level
+
+**Goal:** Models, providers, and thinking level chosen per task · **Time:** ~15 min · **Level:** intermediate
 
 - Use `/model` or `Ctrl+L` to switch models interactively.
 - Use `Ctrl+P` / `Shift+Ctrl+P` to cycle scoped models configured through `/scoped-models`, `--models`, or `enabledModels`.
@@ -160,7 +174,11 @@ links:
 - Prefer subscription login for Claude Pro/Max, ChatGPT Plus/Pro, or GitHub Copilot; prefer env vars or `~/.pi/agent/auth.json` for API-key providers.
 - Remember credential resolution order: CLI `--api-key`, then `auth.json`, then environment variable, then custom provider keys from `models.json`.
 
+**Verify:** `pi --list-models` shows your provider's models and `/model` switches the session model.
+
 ### Step 5 — Settings baseline
+
+**Goal:** A small documented `settings.json` baseline with compaction and retries · **Time:** ~15 min · **Level:** intermediate
 
 - Put global settings in `~/.pi/agent/settings.json` and project overrides in `.pi/settings.json`; project settings override global settings and nested objects merge.
 - Start with a small, documented baseline:
@@ -189,7 +207,11 @@ links:
 - Set `PI_SKIP_VERSION_CHECK=1` when you only want to disable the Pi latest-version request.
 - Set `enableInstallTelemetry: false` only for the anonymous install/update ping; it does not disable update checks.
 
+**Verify:** `/settings` reflects your baseline and project `.pi/settings.json` merges over the global file.
+
 ### Step 6 — Sessions, branching, and context management
+
+**Goal:** Sessions resumed, forked, and compacted instead of re-prompted · **Time:** ~15 min · **Level:** intermediate
 
 - Continue or browse previous sessions from the CLI:
 
@@ -215,7 +237,11 @@ links:
 - Fork before risky refactors; tree sessions are cheaper than re-prompting from scratch.
 - Tune compaction only when defaults get in the way: `compaction.reserveTokens`, `compaction.keepRecentTokens`, and branch-summary settings are available in `settings.json`.
 
+**Verify:** `pi -c` continues your last session and `/tree` jumps to an earlier point.
+
 ### Step 7 — Packages, skills, prompts, themes, and extensions
+
+**Goal:** Extensions, skills, and packages installed only after review · **Time:** ~20 min · **Level:** advanced
 
 - Prefer the Pi-native path first: ask Pi to write the extension, skill, prompt template, or theme for your exact workflow, then review it and reload it.
 - Install shared Pi packages only after you know the workflow repeats and you have reviewed the source:
@@ -248,7 +274,11 @@ links:
 - Invoke skills with `/skill:name`; use `/skill:name args` to append arguments as user input.
 - Keep skill descriptions specific because Pi loads full skill instructions only when the task matches the name/description.
 
+**Verify:** `pi list` shows installed packages and `/skill:name` invokes a local skill.
+
 ### Step 8 — Advanced extension and automation path
+
+**Goal:** A tested custom extension or programmatic mode wired in · **Time:** ~1 h · **Level:** advanced
 
 - Use extensions when you need custom tools, commands, lifecycle hooks, UI, provider registration, path protection, or permission gates.
 - Start with one TypeScript file and test with `pi -e`:
@@ -275,6 +305,8 @@ links:
   pi --mode json -p "Run a read-only repo audit"
   pi --mode rpc
   ```
+
+**Verify:** `pi -e ./my-extension.ts` loaded your extension and a dangerous command triggered the confirm gate.
 
 ## Best Practices
 

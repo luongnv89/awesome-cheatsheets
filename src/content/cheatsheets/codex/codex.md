@@ -50,6 +50,8 @@ First-run checklist:
 
 ### Step 1 — Pick the right interface
 
+**Goal:** The Codex surface that matches how you work · **Time:** ~5 min · **Level:** beginner
+
 | Interface | Best for |
 |---|---|
 | `codex` CLI | Terminal-native repo edits, tests, and PR prep. |
@@ -57,7 +59,11 @@ First-run checklist:
 | `codex app` | Desktop workflow when you want a local app surface. |
 | Codex Web | Cloud task delegation from ChatGPT/Codex surfaces. |
 
+**Verify:** You know which interface you're using and why — CLI, IDE, app, or web.
+
 ### Step 2 — Configure model and project defaults
+
+**Goal:** Model, approval, and sandbox defaults set at the right config level · **Time:** ~10 min · **Level:** intermediate
 
 Codex reads personal defaults from `~/.codex/config.toml` and can read project overrides from `.codex/config.toml` after trust is established.
 
@@ -74,7 +80,11 @@ codex --model gpt-5.4 --sandbox workspace-write
 codex --oss
 ```
 
+**Verify:** `~/.codex/config.toml` (or `.codex/config.toml`) holds your `model`, `approval_policy`, and `sandbox` values.
+
 ### Step 3 — Set sandbox and approval policy intentionally
+
+**Goal:** A sandbox mode chosen deliberately, not by default · **Time:** ~5 min · **Level:** intermediate
 
 | Mode | When to use |
 |---|---|
@@ -84,7 +94,11 @@ codex --oss
 
 Network access is intentionally constrained by default in workspace mode. Enable it only for tasks that require package installs, API calls, or remote docs.
 
+**Verify:** Your sandbox mode matches the task — `read-only` for review, `workspace-write` for normal work.
+
 ### Step 4 — Run task loops with evidence
+
+**Goal:** Codex executing one planned slice at a time with checks after edits · **Time:** ~15 min · **Level:** intermediate
 
 Ask Codex to produce a plan, then execute a single slice:
 
@@ -100,9 +114,15 @@ pnpm type-check
 pnpm test
 ```
 
+**Verify:** The smallest relevant check passed after the slice, then the broader suite.
+
 ### Step 5 — Review before merge
 
+**Goal:** A diff you approved line by line before it lands · **Time:** ~10 min · **Level:** intermediate
+
 Use the generated diff as a proposal, not a final answer. Check for over-broad rewrites, hidden config changes, generated files, and unapproved network or filesystem assumptions.
+
+**Verify:** You read the full diff and found no over-broad rewrites or hidden config changes.
 
 ## Best Practices
 

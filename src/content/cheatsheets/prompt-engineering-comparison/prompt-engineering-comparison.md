@@ -44,6 +44,8 @@ First-run checklist:
 
 ### Step 1 — Compare prompt surfaces
 
+**Goal:** The prompting adjustment that fits each surface you use · **Time:** ~10 min · **Level:** beginner
+
 | Surface | Strength | Prompting adjustment |
 |---|---|---|
 | Chat/API | Precise control over messages and examples. | Include schemas and evaluation examples. |
@@ -51,7 +53,11 @@ First-run checklist:
 | IDE agent | Tight edit/review loop. | Point at selections and ask for minimal diffs. |
 | Multi-agent workflow | Parallel roles and fresh reviews. | Define handoff contracts and stop conditions. |
 
+**Verify:** You can name the prompting adjustment for the surface you prompt most.
+
 ### Step 2 — Frame the task with boundaries
+
+**Goal:** A prompt that names goal, context, constraints, and proof · **Time:** ~10 min · **Level:** beginner
 
 A strong coding prompt names the goal, context, constraints, and proof.
 
@@ -62,7 +68,11 @@ Constraints: Do not edit validator rules or generated files.
 Proof: Run pnpm cheatsheet:lint <file> --no-links.
 ```
 
+**Verify:** Your last prompt contained all four parts — goal, context, constraints, and a runnable proof.
+
 ### Step 3 — Use examples when output shape matters
+
+**Goal:** An example pinned to the output format you expect · **Time:** ~10 min · **Level:** intermediate
 
 For code, provide a nearby file. For docs, provide the target template. For reviews, provide the expected finding format.
 
@@ -74,7 +84,11 @@ Return findings as:
 - suggested fix
 ```
 
+**Verify:** The output matched your example's shape — fields, order, and granularity.
+
 ### Step 4 — Iterate with deltas, not resets
+
+**Goal:** Steering by specific deltas instead of re-prompting from scratch · **Time:** ~10 min · **Level:** intermediate
 
 After a first answer, steer with specific deltas:
 
@@ -84,7 +98,11 @@ After a first answer, steer with specific deltas:
 
 Avoid restarting with a brand-new vague prompt after the agent has useful context.
 
+**Verify:** Your follow-ups named what to keep and what to change — no full resets.
+
 ### Step 5 — Evaluate prompts like code
+
+**Goal:** Prompt quality judged by observable outcomes, not vibes · **Time:** ~15 min · **Level:** intermediate
 
 Track prompt quality with observable outcomes:
 
@@ -93,6 +111,8 @@ Track prompt quality with observable outcomes:
 - Were acceptance criteria satisfied?
 - Did reviewers find preventable issues?
 - Can another agent reproduce the workflow from the prompt?
+
+**Verify:** You scored your last prompt against the checklist above and found what to tighten.
 
 ## Best Practices
 
