@@ -58,7 +58,7 @@ async function createEngine(): Promise<MermaidEngine> {
 /**
  * Lazily build (and memoize) the headless Mermaid engine.
  */
-export function getMermaidEngine(): Promise<MermaidEngine> {
+function getMermaidEngine(): Promise<MermaidEngine> {
   if (enginePromise === undefined) {
     enginePromise = createEngine();
   }
