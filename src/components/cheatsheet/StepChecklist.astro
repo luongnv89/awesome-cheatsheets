@@ -15,17 +15,15 @@
 ---
 
 <script>
+  import { loadProgress } from './step-progress';
+
   const container = document.querySelector('.cheatsheet-content');
   if (container) {
     const slug = container.getAttribute('data-slug') ?? 'unknown';
     const storageKey = `cheatsheet-progress:${slug}`;
-    /** @type {Record<string, boolean>} */
-    let state = {};
-    try {
-      state = JSON.parse(localStorage.getItem(storageKey) ?? '{}') ?? {};
-    } catch {
-      state = {};
-    }
+    // Guarded read — non-object JSON payloads in localStorage are rejected
+    // rather than crashing strict-mode property writes (issue #139).
+    const state = loadProgress(localStorage, storageKey);
     const persist = () => {
       try {
         localStorage.setItem(storageKey, JSON.stringify(state));
