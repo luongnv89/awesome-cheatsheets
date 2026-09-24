@@ -87,6 +87,7 @@ Use the contributor tutorial at `docs/contributing.md` for the full authoring wo
 
 - Vitest covers the validator, CLI, freshness logic, and CI helpers.
 - Playwright covers catalog browsing, filters, search, freshness display, and core pages.
+- The `e2e` job in `ci.yml` runs `pnpm test:e2e` on every PR to `main`.
 - Lighthouse CI runs in the main CI workflow against representative generated pages.
 - The no-CDN gate scans `dist/` after build.
 

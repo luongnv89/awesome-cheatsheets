@@ -1,4 +1,7 @@
 import { test, expect } from "@playwright/test";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
+import { parse } from "yaml";
 
 /**
  * Catalog filter pills (issue #22).
@@ -21,24 +24,36 @@ import { test, expect } from "@playwright/test";
  */
 
 // Tags from every cheatsheet currently visible in the catalog
-// (status === "published"; see issue #90). The catalog publishes
-// `hermes-agent` and `pi-dev`; their tag union — alphabetized to match
-// the source iteration order in `src/pages/index.astro` — drives the
-// expected pill count below.
-const PUBLISHED_TAGS = [
-  "autonomous-agent",
-  "cli",
-  "coding-agent",
-  "extensions",
-  "hermes-agent",
-  "kanban",
-  "mcp",
-  "memory",
-  "nousresearch",
-  "pi",
-  "pi-dev",
-  "skills",
-];
+// (status === "published"; see issue #90). Derived from the corpus at
+// test time — the previous hardcoded snapshot silently went stale every
+// time a published cheatsheet landed, which is the drift this count
+// assertion exists to catch (issue #115). Mirrors the tag pipeline in
+// `src/pages/index.astro`: status-published entries only, unique tags,
+// alphabetical order.
+const CHEATSHEETS_DIR = join(process.cwd(), "src/content/cheatsheets");
+const PUBLISHED_TAGS = Array.from(
+  new Set(
+    readdirSync(CHEATSHEETS_DIR, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .flatMap((entry) => {
+        const file = join(CHEATSHEETS_DIR, entry.name, `${entry.name}.md`);
+        // A dir without `<slug>.md` contributes no collection entry — same
+        // as Astro's getCollection, so it contributes no tags either.
+        if (!existsSync(file)) return [];
+        const frontmatter = readFileSync(file, "utf8").match(
+          /^---\r?\n([\s\S]*?)\r?\n---/,
+        );
+        if (!frontmatter) return [];
+        const data = parse(frontmatter[1]) as {
+          status?: string;
+          tags?: string[];
+        };
+        // Schema defaults `status` to "published" when the field is absent.
+        if ((data.status ?? "published") !== "published") return [];
+        return data.tags ?? [];
+      }),
+  ),
+).sort();
 
 test.describe("Catalog filter pills", () => {
   test.beforeEach(async ({ page }) => {
@@ -69,7 +84,8 @@ test.describe("Catalog filter pills", () => {
     await expect(tagPills).toHaveCount(PUBLISHED_TAGS.length);
     // Sample a few values to confirm rendering — we don't need to match
     // exact order since the source iterates a Set sorted alphabetically.
-    for (const tag of ["mcp", "cli", "memory"]) {
+    // Samples come from the derived set so the corpus can't drift them.
+    for (const tag of PUBLISHED_TAGS.slice(0, 3)) {
       await expect(
         page.locator(
           `.catalog-filter-pill[data-filter-axis="tag"][data-filter-value="${tag}"]`,

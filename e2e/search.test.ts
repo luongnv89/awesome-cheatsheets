@@ -79,7 +79,11 @@ test.describe("Catalog search (Pagefind)", () => {
 
   test("empty state appears when no results match", async ({ page }) => {
     const input = page.locator(".catalog-search-input");
-    await input.fill("zzzzzzzzzzzzzzzzzzz");
+    // Emoji carry no indexable tokens, so Pagefind returns zero results
+    // regardless of corpus content. A gibberish word is NOT reliable here:
+    // the index grew fuzzy-tolerant enough that strings like "zzz..." match
+    // real pages (issue #115).
+    await input.fill("🚫🚫🚫");
     await expect(page.locator(".catalog-search-empty")).toBeVisible({
       timeout: 5_000,
     });
@@ -129,10 +133,8 @@ test.describe("Catalog search (Pagefind)", () => {
     const trials = 5;
     const queries = ["h", "he", "her", "herm", "hermes"];
 
-    const measurements: number[] = [];
-    for (let i = 0; i < trials; i++) {
-      const q = queries[i % queries.length];
-      const elapsed = await page.evaluate(async (query: string) => {
+    const measureKeystroke = (query: string): Promise<number> =>
+      page.evaluate(async (q: string) => {
         const root = document.querySelector(".catalog-search") as HTMLElement;
         const input = document.querySelector(
           ".catalog-search-input",
@@ -151,15 +153,23 @@ test.describe("Catalog search (Pagefind)", () => {
           };
           root.addEventListener("catalog-search:rendered", handler);
         });
-        input.value = query;
+        input.value = q;
         input.dispatchEvent(new Event("input", { bubbles: true }));
         await done;
         // Subtract the component's known debounce window (120 ms). What
         // remains is the search-call-plus-render latency, which is what
         // the p95 budget targets.
         return Math.max(0, performance.now() - start - 120);
-      }, q);
-      measurements.push(elapsed);
+      }, query);
+
+    // Warm-up run, excluded from the samples: the first Pagefind search in
+    // a session pays one-time wasm/module init that is not part of the
+    // steady-state keystroke budget (flake fix, issue #115).
+    await measureKeystroke("hermes");
+
+    const measurements: number[] = [];
+    for (let i = 0; i < trials; i++) {
+      measurements.push(await measureKeystroke(queries[i % queries.length]));
     }
 
     measurements.sort((a, b) => a - b);

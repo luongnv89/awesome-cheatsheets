@@ -84,6 +84,7 @@ flowchart TB
   CI --> Build[Astro + Pagefind]
   CI --> NoCDN[No-CDN gate]
   CI --> Lighthouse[Lighthouse CI]
+  CI --> E2E[Playwright e2e]
   Main[Push to main] --> Deploy[deploy.yml]
   Deploy --> Pages[GitHub Pages]
   Schedule[Weekly cron] --> Freshness[freshness.yml]

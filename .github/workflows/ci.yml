@@ -11,6 +11,10 @@ name: ci
 #   6. lighthouse   — @lhci/cli autorun against `astro preview` of dist/
 #   7. audit        — `pnpm audit --prod` as a non-blocking warning
 #
+# A second job, `e2e`, runs in parallel (issue #115):
+#   playwright install (browser binaries cached by @playwright/test version)
+#   → `pnpm test:e2e` (fixture build + pagefind + playwright test).
+#
 # Workflow split (Decision Record in PR #issue-24):
 #   This workflow runs alongside `.github/workflows/lint.yml`. The lint
 #   workflow remains responsible for the cheatsheet-domain lint (Hermes
@@ -95,3 +99,66 @@ jobs:
       - name: Audit production dependencies (non-blocking)
         run: pnpm audit --prod
         continue-on-error: true
+
+  # E2E gate (issue #115). Runs alongside `ci` rather than after it so the
+  # Playwright suite adds no wall-clock time to the existing pipeline. The
+  # script is self-contained: `pnpm test:e2e` builds with
+  # INCLUDE_E2E_FIXTURES=1, runs pagefind, then playwright against
+  # `astro preview` (see playwright.config.ts — CI gets retries=2, workers=1).
+  e2e:
+    name: e2e (playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Playwright downloads its own Chromium build — the runner's system
+      # Chrome is not used. Browser binaries live in ~/.cache/ms-playwright
+      # and are keyed on the installed @playwright/test version so a version
+      # bump busts the cache automatically.
+      - name: Get Playwright version
+        id: playwright-version
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}
+          restore-keys: ${{ runner.os }}-playwright-
+
+      # --with-deps installs the OS libraries Chromium needs (passwordless
+      # sudo on ubuntu-latest); with a warm browser cache this is the only
+      # part of the install that still runs.
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: E2E tests (playwright)
+        run: pnpm test:e2e
+
+      # Error contexts and any HTML report land in these dirs on failure;
+      # `reporter: "list"` means playwright-report/ usually does not exist.
+      - name: Upload Playwright artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-failure-artifacts
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore
