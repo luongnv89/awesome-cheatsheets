@@ -97,6 +97,7 @@ the same ids.
 | `mermaid-fence-broken` | A `mermaid` fence opens but is unterminated, malformed, or wrapped wrong. |
 | `mermaid-empty` | A `mermaid` fence is present but its body is empty / whitespace-only. |
 | `mermaid-parse-failed` | A `mermaid` fence is well-formed but the diagram does not parse with the real Mermaid engine (would not render). Gated on `MERMAID_RULES.mustParse`; parsed headless via `jsdom` + `mermaid`. |
+| `mermaid-engine-not-bundled` | A `mermaid` block parses, but its detected diagram type is outside `MERMAID_RULES.bundledDiagrams` or a config directive requests a layout outside `MERMAID_RULES.bundledLayouts` — the site build trims those engines (issue #141), so the diagram would not render. |
 | `link-broken` | An external `http(s)://` link failed the HEAD probe (suppressed via `--no-links` or `CHEATSHEET_LINT_SKIP_LINKS=1`). |
 
 See `rules.ts` for the union of ids and the source-level pointers; each rule
