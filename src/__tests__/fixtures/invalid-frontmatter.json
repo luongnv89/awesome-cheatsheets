@@ -1,0 +1,14 @@
+{
+  "title": "",
+  "category": "not-a-category",
+  "summary": "short",
+  "last_updated": "not-a-date",
+  "stale_after_days": 0,
+  "tags": ["UPPERCASE", "has_underscore", "double--hyphen", "-leading", "trailing-"],
+  "status": "archived",
+  "authors": [{ "name": "" }],
+  "links": {
+    "homepage": "not-a-url",
+    "repo": "also not a url"
+  }
+}
