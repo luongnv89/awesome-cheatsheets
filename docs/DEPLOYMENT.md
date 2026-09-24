@@ -53,7 +53,7 @@ Trigger:
 Workflow shape:
 
 1. check out the repository;
-2. install pnpm and Node.js 20;
+2. install pnpm and Node.js 24;
 3. run `pnpm install --frozen-lockfile`;
 4. run `pnpm build`;
 5. upload `dist/` with `actions/upload-pages-artifact`;

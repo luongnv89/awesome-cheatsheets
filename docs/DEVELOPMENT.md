@@ -4,7 +4,7 @@ This guide covers local development for the Astro site and TypeScript authoring 
 
 ## Prerequisites
 
-- Node.js `>=22.12.0` (`engines.node` in `package.json`; Astro 7 requires it). GitHub Actions pins Node 22.
+- Node.js `>=24.0.0` (`engines.node` in `package.json`). GitHub Actions pins Node 24.
 - pnpm `10.28.0` via the `packageManager` field in `package.json`
 - Git
 - Local verification of this guide used Node v26.7.0 and pnpm 10.28.0.
