@@ -102,6 +102,16 @@ describe("remarkMermaid fence rewriting", () => {
     expect(children[3]?.value).toBe('<div class="mermaid">C--&gt;D</div>');
   });
 
+  it("still rewrites when the fence carries meta text (```mermaid title)", () => {
+    // remark-parse puts the first info-string word in `lang` and the rest in
+    // `meta`; the plugin keys off `lang` only, so meta must not block the
+    // rewrite.
+    const tree = run("```mermaid my-diagram\nA-->B\n```\n");
+    const [node] = tree.children ?? [];
+    expect(node?.type).toBe("html");
+    expect(node?.value).toBe('<div class="mermaid">A--&gt;B</div>');
+  });
+
   it("rewrites mermaid fences nested inside other nodes (e.g. list items)", () => {
     const tree = run("- setup step\n\n  ```mermaid\n  A-->B\n  ```\n");
     const listItem = tree.children?.[0]?.children?.[0];
