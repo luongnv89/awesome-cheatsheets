@@ -102,7 +102,14 @@
   min-height: 1.5rem;
 }
 
-.catalog-filter-clear {
+/*
+ * Shared Clear-filters button styling — `.catalog-filter-clear` is the
+ * in-bar button, `.catalog-filter-empty-clear` the copy inside the
+ * zero-match empty state (issue #142). Both carry `data-filter-clear`,
+ * the hook `filter-pills-client.ts` wires to the shared reset.
+ */
+.catalog-filter-clear,
+.catalog-filter-empty-clear {
   display: inline-flex;
   align-items: center;
   padding: 0.3125rem 0.75rem;
@@ -118,17 +125,20 @@
     color 0.12s ease;
 }
 
-.catalog-filter-clear:hover {
+.catalog-filter-clear:hover,
+.catalog-filter-empty-clear:hover {
   background-color: var(--color-ink);
   color: #fff;
 }
 
-.catalog-filter-clear:focus-visible {
+.catalog-filter-clear:focus-visible,
+.catalog-filter-empty-clear:focus-visible {
   outline: 2px solid var(--color-coral);
   outline-offset: 2px;
 }
 
-.catalog-filter-clear[hidden] {
+.catalog-filter-clear[hidden],
+.catalog-filter-empty-clear[hidden] {
   display: none;
 }
 
@@ -137,6 +147,34 @@
   font-size: 0.8125rem;
   color: var(--color-muted);
   font-family: var(--font-mono);
+}
+
+/*
+ * Zero-match empty state (issue #142). Rendered next to `.catalog-list` in
+ * index.astro and toggled by filter-pills-client.ts, so it styles under the
+ * `.catalog-filter-*` namespace here even though the markup lives on the
+ * catalog page. Mirrors the `.catalog-empty` dashed-box treatment.
+ */
+.catalog-filter-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem 1.5rem;
+  background-color: #fff;
+  border: 1px dashed var(--color-rule);
+  border-radius: var(--radius-lg);
+  color: var(--color-muted);
+  font-size: 1rem;
+  text-align: center;
+}
+
+.catalog-filter-empty[hidden] {
+  display: none;
+}
+
+.catalog-filter-empty-text {
+  margin: 0;
 }
 
 .catalog-list-item[hidden] {

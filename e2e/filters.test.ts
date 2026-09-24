@@ -139,6 +139,56 @@ test.describe("Catalog filter pills", () => {
     );
   });
 
+  test("zero-match filters show an empty state with a clear action (issue #142)", async ({
+    page,
+  }) => {
+    await page.goto("./?tag=zzz-not-real");
+    await expect(page.locator(".catalog-filter")).toBeVisible();
+    await expect(
+      page.locator(".catalog-list-item:not([hidden])"),
+    ).toHaveCount(0);
+
+    // A visible empty-state block replaces the blank grid — message plus its
+    // own Clear filters action.
+    const empty = page.locator(".catalog-filter-empty");
+    await expect(empty).toBeVisible();
+    await expect(empty).toContainText(/no cheatsheets match/i);
+
+    const clearBtn = empty.locator(".catalog-filter-empty-clear");
+    await expect(clearBtn).toBeVisible();
+    await clearBtn.click();
+
+    // Filters reset: empty state hides, URL params drop, the full grid returns.
+    await expect(empty).toBeHidden();
+    const params = new URL(page.url()).searchParams;
+    expect(params.get("tag")).toBeNull();
+    await expect(
+      page.locator(".catalog-card").filter({ hasText: "Hermes Agent" }),
+    ).toBeVisible();
+  });
+
+  test("filter empty state hides while a search query is active", async ({
+    page,
+  }) => {
+    await page.goto("./?tag=zzz-not-real");
+    const empty = page.locator(".catalog-filter-empty");
+    await expect(empty).toBeVisible();
+
+    // The block lives outside `.catalog-filter`, so it needs its own hide
+    // while Pagefind owns the grid.
+    await expect(page.locator(".catalog-search-input")).toBeVisible({
+      timeout: 10_000,
+    });
+    await page.locator(".catalog-search-input").fill("hermes");
+    await expect(page.locator(".catalog-filter")).toBeHidden();
+    await expect(empty).toBeHidden();
+
+    // Clearing the query restores the still-active zero-match state.
+    await page.locator(".catalog-search-input").fill("");
+    await expect(page.locator(".catalog-filter")).toBeVisible();
+    await expect(empty).toBeVisible();
+  });
+
   test("URL ?tag=mcp round-trips on initial load", async ({ page }) => {
     await page.goto("./?tag=mcp");
     await expect(page.locator(".catalog-filter")).toBeVisible();

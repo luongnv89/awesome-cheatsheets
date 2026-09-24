@@ -22,6 +22,13 @@
  * Selector names (`catalog-filter-*`, `catalog-list*`, `catalog-search-*`)
  * are the contract with `FilterPills.astro`'s markup and the e2e suite —
  * do not rename without updating both.
+ *
+ * Empty state (issue #142): when the active filter combination matches zero
+ * cards, the `.catalog-filter-empty` block — rendered next to `.catalog-list`
+ * in `src/pages/index.astro` — is revealed so the grid area shows a visible
+ * message instead of blank space. It carries a second `Clear filters` button
+ * (same `data-filter-clear` hook as the in-bar one) and hides again when
+ * filters clear, cards match, or a search query takes over the grid.
  */
 export function initCatalogFilter(): void {
   const root = document.querySelector<HTMLDivElement>(".catalog-filter");
@@ -34,11 +41,17 @@ export function initCatalogFilter(): void {
     const pills = Array.from(
       root.querySelectorAll<HTMLButtonElement>(".catalog-filter-pill"),
     );
-    const clearBtn = root.querySelector<HTMLButtonElement>(
-      ".catalog-filter-clear",
+    // Every `data-filter-clear` button in the document shares the reset:
+    // the in-bar one rendered by FilterPills.astro and the one inside the
+    // `.catalog-filter-empty` block that index.astro renders next to the grid.
+    const clearBtns = Array.from(
+      document.querySelectorAll<HTMLButtonElement>("[data-filter-clear]"),
     );
     const statusEl = root.querySelector<HTMLParagraphElement>(
       ".catalog-filter-status",
+    );
+    const emptyEl = document.querySelector<HTMLElement>(
+      ".catalog-filter-empty",
     );
     const items = Array.from(
       list.querySelectorAll<HTMLElement>(".catalog-list-item"),
@@ -119,7 +132,7 @@ export function initCatalogFilter(): void {
       }
       const anyActive =
         active.categories.size > 0 || active.tags.size > 0;
-      if (clearBtn) clearBtn.hidden = !anyActive;
+      for (const btn of clearBtns) btn.hidden = !anyActive;
     }
 
     /**
@@ -153,7 +166,31 @@ export function initCatalogFilter(): void {
           statusEl.textContent = `${visible} cheatsheet${visible === 1 ? "" : "s"} match.`;
         }
       }
+      emptyEligible = (filterCategories || filterTags) && visible === 0;
+      renderEmptyEl();
       return visible;
+    }
+
+    /**
+     * Whether the empty-state block should be visible on filter state alone —
+     * recomputed by every `applyFilter` call so `syncWithSearch` can re-evaluate
+     * visibility when a query appears or clears without re-filtering cards.
+     */
+    let emptyEligible = false;
+
+    /** True while the search input holds a non-empty query. */
+    function isSearchActive(): boolean {
+      return searchInput ? searchInput.value.trim().length > 0 : false;
+    }
+
+    /**
+     * Toggle the `.catalog-filter-empty` block next to the grid (issue #142):
+     * visible only when active filters hide every card AND no search query is
+     * driving the grid. No-op when the page renders no such element.
+     */
+    function renderEmptyEl(): void {
+      if (!emptyEl) return;
+      emptyEl.hidden = !emptyEligible || isSearchActive();
     }
 
     function refresh(): void {
@@ -207,8 +244,8 @@ export function initCatalogFilter(): void {
     for (const pill of pills) {
       pill.addEventListener("click", () => togglePill(pill));
     }
-    if (clearBtn) {
-      clearBtn.addEventListener("click", () => clearAll());
+    for (const btn of clearBtns) {
+      btn.addEventListener("click", () => clearAll());
     }
 
     /**
@@ -222,6 +259,9 @@ export function initCatalogFilter(): void {
       const hasQuery = searchInput.value.trim().length > 0;
       // The section title is already toggled by the search component.
       root.hidden = hasQuery;
+      // The empty-state block lives outside `root`, so hiding the bar does
+      // not reach it — it needs its own toggle while a query is active.
+      renderEmptyEl();
     }
     if (searchInput) {
       searchInput.addEventListener("input", syncWithSearch);
