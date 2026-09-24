@@ -40,6 +40,7 @@ pnpm test:e2e
 | Preview production build | `pnpm preview` |
 | Type-check | `pnpm type-check` |
 | Run unit tests | `pnpm test` |
+| Run unit tests with `tools/` line coverage | `pnpm test -- --coverage` |
 | Run unit tests in watch mode | `pnpm test:watch` |
 | Run Playwright e2e tests | `pnpm test:e2e` |
 | Lint a cheatsheet | `pnpm cheatsheet:lint <file>` |

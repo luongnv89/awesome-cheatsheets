@@ -7,6 +7,9 @@ dist/
 build/
 .astro/
 
+# Vitest coverage
+coverage/
+
 # Playwright
 test-results/
 playwright-report/
