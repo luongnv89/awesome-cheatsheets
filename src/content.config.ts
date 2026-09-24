@@ -1,4 +1,6 @@
-import { defineCollection, z } from 'astro:content';
+import { defineCollection } from 'astro:content';
+import { glob } from 'astro/loaders';
+import { z } from 'astro/zod';
 
 const isoDate = z
   .union([
@@ -62,7 +64,21 @@ const cheatsheetsSchema = z.object({
 });
 
 const cheatsheets = defineCollection({
-  type: 'content',
+  // Content Layer API (required since Astro 6 removed legacy `type: 'content'`
+  // collections). Entries live at `src/content/cheatsheets/<slug>/<slug>.md`;
+  // the frontmatter `slug` field is the template contract's canonical id and
+  // keeps URLs at /cheatsheets/<slug>/ exactly as the legacy API produced.
+  loader: glob({
+    pattern: "**/*.md",
+    base: "./src/content/cheatsheets",
+    generateId: ({ entry, data }) => {
+      if (typeof data?.slug === "string" && data.slug.length > 0) {
+        return data.slug;
+      }
+      const stem = entry.replace(/\.md$/, "").split("/").pop();
+      return stem ?? entry.replace(/\.md$/, "");
+    },
+  }),
   schema: cheatsheetsSchema,
 });
 

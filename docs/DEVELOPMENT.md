@@ -4,7 +4,7 @@ This guide covers local development for the Astro site and TypeScript authoring 
 
 ## Prerequisites
 
-- Node.js `>=20` (`engines.node` in `package.json`). GitHub Actions still pins Node 20.
+- Node.js `>=22.12.0` (`engines.node` in `package.json`; Astro 7 requires it). GitHub Actions pins Node 22.
 - pnpm `10.28.0` via the `packageManager` field in `package.json`
 - Git
 - Local verification of this guide used Node v26.7.0 and pnpm 10.28.0.
@@ -55,7 +55,7 @@ pnpm test:e2e
 | `src/components/` | UI components used by the catalog and detail pages. |
 | `src/layouts/` | Shared page layouts. |
 | `src/content/cheatsheets/` | Published cheatsheet markdown entries. |
-| `src/content/config.ts` | Astro content collection schema and frontmatter validation. |
+| `src/content.config.ts` | Astro content collection schema and frontmatter validation. |
 | `src/plugins/remark-mermaid.ts` | Mermaid remark integration. |
 | `tools/validator/` | Template-contract validator implementation and tests. |
 | `tools/cli/lint.ts` | `pnpm cheatsheet:lint` CLI wrapper. |
