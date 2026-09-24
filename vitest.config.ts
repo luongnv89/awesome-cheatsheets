@@ -1,3 +1,5 @@
+import { fileURLToPath } from "node:url";
+
 import { defineConfig } from "vitest/config";
 
 /**
@@ -8,11 +10,24 @@ import { defineConfig } from "vitest/config";
  *   accidentally un-mocked link probe in a test can never hit the real
  *   network. Tests that exercise the link rule still pass `skipLinks: false`
  *   AND stub `fetch` themselves.
+ * - `resolve.alias["astro:content"]` — `astro:content` is a virtual module
+ *   Astro only provides inside its own Vite pipeline, so unit tests resolve
+ *   it to a minimal stub (`src/__tests__/stubs/astro-content.ts`) that
+ *   re-exports the project's zod and returns `defineCollection` input
+ *   unchanged, exposing `collections.<name>.schema` for characterization
+ *   tests.
  */
 export default defineConfig({
+  resolve: {
+    alias: {
+      "astro:content": fileURLToPath(
+        new URL("./src/__tests__/stubs/astro-content.ts", import.meta.url),
+      ),
+    },
+  },
   test: {
     environment: "node",
-    include: ["tools/**/*.test.ts"],
+    include: ["tools/**/*.test.ts", "src/**/*.test.ts"],
     env: {
       CHEATSHEET_LINT_SKIP_LINKS: "1",
     },

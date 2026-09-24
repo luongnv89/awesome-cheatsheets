@@ -1,0 +1,18 @@
+{
+  "title": "Example Tool — Optimization Cheatsheet",
+  "category": "tool",
+  "subcategory": "autonomous-ai-agent",
+  "summary": "A fully-populated frontmatter fixture that exercises every optional field the collection schema accepts.",
+  "last_updated": "2026-09-01",
+  "stale_after_days": 90,
+  "upstream_version": "v1.2.3",
+  "tags": ["example-tool", "cli", "skills", "mcp"],
+  "authors": [
+    { "name": "luongnv89", "handle": "montimage", "url": "https://github.com/montimage" }
+  ],
+  "links": {
+    "homepage": "https://example.com/docs",
+    "repo": "https://github.com/example/tool",
+    "community-guide": "https://example.com/community-guide"
+  }
+}
