@@ -44,7 +44,10 @@ async function createEngine(): Promise<MermaidEngine> {
   g.document = dom.window.document;
 
   const mermaid = (await import("mermaid")).default;
-  mermaid.initialize({ startOnLoad: false });
+  // `securityLevel: "strict"` is mermaid 12's default — pinned explicitly so
+  // the validator parses under the same security level the site renders with
+  // (see CheatsheetLayout.astro) even if a future mermaid changes the default.
+  mermaid.initialize({ startOnLoad: false, securityLevel: "strict" });
 
   return {
     parse: (source: string) => mermaid.parse(source),
