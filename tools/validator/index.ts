@@ -51,6 +51,7 @@ import {
 } from "./types.js";
 
 export type {
+  LinkCheckMode,
   ValidateOptions,
   ValidationError,
   ValidationResult,
@@ -77,8 +78,8 @@ function parseMarkdown(source: string): Root {
  *                cwd-relative).
  * @param options Optional behaviour overrides:
  *                - `linkTimeoutMs`: external link timeout in ms (default 5_000).
- *                - `skipLinks`:     skip the network check entirely
- *                                   (also disabled via env
+ *                - `links`:         `"skip"` disables the network check
+ *                                   entirely (also disabled via env
  *                                   `CHEATSHEET_LINT_SKIP_LINKS=1`).
  */
 export async function validate(

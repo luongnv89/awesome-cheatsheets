@@ -38,6 +38,7 @@ import fastGlob from "fast-glob";
 
 import { validate } from "../validator/index.js";
 import type { RuleId } from "../validator/rules.js";
+import type { LinkCheckMode } from "../validator/types.js";
 
 /** Output format the CLI emits. */
 type Format = "human" | "json";
@@ -47,7 +48,7 @@ interface CliConfig {
   inputs: string[];
   format: Format;
   /** When set, overrides the validator's default link-check behaviour. */
-  skipLinks: boolean | undefined;
+  links: LinkCheckMode | undefined;
   /** Optional explicit timeout for the link check; falls through to validator default. */
   linkTimeoutMs: number | undefined;
 }
@@ -96,6 +97,17 @@ Examples:
                                                   # JSON is parseable as-is.
 `;
 
+/** Parse a `--format=` value; `null` when the value is not a valid format. */
+function formatFromValue(value: string): Format | null {
+  return value === "human" || value === "json" ? value : null;
+}
+
+/** Parse a `--link-timeout-ms=` value; `null` unless a positive integer. */
+function timeoutFromValue(value: string): number | null {
+  const n = Number(value);
+  return Number.isInteger(n) && n > 0 ? n : null;
+}
+
 /**
  * Parse argv into a {@link CliConfig}.
  *
@@ -105,7 +117,7 @@ Examples:
 function parseArgs(argv: string[]): ParseOutcome {
   const inputs: string[] = [];
   let format: Format = "human";
-  let skipLinks: boolean | undefined;
+  let links: LinkCheckMode | undefined;
   let linkTimeoutMs: number | undefined;
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -120,32 +132,33 @@ function parseArgs(argv: string[]): ParseOutcome {
     if (raw === "--") continue;
 
     if (raw === "--no-links") {
-      skipLinks = true;
+      links = "skip";
       continue;
     }
 
     if (raw.startsWith("--format=")) {
       const value = raw.slice("--format=".length);
-      if (value !== "human" && value !== "json") {
+      const parsed = formatFromValue(value);
+      if (parsed === null) {
         return {
           kind: "error",
           message: `Unknown --format value: ${value} (expected: human|json)`,
         };
       }
-      format = value;
+      format = parsed;
       continue;
     }
 
     if (raw.startsWith("--link-timeout-ms=")) {
       const value = raw.slice("--link-timeout-ms=".length);
-      const n = Number(value);
-      if (!Number.isInteger(n) || n <= 0) {
+      const parsed = timeoutFromValue(value);
+      if (parsed === null) {
         return {
           kind: "error",
           message: `Invalid --link-timeout-ms value: ${value} (expected positive integer)`,
         };
       }
-      linkTimeoutMs = n;
+      linkTimeoutMs = parsed;
       continue;
     }
 
@@ -165,7 +178,7 @@ function parseArgs(argv: string[]): ParseOutcome {
 
   return {
     kind: "config",
-    config: { inputs, format, skipLinks, linkTimeoutMs },
+    config: { inputs, format, links, linkTimeoutMs },
   };
 }
 
@@ -212,11 +225,11 @@ async function expandInputs(inputs: string[]): Promise<string[]> {
  * `undefined`, not pass `undefined` explicitly.
  */
 function buildValidateOptions(config: CliConfig): {
-  skipLinks?: boolean;
+  links?: LinkCheckMode;
   linkTimeoutMs?: number;
 } {
-  const opts: { skipLinks?: boolean; linkTimeoutMs?: number } = {};
-  if (config.skipLinks !== undefined) opts.skipLinks = config.skipLinks;
+  const opts: { links?: LinkCheckMode; linkTimeoutMs?: number } = {};
+  if (config.links !== undefined) opts.links = config.links;
   if (config.linkTimeoutMs !== undefined) opts.linkTimeoutMs = config.linkTimeoutMs;
   return opts;
 }

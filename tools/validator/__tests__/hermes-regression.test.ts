@@ -31,7 +31,7 @@ describe("Hermes regression snapshot", () => {
         import.meta.dirname,
         "../../../src/content/cheatsheets/hermes-agent/hermes-agent.md",
       ),
-      { skipLinks: true },
+      { links: "skip" },
     );
 
     // If this snapshot ever needs updating, the contract changed or Hermes

@@ -19,7 +19,7 @@ const fixture = (name: string): string =>
 
 describe("frontmatter rule", () => {
   it("passes on a fully-valid cheatsheet (valid.md)", async () => {
-    const result = await validate(fixture("valid.md"), { skipLinks: true });
+    const result = await validate(fixture("valid.md"), { links: "skip" });
     const fmErrors = result.errors.filter((e) => e.rule.startsWith("frontmatter"));
     expect(fmErrors).toEqual([]);
   });
@@ -27,7 +27,7 @@ describe("frontmatter rule", () => {
   it("passes on the Hermes PoC cheatsheet", async () => {
     const result = await validate(
       resolve(import.meta.dirname, "../../../cheatsheets/hermes-agent/hermes-agent.md"),
-      { skipLinks: true },
+      { links: "skip" },
     );
     const fmErrors = result.errors.filter((e) => e.rule.startsWith("frontmatter"));
     expect(fmErrors).toEqual([]);
@@ -35,7 +35,7 @@ describe("frontmatter rule", () => {
 
   it("emits frontmatter-missing when the YAML block is absent", async () => {
     const result = await validate(fixture("missing-frontmatter.md"), {
-      skipLinks: true,
+      links: "skip",
     });
     expect(result.ok).toBe(false);
     expect(result.errors.some((e) => e.rule === "frontmatter-missing")).toBe(true);
@@ -43,7 +43,7 @@ describe("frontmatter rule", () => {
 
   it("emits frontmatter-schema errors for invalid field values", async () => {
     const result = await validate(fixture("bad-frontmatter.md"), {
-      skipLinks: true,
+      links: "skip",
     });
     expect(result.ok).toBe(false);
     const schemaErrors = result.errors.filter((e) => e.rule === "frontmatter-schema");

@@ -88,11 +88,11 @@ describe("link rule (mocked fetch)", () => {
     expect(linkErrors[0]?.message).toMatch(/timeout after 25 ms/);
   });
 
-  it("skipLinks: true bypasses the network entirely", async () => {
+  it('links: "skip" bypasses the network entirely', async () => {
     const mockFetch = vi.fn();
     vi.stubGlobal("fetch", mockFetch);
 
-    const result = await validate(fixture("with-link.md"), { skipLinks: true });
+    const result = await validate(fixture("with-link.md"), { links: "skip" });
     const linkErrors = result.errors.filter((e) => e.rule === "link-broken");
     expect(linkErrors).toEqual([]);
     expect(mockFetch).not.toHaveBeenCalled();

@@ -8,7 +8,7 @@ import { defineConfig } from "vitest/config";
  * - Node environment — the validator targets Node ≥ 20.
  * - `env.CHEATSHEET_LINT_SKIP_LINKS = "1"` — defense in depth so an
  *   accidentally un-mocked link probe in a test can never hit the real
- *   network. Tests that exercise the link rule still pass `skipLinks: false`
+ *   network. Tests that exercise the link rule still pass `links: "check"`
  *   AND stub `fetch` themselves.
  * - `resolve.alias["astro:content"]` — `astro:content` is a virtual module
  *   Astro only provides inside its own Vite pipeline, so unit tests resolve

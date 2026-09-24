@@ -12,7 +12,7 @@ const fixture = (name: string): string =>
 
 describe("one-liner rule", () => {
   it("passes on the valid fixture", async () => {
-    const result = await validate(fixture("valid.md"), { skipLinks: true });
+    const result = await validate(fixture("valid.md"), { links: "skip" });
     const oneLinerErrors = result.errors.filter((e) =>
       e.rule.startsWith("one-liner-"),
     );
@@ -21,7 +21,7 @@ describe("one-liner rule", () => {
 
   it("emits one-liner-missing when the bolded marker is absent", async () => {
     const result = await validate(fixture("no-one-liner.md"), {
-      skipLinks: true,
+      links: "skip",
     });
     expect(result.ok).toBe(false);
     expect(result.errors.some((e) => e.rule === "one-liner-missing")).toBe(true);

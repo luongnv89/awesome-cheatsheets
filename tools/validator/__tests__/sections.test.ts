@@ -14,7 +14,7 @@ const fixture = (name: string): string =>
 
 describe("section structure rule", () => {
   it("passes on the valid fixture", async () => {
-    const result = await validate(fixture("valid.md"), { skipLinks: true });
+    const result = await validate(fixture("valid.md"), { links: "skip" });
     const sectionErrors = result.errors.filter((e) =>
       e.rule.startsWith("section-"),
     );
@@ -24,7 +24,7 @@ describe("section structure rule", () => {
   it("passes on the Hermes PoC (including the en-dash qualifier)", async () => {
     const result = await validate(
       resolve(import.meta.dirname, "../../../src/content/cheatsheets/hermes-agent/hermes-agent.md"),
-      { skipLinks: true },
+      { links: "skip" },
     );
     const sectionErrors = result.errors.filter((e) =>
       e.rule.startsWith("section-"),
@@ -34,7 +34,7 @@ describe("section structure rule", () => {
 
   it("emits section-missing when a required H2 is absent", async () => {
     const result = await validate(fixture("missing-section.md"), {
-      skipLinks: true,
+      links: "skip",
     });
     expect(result.ok).toBe(false);
     const missing = result.errors.find((e) => e.rule === "section-missing");
@@ -44,7 +44,7 @@ describe("section structure rule", () => {
 
   it("emits section-out-of-order when H2s are swapped", async () => {
     const result = await validate(fixture("out-of-order.md"), {
-      skipLinks: true,
+      links: "skip",
     });
     expect(result.ok).toBe(false);
     expect(result.errors.some((e) => e.rule === "section-out-of-order")).toBe(true);
