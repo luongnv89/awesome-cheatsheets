@@ -122,7 +122,14 @@ export function parseFrontmatter(
   const end = source.indexOf("\n---", 3);
   if (end < 0) return null;
   const yaml = source.slice(3, end);
-  const parsed = parseYaml(yaml) as Record<string, unknown> | null;
+  let parsed: Record<string, unknown> | null;
+  try {
+    parsed = parseYaml(yaml) as Record<string, unknown> | null;
+  } catch {
+    // A YAML syntax error is just another malformed file — return null so
+    // one bad cheatsheet can never abort the whole scan (F-BUG-002).
+    return null;
+  }
   if (!parsed || typeof parsed !== "object") return null;
   const slug = parsed["slug"];
   const title = parsed["title"];
@@ -185,9 +192,22 @@ export async function scanContent(
     }
     for (const file of markdownFiles) {
       const filePath = join(slugDir, file);
-      const source = await readFile(filePath, "utf8");
-      const fm = parseFrontmatter(source);
       result.scanned += 1;
+      let fm: CheatsheetFrontmatter | null;
+      try {
+        const source = await readFile(filePath, "utf8");
+        fm = parseFrontmatter(source);
+      } catch (err) {
+        // Per-file isolation (F-BUG-002, issue #132): an unreadable or
+        // unparseable file becomes a skipped warning — never a crash that
+        // aborts the cron.
+        result.skipped += 1;
+        result.log.push(
+          `✗ ${dirent}/${file}: unreadable or invalid frontmatter ` +
+            `(${(err as Error).message})`,
+        );
+        continue;
+      }
       if (!fm) {
         result.skipped += 1;
         result.log.push(`✗ ${dirent}/${file}: missing or invalid frontmatter`);
@@ -211,6 +231,24 @@ export async function scanContent(
 }
 
 /**
+ * The canonical issue title for a stale `slug`. Single source of truth —
+ * `buildIssueRequest` produces it and `findOpenIssueBySlug` matches on it.
+ */
+function issueTitleForSlug(slug: string): string {
+  return `[freshness] Update cheatsheet: ${slug}`;
+}
+
+/**
+ * Whether an existing issue title is the freshness issue for `slug`.
+ * Exact match — substring matching lets an open `claude-code` issue
+ * suppress filing for `claude` (F-BUG-003, issue #132). Exported so
+ * tests can pin the matching semantics.
+ */
+export function isFreshnessIssueForSlug(title: string, slug: string): boolean {
+  return title === issueTitleForSlug(slug);
+}
+
+/**
  * Build the issue title and body for a stale entry. Exported so tests can
  * assert the format without reaching for the network. The title format is
  * the contract used by `findExistingIssue` for idempotency — any change
@@ -220,7 +258,7 @@ export function buildIssueRequest(entry: StaleEntry, repo: GhRepo): {
   title: string;
   body: string;
 } {
-  const title = `[freshness] Update cheatsheet: ${entry.slug}`;
+  const title = issueTitleForSlug(entry.slug);
   const sourceUrl =
     `https://github.com/${repo.owner}/${repo.repo}/blob/main/${entry.filePath}`;
   const body = [
@@ -284,7 +322,7 @@ function makeRestClient(repo: GhRepo, token: string): GhClient {
         items: Array<{ number: number; title: string }>;
       };
       const match = data.items.find((it) =>
-        it.title.includes(`[freshness] Update cheatsheet: ${slug}`),
+        isFreshnessIssueForSlug(it.title, slug),
       );
       return match ? { number: match.number, title: match.title } : null;
     },

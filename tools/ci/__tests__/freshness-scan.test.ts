@@ -24,6 +24,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import {
   buildIssueRequest,
+  isFreshnessIssueForSlug,
   parseFrontmatter,
   run,
   scanContent,
@@ -158,6 +159,32 @@ describe("scanContent", () => {
     expect(result.skipped).toBe(1);
     expect(result.stale).toHaveLength(0);
   });
+
+  it("does not throw out of the scan on broken YAML frontmatter", async () => {
+    // F-BUG-002 (issue #132): a YAML *syntax* error must be a per-file
+    // skip, never a crash that aborts the whole cron. The stale fixture
+    // alongside proves the scan continues past the bad file.
+    const dir = join(root, "broken-yaml");
+    await mkdir(dir, { recursive: true });
+    await writeFile(
+      join(dir, "broken-yaml.md"),
+      "---\nslug: broken-yaml\n  bad: [unclosed\n---\n\n# Body\n",
+      "utf8",
+    );
+    await writeCheatsheet(root, "still-stale", {
+      slug: "still-stale",
+      title: "Still Stale",
+      last_updated: "2020-01-01",
+      stale_after_days: 1,
+    });
+    const result = await scanContent(root, new Date("2026-05-19T12:00:00Z"));
+    expect(result.scanned).toBe(2);
+    expect(result.skipped).toBe(1);
+    expect(result.stale.map((s) => s.slug)).toEqual(["still-stale"]);
+    expect(
+      result.log.some((l) => l.includes("broken-yaml/broken-yaml.md")),
+    ).toBe(true);
+  });
 });
 
 describe("buildIssueRequest", () => {
@@ -181,6 +208,32 @@ describe("buildIssueRequest", () => {
       "https://github.com/acme/cheats/blob/main/" +
         "src/content/cheatsheets/my-tool/my-tool.md",
     );
+  });
+});
+
+describe("isFreshnessIssueForSlug", () => {
+  it("matches the slug exactly — `claude` does not match `claude-code`", () => {
+    // F-BUG-003 (issue #132): substring matching let an open
+    // `claude-code` needs-update issue suppress filing for `claude`.
+    expect(
+      isFreshnessIssueForSlug(
+        "[freshness] Update cheatsheet: claude-code",
+        "claude",
+      ),
+    ).toBe(false);
+    expect(
+      isFreshnessIssueForSlug(
+        "[freshness] Update cheatsheet: claude",
+        "claude",
+      ),
+    ).toBe(true);
+    // Reverse direction: a `claude` issue must not satisfy `claude-code`.
+    expect(
+      isFreshnessIssueForSlug(
+        "[freshness] Update cheatsheet: claude",
+        "claude-code",
+      ),
+    ).toBe(false);
   });
 });
 
