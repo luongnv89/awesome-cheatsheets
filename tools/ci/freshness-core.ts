@@ -64,6 +64,22 @@ export interface GhRepo {
 }
 
 /**
+ * The YAML parser may emit `last_updated: 2026-05-18` as a Date object when
+ * the value is unquoted. Normalize to the ISO-8601 calendar string the
+ * schema requires, matching what `src/content.config.ts` produces. `null`
+ * when the raw value is neither a valid Date nor a string.
+ */
+function normalizeLastUpdated(raw: unknown): string | null {
+  if (raw instanceof Date && !Number.isNaN(raw.getTime())) {
+    const yyyy = raw.getUTCFullYear().toString().padStart(4, "0");
+    const mm = (raw.getUTCMonth() + 1).toString().padStart(2, "0");
+    const dd = raw.getUTCDate().toString().padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  return typeof raw === "string" ? raw : null;
+}
+
+/**
  * Parse YAML frontmatter from a markdown file body. Returns `null` if the
  * file has no `---`-delimited frontmatter block (which would be a schema
  * violation but we don't want a single malformed file to abort the scan).
@@ -86,20 +102,8 @@ export function parseFrontmatter(
   if (!parsed || typeof parsed !== "object") return null;
   const slug = parsed["slug"];
   const title = parsed["title"];
-  const lastUpdatedRaw = parsed["last_updated"];
+  const lastUpdated = normalizeLastUpdated(parsed["last_updated"]);
   const staleAfter = parsed["stale_after_days"];
-  // The YAML parser may emit `last_updated: 2026-05-18` as a Date object
-  // when the value is unquoted. Normalize to the ISO-8601 calendar string
-  // the schema requires, matching what `src/content.config.ts` produces.
-  let lastUpdated: string | null = null;
-  if (lastUpdatedRaw instanceof Date && !Number.isNaN(lastUpdatedRaw.getTime())) {
-    const yyyy = lastUpdatedRaw.getUTCFullYear().toString().padStart(4, "0");
-    const mm = (lastUpdatedRaw.getUTCMonth() + 1).toString().padStart(2, "0");
-    const dd = lastUpdatedRaw.getUTCDate().toString().padStart(2, "0");
-    lastUpdated = `${yyyy}-${mm}-${dd}`;
-  } else if (typeof lastUpdatedRaw === "string") {
-    lastUpdated = lastUpdatedRaw;
-  }
   if (
     typeof slug !== "string" ||
     typeof title !== "string" ||
@@ -113,6 +117,63 @@ export function parseFrontmatter(
     title,
     last_updated: lastUpdated,
     stale_after_days: staleAfter,
+  };
+}
+
+/**
+ * Outcome of scanning one markdown file: a stale entry, a skip (counted +
+ * logged), or a fresh file (nothing to record).
+ */
+interface FileScanOutcome {
+  skipped: boolean;
+  entry?: StaleEntry;
+  log?: string;
+}
+
+/**
+ * Read, parse and classify a single cheatsheet file. Per-file isolation
+ * (F-BUG-002, issue #132): an unreadable or unparseable file becomes a
+ * skipped warning — never a crash that aborts the cron.
+ */
+async function scanMarkdownFile(
+  dirent: string,
+  file: string,
+  slugDir: string,
+  now: Date,
+): Promise<FileScanOutcome> {
+  const filePath = join(slugDir, file);
+  let fm: CheatsheetFrontmatter | null;
+  try {
+    const source = await readFile(filePath, "utf8");
+    fm = parseFrontmatter(source);
+  } catch (err) {
+    return {
+      skipped: true,
+      log:
+        `✗ ${dirent}/${file}: unreadable or invalid frontmatter ` +
+        `(${(err as Error).message})`,
+    };
+  }
+  if (!fm) {
+    return {
+      skipped: true,
+      log: `✗ ${dirent}/${file}: missing or invalid frontmatter`,
+    };
+  }
+  if (!isStale(fm.last_updated, fm.stale_after_days, now)) {
+    return { skipped: false };
+  }
+  const days = daysSinceUpdate(fm.last_updated, now) ?? 0;
+  return {
+    skipped: false,
+    entry: {
+      slug: fm.slug,
+      title: fm.title,
+      lastUpdated: fm.last_updated,
+      staleAfterDays: fm.stale_after_days,
+      daysOverdue: days - fm.stale_after_days,
+      filePath: `src/content/cheatsheets/${dirent}/${file}`,
+    },
   };
 }
 
@@ -144,40 +205,11 @@ export async function scanContent(
       continue;
     }
     for (const file of markdownFiles) {
-      const filePath = join(slugDir, file);
       result.scanned += 1;
-      let fm: CheatsheetFrontmatter | null;
-      try {
-        const source = await readFile(filePath, "utf8");
-        fm = parseFrontmatter(source);
-      } catch (err) {
-        // Per-file isolation (F-BUG-002, issue #132): an unreadable or
-        // unparseable file becomes a skipped warning — never a crash that
-        // aborts the cron.
-        result.skipped += 1;
-        result.log.push(
-          `✗ ${dirent}/${file}: unreadable or invalid frontmatter ` +
-            `(${(err as Error).message})`,
-        );
-        continue;
-      }
-      if (!fm) {
-        result.skipped += 1;
-        result.log.push(`✗ ${dirent}/${file}: missing or invalid frontmatter`);
-        continue;
-      }
-      if (!isStale(fm.last_updated, fm.stale_after_days, now)) {
-        continue;
-      }
-      const days = daysSinceUpdate(fm.last_updated, now) ?? 0;
-      result.stale.push({
-        slug: fm.slug,
-        title: fm.title,
-        lastUpdated: fm.last_updated,
-        staleAfterDays: fm.stale_after_days,
-        daysOverdue: days - fm.stale_after_days,
-        filePath: `src/content/cheatsheets/${dirent}/${file}`,
-      });
+      const outcome = await scanMarkdownFile(dirent, file, slugDir, now);
+      if (outcome.skipped) result.skipped += 1;
+      if (outcome.log !== undefined) result.log.push(outcome.log);
+      if (outcome.entry !== undefined) result.stale.push(outcome.entry);
     }
   }
   return result;
