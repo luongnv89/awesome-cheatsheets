@@ -41,7 +41,7 @@ Either way, you spend the first hour figuring out the shape of the thing instead
 
 A curated catalog of cheatsheets that hit the middle ground. Every entry follows the same locked structure, carries a visible last-updated date, and gets flagged when it goes stale — so you can skim it the same way every time and trust the freshness signal at a glance.
 
-**Early launch scope:** v1.0 launches with 2 cheatsheets — Hermes Agent and Pi — plus the authoring/validation tooling. The roadmap to v1.1 adds 9 more deferred cheatsheets with good-first-issue seeds for contributors.
+**Where it stands:** the catalog holds 15 cheatsheets — 6 published and 9 in draft (10 tools, 3 concepts, 1 MCP, and 1 comparison) — all built on the same authoring and validation tooling.
 
 Our wedge: **format + freshness + comparability**.
 
@@ -59,11 +59,16 @@ Our wedge: **format + freshness + comparability**.
 
 ## What's inside
 
-The v1.0 launch ships with:
+The catalog currently ships 6 published cheatsheets, with 9 more in draft:
 
-- **[Hermes Agent](./src/content/cheatsheets/hermes-agent/hermes-agent.md)** — persistent, cross-channel autonomous agent with skills, memory, gateways, and Kanban.
-- **[Pi](./src/content/cheatsheets/pi-dev/pi-dev.md)** — minimal-by-default coding-agent harness you shape with packages, skills, models, and project context.
+- **Tools (published)** — [ASM](./src/content/cheatsheets/asm/asm.md), [Herdr](./src/content/cheatsheets/herdr/herdr.md), [Hermes Agent](./src/content/cheatsheets/hermes-agent/hermes-agent.md), [Obsidian](./src/content/cheatsheets/obsidian/obsidian.md), [Oh My Pi (omp)](./src/content/cheatsheets/omp/omp.md), and [Pi](./src/content/cheatsheets/pi-dev/pi-dev.md).
+- **Tools (draft)** — [Claude Code](./src/content/cheatsheets/claude-code/claude-code.md), [Codex](./src/content/cheatsheets/codex/codex.md), [OpenClaw](./src/content/cheatsheets/openclaw/openclaw.md), and [OpenCode](./src/content/cheatsheets/opencode/opencode.md).
+- **Concepts (draft)** — [Agent Skills](./src/content/cheatsheets/agent-skills/agent-skills.md), [Harness Engineering](./src/content/cheatsheets/harness-engineering/harness-engineering.md), and [Sub-agents](./src/content/cheatsheets/sub-agents/sub-agents.md).
+- **MCP (draft)** — [Model Context Protocol](./src/content/cheatsheets/mcp/mcp.md).
+- **Comparisons (draft)** — [Prompt Engineering](./src/content/cheatsheets/prompt-engineering-comparison/prompt-engineering-comparison.md).
 - **`cheatsheet-scribe`** — the authoring skill and template contract used to keep entries comparable.
+
+Draft entries render at their `/cheatsheets/<slug>/` URLs for review but stay off the catalog grid and search index until their frontmatter `status` flips to `published`.
 
 The broader catalog covers four kinds of references:
 
@@ -76,7 +81,7 @@ See the live site for the up-to-date list. The catalog is built statically and s
 
 ## Roadmap
 
-The immediate v1.1 contribution wave invites 9 deferred cheatsheets: Claude Code, Codex, OpenCode, OpenClaw, Harness Engineering, Agent Skills, Sub-agents, MCP, and Prompt Engineering / comparison. Each seed issue links back to the contributor tutorial and the scribe-friendly draft format.
+The v1.1 contribution wave is in draft — Claude Code, Codex, OpenCode, OpenClaw, Harness Engineering, Agent Skills, Sub-agents, MCP, and the Prompt Engineering comparison are committed and rendering at their URLs, awaiting `status: published`. Community additions ASM, Herdr, Obsidian, and Oh My Pi are already live. New seeds land as `good first issue`s on the [issue tracker](https://github.com/luongnv89/awesome-cheatsheets/issues) — each links back to the contributor tutorial and the scribe-friendly draft format.
 
 ## Quick start
 
@@ -95,9 +100,12 @@ Build the static site and check the freshness/CDN gates the way CI does.
 pnpm build               # astro build + pagefind index
 pnpm type-check          # tsc --noEmit
 pnpm test                # vitest unit tests
+pnpm test:e2e            # playwright e2e tests (builds the site first)
 pnpm check:no-cdn        # CI gate: zero third-party hosts in dist/
 pnpm freshness:scan      # surface entries past their stale budget
 ```
+
+The full script table — coverage, watch mode, and the e2e fixture build — lives in [docs/DEVELOPMENT.md](./docs/DEVELOPMENT.md).
 
 Lint a single cheatsheet against the template contract.
 
@@ -134,7 +142,7 @@ Cheatsheets are authored with [Claude Code](https://www.anthropic.com/claude-cod
 1. Install Claude Code.
 2. Run `/cheatsheet-scribe`.
 3. Answer the review questions; let it draft the 7-section file.
-4. Open a PR — CI runs type-check, build, the no-CDN gate, and Lighthouse.
+4. Open a PR — CI runs type-check, unit tests, Playwright e2e, build, the no-CDN gate, and Lighthouse.
 
 The full walkthrough is the **[30-minute contributor tutorial](./docs/contributing.md)**. The root [contributing guide](./CONTRIBUTING.md) covers PR expectations and validation commands. All cheatsheets follow the [template contract](./skills/cheatsheet-scribe/template-contract.md) — required frontmatter, locked section order, copy-paste *Installation*, collapsed *Reference*.
 
