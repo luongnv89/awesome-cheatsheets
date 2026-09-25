@@ -4,10 +4,10 @@ title: Harness Engineering — Coding Agent Operations Cheatsheet
 category: concept
 subcategory: agent-operations
 summary: "Practical guide to harness engineering: design the context, tools, feedback loops, evaluations, and operating controls that make coding agents reliable."
-last_updated: 2026-05-19
+last_updated: 2026-09-25
 stale_after_days: 120
 tags: [harness-engineering, agents, evaluations, context, feedback-loops, operations]
-status: draft
+status: published
 authors:
   - name: luongnv89
 links:

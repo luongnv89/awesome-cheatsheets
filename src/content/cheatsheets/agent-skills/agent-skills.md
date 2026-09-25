@@ -4,10 +4,10 @@ title: Agent Skills — Reusable Workflow Cheatsheet
 category: concept
 subcategory: agent-capabilities
 summary: "Practical guide to agent skills: structure reusable instructions, install and invoke skills, package resources safely, and maintain them as workflows evolve."
-last_updated: 2026-05-19
+last_updated: 2026-09-25
 stale_after_days: 90
 tags: [agent-skills, skills, workflows, instructions, safety, reuse]
-status: draft
+status: published
 authors:
   - name: luongnv89
 links:

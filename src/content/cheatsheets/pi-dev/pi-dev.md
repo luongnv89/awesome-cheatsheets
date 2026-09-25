@@ -4,9 +4,9 @@ title: Pi — Minimal Coding Agent Cheatsheet
 category: tool
 subcategory: coding-agent
 summary: Checklist-first path to install, authenticate, configure, and extend Pi, the minimal terminal coding harness built around core tools, context files, tree sessions, providers, skills, extensions, and packages.
-last_updated: 2026-05-30
+last_updated: 2026-09-25
 stale_after_days: 90
-upstream_version: "latest docs"
+upstream_version: "pi 0.87.x"
 tags: [pi, pi-dev, coding-agent, cli, extensions, skills, packages, terminal, settings]
 status: published
 authors:

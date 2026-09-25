@@ -4,9 +4,9 @@ title: Hermes Agent — Optimization Cheatsheet
 category: tool
 subcategory: autonomous-ai-agent
 summary: Step-by-step path to a high-leverage Hermes Agent install — diagnose, optimize cost + memory, unlock skills/self-evolution, gateways, multi-agent Kanban, and ongoing hygiene.
-last_updated: 2026-05-19
+last_updated: 2026-09-25
 stale_after_days: 90
-upstream_version: "v0.12 / v0.13 era"
+upstream_version: "v0.21.x era"
 tags: [hermes-agent, nousresearch, autonomous-agent, cli, memory, skills, mcp, kanban]
 status: published
 authors:

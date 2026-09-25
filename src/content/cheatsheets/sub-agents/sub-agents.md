@@ -4,10 +4,10 @@ title: Sub-agents — Orchestration Cheatsheet
 category: concept
 subcategory: agent-orchestration
 summary: "Practical guide to sub-agents: define specialist roles, isolate context windows, write handoff contracts, review outputs, and avoid orchestration sprawl."
-last_updated: 2026-05-19
+last_updated: 2026-09-25
 stale_after_days: 90
 tags: [sub-agents, orchestration, agents, review, handoffs, context]
-status: draft
+status: published
 authors:
   - name: luongnv89
 links:

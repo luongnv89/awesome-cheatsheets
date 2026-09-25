@@ -4,11 +4,11 @@ title: OpenClaw — Personal Agent Gateway Cheatsheet
 category: tool
 subcategory: personal-agent-gateway
 summary: "Practical setup guide for OpenClaw: install the personal agent gateway, onboard messaging channels, configure workspace safety, and operate integrations responsibly."
-last_updated: 2026-05-19
+last_updated: 2026-09-25
 stale_after_days: 90
-upstream_version: "OpenClaw current"
+upstream_version: "openclaw 2026.9.x"
 tags: [openclaw, personal-agent, gateway, messaging, integrations, safety]
-status: draft
+status: published
 authors:
   - name: luongnv89
 links:
@@ -53,16 +53,15 @@ First-run checklist:
 
 **Goal:** Config and credentials outside the workspace, which acts as the agent's home · **Time:** ~10 min · **Level:** beginner
 
-OpenClaw stores app configuration and credentials outside the agent workspace. Treat the workspace as the agent's home directory and memory surface.
+OpenClaw stores app configuration and credentials under `~/.openclaw/`, outside the agent workspace (`~/.openclaw/workspace` by default). Treat the workspace as the agent's home directory and memory surface.
 
 ```bash
-mkdir -p ~/openclaw-workspace
-openclaw onboard
+openclaw onboard   # creates ~/.openclaw/workspace with starter files
 ```
 
 Keep sensitive files out of the workspace unless the agent truly needs them. Remember that the workspace is a default working directory, not a complete sandbox by itself.
 
-**Verify:** `openclaw onboard` completed and `~/openclaw-workspace` holds no sensitive files.
+**Verify:** `openclaw onboard` completed and `~/.openclaw/workspace` holds no sensitive files.
 
 ### Step 2 — Add one channel at a time
 
@@ -92,9 +91,17 @@ Write a short operating policy for the assistant:
 - Keep personal reminders separate from work tasks.
 ```
 
+Always allowlist who may talk to the assistant in `~/.openclaw/openclaw.json` — never run a personal gateway open to the world:
+
+```json5
+{
+  channels: { whatsapp: { allowFrom: ["+15555550123"] } }
+}
+```
+
 If your install supports sandbox settings, enable them for tools that can read or write outside the workspace.
 
-**Verify:** Your policy covers asking before messaging others and never revealing secrets.
+**Verify:** Your policy covers asking before messaging others and never revealing secrets, and `allowFrom` is set for every connected channel.
 
 ### Step 4 — Connect integrations deliberately
 
@@ -150,8 +157,11 @@ Monitor logs, rotate provider keys periodically, and keep the channel list small
 | `curl -fsSL https://openclaw.ai/install.sh | bash` | Install with the official script. |
 | `npm i -g openclaw` | Install with npm. |
 | `openclaw onboard` | Run first-time setup and provider/channel onboarding. |
+| `openclaw gateway install` | Install the Gateway as a background service. |
+| `openclaw dashboard` | Open the browser Control UI. |
+| `openclaw channels login` | Pair a messaging channel (QR flow). |
 | `openclaw --help` | Inspect currently available commands. |
-| `mkdir -p ~/openclaw-workspace` | Create an explicit private workspace. |
+| `~/.openclaw/workspace` | Default agent workspace created by onboarding. |
 
 ## Expected Outcomes
 

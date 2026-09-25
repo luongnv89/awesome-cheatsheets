@@ -4,11 +4,11 @@ title: Claude Code — Coding Agent Cheatsheet
 category: tool
 subcategory: coding-agent
 summary: "Practical setup and operating guide for Claude Code: install the CLI, ground it in a repository, wire memory, hooks, MCP tools, and safe review loops."
-last_updated: 2026-05-19
+last_updated: 2026-09-25
 stale_after_days: 90
 upstream_version: "Claude Code current"
 tags: [claude-code, anthropic, coding-agent, cli, hooks, memory, mcp]
-status: draft
+status: published
 authors:
   - name: luongnv89
 links:
