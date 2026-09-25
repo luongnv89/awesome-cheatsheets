@@ -4,10 +4,10 @@ title: MCP — Model Context Protocol Cheatsheet
 category: mcp
 subcategory: protocol
 summary: "Practical guide to Model Context Protocol: understand hosts, clients, servers, tools, resources, prompts, auth boundaries, and debugging workflows."
-last_updated: 2026-05-19
+last_updated: 2026-09-25
 stale_after_days: 90
 tags: [mcp, model-context-protocol, tools, resources, prompts, servers, debugging]
-status: draft
+status: published
 authors:
   - name: luongnv89
 links:

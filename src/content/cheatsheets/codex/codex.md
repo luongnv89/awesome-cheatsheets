@@ -4,11 +4,11 @@ title: Codex — Coding Agent Cheatsheet
 category: tool
 subcategory: coding-agent
 summary: "Practical operating guide for OpenAI Codex: install the local CLI, choose models, tune sandbox and approval policies, and run repository tasks safely."
-last_updated: 2026-05-19
+last_updated: 2026-09-25
 stale_after_days: 90
-upstream_version: "Codex CLI current"
+upstream_version: "@openai/codex 0.156.x"
 tags: [codex, openai, coding-agent, cli, sandbox, approvals]
-status: draft
+status: published
 authors:
   - name: luongnv89
 links:
@@ -68,19 +68,19 @@ First-run checklist:
 Codex reads personal defaults from `~/.codex/config.toml` and can read project overrides from `.codex/config.toml` after trust is established.
 
 ```toml
-model = "gpt-5.4"
+model = "gpt-6-sol"
 approval_policy = "on-request"
-sandbox = "workspace-write"
+sandbox_mode = "workspace-write"
 ```
 
 Use CLI flags for one-off overrides:
 
 ```bash
-codex --model gpt-5.4 --sandbox workspace-write
+codex --model gpt-6-sol --sandbox workspace-write
 codex --oss
 ```
 
-**Verify:** `~/.codex/config.toml` (or `.codex/config.toml`) holds your `model`, `approval_policy`, and `sandbox` values.
+**Verify:** `~/.codex/config.toml` (or `.codex/config.toml`) holds your `model`, `approval_policy`, and `sandbox_mode` values.
 
 ### Step 3 — Set sandbox and approval policy intentionally
 
@@ -150,6 +150,10 @@ Use the generated diff as a proposal, not a final answer. Check for over-broad r
 | `npm i -g @openai/codex` | Install the CLI from the official npm package. |
 | `brew install --cask codex` | Install the documented macOS cask. |
 | `codex` | Start Codex in the current repository. |
+| `codex login` | Authenticate with a ChatGPT account, API key, or token. |
+| `codex doctor` | Diagnostic report for a broken install, auth, or config. |
+| `codex exec "<task>"` | Non-interactive run for scripts and CI-style jobs. |
+| `codex review` | Run a code review non-interactively. |
 | `codex --model <model>` | Override the configured model for one run. |
 | `codex --sandbox read-only` | Explore without allowing writes. |
 | `codex --sandbox workspace-write` | Allow normal workspace edits. |

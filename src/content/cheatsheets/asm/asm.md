@@ -4,9 +4,9 @@ title: ASM — Agent Skill Manager Cheatsheet
 category: tool
 subcategory: skill-manager
 summary: Checklist-first guide to install, audit, organize, evaluate, develop, and publish portable AI agent skills with agent-skill-manager, the universal TUI and CLI for skill workflows.
-last_updated: 2026-05-30
+last_updated: 2026-09-25
 stale_after_days: 90
-upstream_version: "asm v2.9.0"
+upstream_version: "asm v2.20.1"
 tags: [asm, agent-skill-manager, skills, cli, tui, security, eval, registry, bundles]
 status: published
 authors:
@@ -23,7 +23,7 @@ links:
 
 ## Installation
 
-Install from the official npm package when possible. ASM requires Node.js `>=18 <23` and npm `>=9`.
+Install from the official npm package when possible. ASM requires Node.js `>=22 <27` and npm `>=9`.
 
 ```bash
 npm install -g agent-skill-manager

@@ -4,11 +4,11 @@ title: OpenCode — Terminal Agent Cheatsheet
 category: tool
 subcategory: terminal-agent
 summary: "Practical setup guide for OpenCode: install the terminal agent, connect providers, configure project behavior, and run safe coding workflows from the CLI."
-last_updated: 2026-05-19
+last_updated: 2026-09-25
 stale_after_days: 90
-upstream_version: "OpenCode current"
+upstream_version: "opencode-ai 1.18.x"
 tags: [opencode, coding-agent, terminal, providers, cli, models]
-status: draft
+status: published
 authors:
   - name: luongnv89
 links:
@@ -16,7 +16,7 @@ links:
   docs: https://opencode.ai/docs/
   cli: https://opencode.ai/docs/cli/
   providers: https://opencode.ai/docs/providers/
-  repo: https://github.com/sst/opencode
+  repo: https://github.com/anomalyco/opencode
 ---
 
 # OpenCode — Terminal Agent Cheatsheet
@@ -91,6 +91,7 @@ OpenCode can be driven interactively or through documented CLI subcommands.
 opencode --help
 opencode auth --help
 opencode agent --help
+opencode run "Summarize this repo's test setup"
 ```
 
 Use command-line invocation for repeatable jobs such as summarizing a repo, applying a focused patch, or running a review prompt in CI-like scripts.
@@ -153,6 +154,7 @@ Treat the diff, command output, and acceptance criteria as the review artifact.
 | `brew install anomalyco/tap/opencode` | Install with the documented Homebrew tap. |
 | `opencode` | Start the terminal agent in the current project. |
 | `opencode auth login` | Connect provider credentials. |
+| `opencode run "<prompt>"` | Run a non-interactive prompt for scripts. |
 | `opencode auth --help` | Inspect provider/auth commands. |
 | `opencode agent --help` | Inspect agent-management commands. |
 
@@ -174,7 +176,7 @@ After setup, you should have:
 - [OpenCode documentation](https://opencode.ai/docs/)
 - [OpenCode CLI docs](https://opencode.ai/docs/cli/)
 - [OpenCode providers docs](https://opencode.ai/docs/providers/)
-- [OpenCode GitHub repository](https://github.com/sst/opencode)
+- [OpenCode GitHub repository](https://github.com/anomalyco/opencode)
 - [Contributor tutorial](https://github.com/luongnv89/awesome-cheatsheets/blob/main/docs/contributing.md)
 - [Related: Claude Code cheatsheet](https://github.com/luongnv89/awesome-cheatsheets/blob/main/src/content/cheatsheets/claude-code/claude-code.md)
 - [Related: Codex cheatsheet](https://github.com/luongnv89/awesome-cheatsheets/blob/main/src/content/cheatsheets/codex/codex.md)

@@ -4,10 +4,10 @@ title: Prompt Engineering Comparison — Coding Agents Cheatsheet
 category: comparison
 subcategory: prompting-patterns
 summary: "Comparison guide for prompt engineering across coding agents: task framing, context selection, constraints, examples, evaluation, and iteration patterns."
-last_updated: 2026-05-19
+last_updated: 2026-09-25
 stale_after_days: 120
 tags: [prompt-engineering, comparison, coding-agents, prompts, evaluation, context]
-status: draft
+status: published
 authors:
   - name: luongnv89
 links:
