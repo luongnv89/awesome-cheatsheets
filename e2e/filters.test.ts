@@ -23,35 +23,59 @@ import { parse } from "yaml";
  * `.catalog-search-*`, `.freshness-chip`, and `.stale-banner`.
  */
 
-// Tags from every cheatsheet currently visible in the catalog
-// (status === "published"; see issue #90). Derived from the corpus at
-// test time — the previous hardcoded snapshot silently went stale every
-// time a published cheatsheet landed, which is the drift this count
-// assertion exists to catch (issue #115). Mirrors the tag pipeline in
-// `src/pages/index.astro`: status-published entries only, unique tags,
-// alphabetical order.
+// Corpus-derived facet sets: every cheatsheet currently visible in the
+// catalog (status === "published"; see issue #90). Derived from the corpus
+// at test time — a previous hardcoded snapshot silently went stale every
+// time a published cheatsheet landed, which is the drift these count
+// assertions exist to catch (issue #115). Mirrors the facet pipelines in
+// `src/pages/index.astro`: status-published entries only (schema defaults
+// `status` to "published" when absent), then unique facets.
 const CHEATSHEETS_DIR = join(process.cwd(), "src/content/cheatsheets");
+
+type PublishedEntry = { category?: string; tags?: string[] };
+
+const PUBLISHED_ENTRIES: PublishedEntry[] = readdirSync(CHEATSHEETS_DIR, {
+  withFileTypes: true,
+})
+  .filter((entry) => entry.isDirectory())
+  .flatMap((entry) => {
+    const file = join(CHEATSHEETS_DIR, entry.name, `${entry.name}.md`);
+    // A dir without `<slug>.md` contributes no collection entry — same
+    // as Astro's getCollection, so it contributes no facets either.
+    if (!existsSync(file)) return [];
+    const frontmatter = readFileSync(file, "utf8").match(
+      /^---\r?\n([\s\S]*?)\r?\n---/,
+    );
+    if (!frontmatter) return [];
+    const data = parse(frontmatter[1]) as PublishedEntry & {
+      status?: string;
+    };
+    if ((data.status ?? "published") !== "published") return [];
+    return [data];
+  });
+
+// Tags are unique + alphabetical (matches `filterTags`, once normalized).
 const PUBLISHED_TAGS = Array.from(
+  new Set(PUBLISHED_ENTRIES.flatMap((entry) => entry.tags ?? [])),
+).sort();
+
+// Categories are emitted in the schema enum order declared by
+// `CATEGORY_ORDER` in `src/pages/index.astro`, intersected with the set of
+// categories actually present in the published corpus. Keep both lists in
+// sync with the source of truth.
+const CATEGORY_ORDER = ["tool", "mcp", "concept", "comparison"] as const;
+const PUBLISHED_CATEGORIES = CATEGORY_ORDER.filter((category) =>
+  PUBLISHED_ENTRIES.some((entry) => entry.category === category),
+);
+// Surface categories that exist in the corpus but are missing from
+// CATEGORY_ORDER — the site would silently drop those pills.
+const UNKNOWN_CATEGORIES = Array.from(
   new Set(
-    readdirSync(CHEATSHEETS_DIR, { withFileTypes: true })
-      .filter((entry) => entry.isDirectory())
-      .flatMap((entry) => {
-        const file = join(CHEATSHEETS_DIR, entry.name, `${entry.name}.md`);
-        // A dir without `<slug>.md` contributes no collection entry — same
-        // as Astro's getCollection, so it contributes no tags either.
-        if (!existsSync(file)) return [];
-        const frontmatter = readFileSync(file, "utf8").match(
-          /^---\r?\n([\s\S]*?)\r?\n---/,
-        );
-        if (!frontmatter) return [];
-        const data = parse(frontmatter[1]) as {
-          status?: string;
-          tags?: string[];
-        };
-        // Schema defaults `status` to "published" when the field is absent.
-        if ((data.status ?? "published") !== "published") return [];
-        return data.tags ?? [];
-      }),
+    PUBLISHED_ENTRIES.map((entry) => entry.category).filter(
+      (category): category is string =>
+        typeof category === "string" &&
+        !(CATEGORY_ORDER as readonly string[]).includes(category),
+    ),
   ),
 ).sort();
 
@@ -64,17 +88,29 @@ test.describe("Catalog filter pills", () => {
   test("renders one pill per unique category in the corpus", async ({
     page,
   }) => {
-    // Today only `tool` is present. The pill bar must contain it as a
-    // button with the category axis.
+    // One pill per unique category among published entries, in
+    // CATEGORY_ORDER (tool first). Derived at test time so publishing a
+    // new category can't silently break this assertion.
+    expect(UNKNOWN_CATEGORIES).toEqual([]);
+    expect(PUBLISHED_CATEGORIES.length).toBeGreaterThan(0);
     const categoryPills = page.locator(
       '.catalog-filter-pill[data-filter-axis="category"]',
     );
-    await expect(categoryPills).toHaveCount(1);
+    await expect(categoryPills).toHaveCount(PUBLISHED_CATEGORIES.length);
+    await expect(categoryPills).toHaveText(PUBLISHED_CATEGORIES);
+    // CATEGORY_ORDER puts `tool` first and the corpus always has it, so the
+    // first pill is the tool filter.
     await expect(categoryPills.first()).toHaveAttribute(
       "data-filter-value",
-      "tool",
+      PUBLISHED_CATEGORIES[0],
     );
-    await expect(categoryPills.first()).toHaveText(/tool/i);
+    for (const category of PUBLISHED_CATEGORIES) {
+      await expect(
+        page.locator(
+          `.catalog-filter-pill[data-filter-axis="category"][data-filter-value="${category}"]`,
+        ),
+      ).toBeVisible();
+    }
   });
 
   test("renders one pill per unique tag in the corpus", async ({ page }) => {
