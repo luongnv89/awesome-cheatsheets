@@ -1,55 +1,56 @@
 # AGENTS.md
 
 ## Project
-Static catalog of AI cheatsheets (Astro) plus a TypeScript validator and lint CLI. Published entries live in `src/content/cheatsheets/` and must keep the template contract. Unit tests cover `tools/` and `src/` helpers.
-
-## Commands
-Build and test commands stay in `CLAUDE.md` and the Pre.1 notes in `docs/DEVELOPMENT.md` (`## Agent-runnable environment`). Do not copy that command list here.
+Static catalog of AI cheatsheets: an Astro site plus a TypeScript validator and lint CLI (`tools/`) that enforce the entry template contract. Published entries live in `src/content/cheatsheets/` and must keep the contract (`skills/cheatsheet-scribe/template-contract.md`). Unit tests (Vitest) cover `tools/**` and `src/**`; Playwright covers the built site.
 
 ## Layout
-- `src/pages/`, `src/components/`, `src/layouts/` — site UI
-- `src/content/cheatsheets/` — markdown entries; `src/content.config.ts` — collection schema
-- `tools/validator/`, `tools/cli/`, `tools/ci/` — lint, tests, CI helpers
-- `e2e/` — Playwright
-- `skills/` — canonical authoring skills (`cheatsheet-scribe/`, `docs-to-cheatsheet/`); `.claude/skills/` and `.agents/skills/` are generated mirrors — edit `skills/` only, then run `pnpm skills:sync`
-- `skills/docs-to-cheatsheet/agents/` — subagent prompts for the docs-to-cheatsheet workflow
-- Do not hand-edit `dist/`, `.astro/`, `node_modules/`, `.lighthouseci/`, `test-results/`, or `playwright-report/`
+- `src/content/cheatsheets/<slug>/<slug>.md` — published entries; schema in `src/content.config.ts`.
+- `tools/` — validator, `cheatsheet:lint` CLI, and CI helpers; tests are `*.test.ts` beside sources under `tools/` and `src/`.
+- `e2e/` — Playwright specs for the built site.
+- `skills/` — canonical authoring skills; `.claude/skills/` and `.agents/skills/` are generated mirrors.
 
-## Conventions
-- Package manager is pnpm. ESM (`"type": "module"`).
-- New validator behavior gets a test under `tools/**/*.test.ts`.
+## Commands
+- Install: `pnpm install --frozen-lockfile` (pnpm 10.28.0, Node ≥24; not npm or yarn)
+- Dev: `pnpm dev`
+- Build: `pnpm build` (Astro, then Pagefind into `dist/`)
+- Preview: `pnpm preview`
+- Test all: `pnpm test` (Vitest)
+- Test one file: `pnpm test tools/validator/__tests__/frontmatter.test.ts`
+- E2E on site changes: `pnpm test:e2e` (fixture build + Playwright; CI runs it on every PR)
+- Types: `pnpm type-check` (also runs in the pre-commit hook)
+- Lint one cheatsheet: `pnpm cheatsheet:lint src/content/cheatsheets/<slug>/<slug>.md --no-links`
+- Lint all cheatsheets: `pnpm cheatsheet:lint 'src/content/cheatsheets/**/*.md' --no-links`
+- No-CDN gate: `pnpm check:no-cdn` (run after `pnpm build`)
+- Skill mirrors: `pnpm skills:sync` (after editing `skills/`; add `-- --check` to verify only)
 
 ## Constraints
-- Do not commit `.env` or secrets.
-- Do not push or commit unless asked.
-- Do not edit generated output under `dist/`.
+- Never hand-edit generated output: `dist/`, `.astro/`, `.lighthouseci/`, `test-results/`, `playwright-report/`; rebuild instead.
+- Never edit `.claude/skills/` or `.agents/skills/` directly; they are generated mirrors — edit `skills/`, then run `pnpm skills:sync`.
+- Never commit `.env` or secrets; build and `pnpm test` need no `.env`.
+- Never push or commit unless asked.
+- Ask first before adding or upgrading a dependency, then use `pnpm add <pkg>`.
 
 ## Done when
-Use the completion commands in `CLAUDE.md` and `docs/DEVELOPMENT.md`. `pnpm test` must stay at or above the 82-test baseline.
+- `pnpm type-check` exits 0.
+- `pnpm test` passes; keep at or above the current 240-test baseline.
+- Cheatsheet edits also pass `pnpm cheatsheet:lint <file> --no-links`.
+- UI edits also pass `pnpm build` and `pnpm check:no-cdn`.
+- New validator behavior has a test under `tools/**/*.test.ts`.
 
-## Subagents
-These roles belong to `skills/docs-to-cheatsheet/`. The prompt file is the definition; this list is the index.
-
-### docs-mapper
-Maps official documentation navigation from one starting URL. Prompt: `skills/docs-to-cheatsheet/agents/docs-mapper.md`.
-
-### community-researcher
-Finds recent community best-practice sources for a tool. Prompt: `skills/docs-to-cheatsheet/agents/community-researcher.md`.
-
-### cheatsheet-reviewer
-Reviews a cheatsheet for concision, source support, and template compliance. Prompt: `skills/docs-to-cheatsheet/agents/cheatsheet-reviewer.md`.
+## Conventions
+- ESM package (`"type": "module"`).
+- Cheatsheet link checks stay offline in unit tests (`CHEATSHEET_LINT_SKIP_LINKS=1` in `vitest.config.ts`).
 
 ## Read when needed
 - Setup and script table → `docs/DEVELOPMENT.md`
 - Contributor authoring → `docs/contributing.md`
 - Architecture → `docs/ARCHITECTURE.md`
-- Docs-to-cheatsheet workflow → `skills/docs-to-cheatsheet/SKILL.md`
+- Cheatsheet authoring and docs-to-cheatsheet workflow, including subagent prompts (`agents/`) → `skills/cheatsheet-scribe/SKILL.md`, `skills/docs-to-cheatsheet/SKILL.md`
 
 ## Token Efficiency
 - Never re-read files you just wrote or edited. You know the contents.
 - Never re-run commands to "verify" unless the outcome was uncertain.
 - Don't echo back large blocks of code or file contents unless asked.
 - Batch related edits into single operations. Don't make 5 edits when 1 handles it.
-- Skip confirmations like "I'll continue..." Just do it.
-- If a task needs 1 tool call, don't use 3. Plan before acting.
-- Do not summarize what you just did unless the result is ambiguous or you need additional input.
+- Report results and blockers plainly; skip filler like "I'll continue...".
+- If a task needs 1 tool call, don't use 3.
