@@ -95,6 +95,12 @@ jobs:
       # high or critical advisory lands in production dependencies.
       # --prod skips noisy devDep findings (test runners, etc.); moderate and
       # low advisories still surface in the step output without failing CI.
+      #
+      # Temporary exception: `pnpm.auditConfig.ignoreGhsas` in package.json
+      # silences two advisories with no patched release yet — GHSA-ch52-4w7c-c8xp
+      # (http-cache-semantics <=4.2.0) and GHSA-vfj7-8cjw-p6xm (braces <=3.0.3).
+      # Remove both entries once upstream ships patched versions (each reports
+      # "Patched versions: <0.0.0" today); they are ignored, not resolved.
       - name: Audit production dependencies (high/critical)
         run: pnpm audit --prod --audit-level=high
 
