@@ -1,11 +1,10 @@
 # robots.txt — Awesome AI Cheatsheets
-# https://luongnv89.github.io/awesome-cheatsheets/
+# https://luongnv.com/awesome-cheatsheets/
 #
-# NOTE: this file is served under the /awesome-cheatsheets/ path on GitHub
-# Pages. Crawlers only fetch /robots.txt at the host root (RFC 9309), so on
-# GitHub Pages these directives are advisory, not authoritative — the
-# authoritative copy for luongnv89.github.io belongs in the user-site repo.
-# Keep both in sync.
+# NOTE: this file is served under the /awesome-cheatsheets/ path. Crawlers only
+# fetch /robots.txt at the host root (RFC 9309), so these directives are
+# advisory, not authoritative — the authoritative copy for luongnv.com belongs
+# in the user-site repo. Keep both in sync.
 #
 # Policy: allow all crawlers, including AI training, search, and on-demand
 # fetchers. The catalog is public and CC-licensed; maximum AI visibility is
@@ -71,4 +70,4 @@ Allow: /
 User-agent: MistralAI-User
 Allow: /
 
-Sitemap: https://luongnv89.github.io/awesome-cheatsheets/sitemap.xml
+Sitemap: https://luongnv.com/awesome-cheatsheets/sitemap.xml

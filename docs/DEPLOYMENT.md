@@ -7,7 +7,7 @@ Awesome AI Cheatsheets deploys as a static Astro site to GitHub Pages.
 `astro.config.mjs` defines:
 
 ```js
-site: 'https://luongnv89.github.io',
+site: 'https://luongnv.com',
 base: '/awesome-cheatsheets',
 output: 'static'
 ```
@@ -111,10 +111,10 @@ The workflow does not push to a `gh-pages` branch.
 
 ## Production URLs
 
-- Catalog: <https://luongnv89.github.io/awesome-cheatsheets/>
-- About: <https://luongnv89.github.io/awesome-cheatsheets/about/>
-- Hermes Agent: <https://luongnv89.github.io/awesome-cheatsheets/cheatsheets/hermes-agent/>
-- Pi: <https://luongnv89.github.io/awesome-cheatsheets/cheatsheets/pi-dev/>
+- Catalog: <https://luongnv.com/awesome-cheatsheets/>
+- About: <https://luongnv.com/awesome-cheatsheets/about/>
+- Hermes Agent: <https://luongnv.com/awesome-cheatsheets/cheatsheets/hermes-agent/>
+- Pi: <https://luongnv.com/awesome-cheatsheets/cheatsheets/pi-dev/>
 
 ## Rollback
 

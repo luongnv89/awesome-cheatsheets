@@ -39,7 +39,7 @@ export default defineConfig({
   // default) so rendered output matches what the catalog and e2e suites
   // were built against. Adopting 'jsx' is a separate, deliberate change.
   compressHTML: true,
-  site: 'https://luongnv89.github.io',
+  site: 'https://luongnv.com',
   base: '/awesome-cheatsheets',
   output: 'static',
   build: {

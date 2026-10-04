@@ -161,7 +161,7 @@ If the gate fires, it prints the offending `file:line: url`. Either remove the d
 
 ## Deployment to GitHub Pages
 
-The site auto-deploys to `https://luongnv89.github.io/awesome-cheatsheets/` on every push to `main` via `.github/workflows/deploy.yml`. The workflow builds with `pnpm build` (which runs `astro build` and generates the pagefind index), uploads `dist/` as a Pages artifact, then calls `actions/deploy-pages@v4` to publish.
+The site auto-deploys to `https://luongnv.com/awesome-cheatsheets/` on every push to `main` via `.github/workflows/deploy.yml`. The workflow builds with `pnpm build` (which runs `astro build` and generates the pagefind index), uploads `dist/` as a Pages artifact, then calls `actions/deploy-pages@v4` to publish.
 
 **One-time repository setup (maintainer only):**
 
