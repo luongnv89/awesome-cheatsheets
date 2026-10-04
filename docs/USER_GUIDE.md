@@ -6,8 +6,8 @@ Awesome AI Cheatsheets is a static catalog of structured, freshness-aware refere
 
 Open the live site:
 
-- Catalog: <https://luongnv89.github.io/awesome-cheatsheets/>
-- About: <https://luongnv89.github.io/awesome-cheatsheets/about/>
+- Catalog: <https://luongnv.com/awesome-cheatsheets/>
+- About: <https://luongnv.com/awesome-cheatsheets/about/>
 
 From the catalog page you can:
 

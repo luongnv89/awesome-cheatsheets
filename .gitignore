@@ -36,3 +36,6 @@ pnpm-debug.log*
 .env.*
 !.env.example
 .gstack/
+
+# Agent-readiness scan scratch (website-agent-readiness skill)
+.agent-ready/

@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://luongnv89.github.io/awesome-cheatsheets/">
+  <a href="https://luongnv.com/awesome-cheatsheets/">
     <img src="public/brand/full.svg" alt="Awesome AI Cheatsheets" width="420" />
   </a>
 </p>
@@ -11,9 +11,9 @@
 </p>
 
 <p align="center">
-  <a href="https://luongnv89.github.io/awesome-cheatsheets/"><strong>Browse the catalog →</strong></a>
+  <a href="https://luongnv.com/awesome-cheatsheets/"><strong>Browse the catalog →</strong></a>
   &nbsp;·&nbsp;
-  <a href="https://luongnv89.github.io/awesome-cheatsheets/about/">Why it exists</a>
+  <a href="https://luongnv.com/awesome-cheatsheets/about/">Why it exists</a>
   &nbsp;·&nbsp;
   <a href="./docs/contributing.md">Contribute</a>
   &nbsp;·&nbsp;
@@ -23,7 +23,7 @@
 <p align="center">
   <a href="#license"><img alt="License: MIT + CC-BY-4.0" src="https://img.shields.io/badge/license-MIT%20%2B%20CC--BY--4.0-1B1F3A"></a>
   <a href="https://github.com/luongnv89/awesome-cheatsheets/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/luongnv89/awesome-cheatsheets/actions/workflows/ci.yml/badge.svg"></a>
-  <a href="https://luongnv89.github.io/awesome-cheatsheets/"><img alt="Site: GitHub Pages" src="https://img.shields.io/badge/site-GitHub%20Pages-F2B705?labelColor=1B1F3A"></a>
+  <a href="https://luongnv.com/awesome-cheatsheets/"><img alt="Site: GitHub Pages" src="https://img.shields.io/badge/site-GitHub%20Pages-F2B705?labelColor=1B1F3A"></a>
 </p>
 
 ---
@@ -53,7 +53,7 @@ Our wedge: **format + freshness + comparability**.
 
 ## How it works
 
-1. **Browse the catalog** at [luongnv89.github.io/awesome-cheatsheets](https://luongnv89.github.io/awesome-cheatsheets/) — filter by category (tool, mcp, concept, comparison) or tag, search the full corpus, and open any entry.
+1. **Browse the catalog** at [luongnv.com/awesome-cheatsheets](https://luongnv.com/awesome-cheatsheets/) — filter by category (tool, mcp, concept, comparison) or tag, search the full corpus, and open any entry.
 2. **Read a cheatsheet** like you read a man page: one-liner up top, mental-model diagram, quickstart commands, recipes for common jobs, gotchas pulled out plainly.
 3. **Check the date.** Each entry surfaces its last-updated chip and flags itself as stale once the freshness budget elapses.
 
@@ -117,7 +117,7 @@ pnpm cheatsheet:lint src/content/cheatsheets/<slug>/<slug>.md
 
 The production site is configured in [`astro.config.mjs`](./astro.config.mjs):
 
-- `site`: `https://luongnv89.github.io`
+- `site`: `https://luongnv.com`
 - `base`: `/awesome-cheatsheets`
 - `output`: static HTML
 
@@ -181,5 +181,5 @@ No related publications have been confirmed yet. If you cite or discuss Awesome 
 ---
 
 <p align="center">
-  <a href="https://luongnv89.github.io/awesome-cheatsheets/"><strong>Browse the catalog →</strong></a>
+  <a href="https://luongnv.com/awesome-cheatsheets/"><strong>Browse the catalog →</strong></a>
 </p>

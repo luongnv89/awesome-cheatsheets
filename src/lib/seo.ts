@@ -3,16 +3,16 @@
  * base-aware absolute URLs used by canonical links, Open Graph tags, JSON-LD,
  * the sitemap endpoint, and llms.txt.
  *
- * The site deploys to a GitHub Pages project path
- * (`https://luongnv89.github.io/awesome-cheatsheets/`), so every absolute URL
- * must join: origin + `import.meta.env.BASE_URL` + path. `siteBase()` and
- * `absoluteUrl()` accept an explicit `base` parameter so unit tests can cover
- * both the project-path and domain-root deployments without touching Vite's
- * environment.
+ * The site is served from `https://luongnv.com/awesome-cheatsheets/` (GitHub
+ * Pages custom domain; the `luongnv89.github.io` host 301-redirects here), so
+ * every absolute URL must join: origin + `import.meta.env.BASE_URL` + path.
+ * `siteBase()` and `absoluteUrl()` accept an explicit `base` parameter so unit
+ * tests can cover both the project-path and domain-root deployments without
+ * touching Vite's environment.
  */
 
 /** Deployed origin (no base path, no trailing slash). */
-export const SITE_ORIGIN = "https://luongnv89.github.io";
+export const SITE_ORIGIN = "https://luongnv.com";
 
 /** Site name used in JSON-LD and share-card alt text. */
 export const SITE_NAME = "Awesome AI Cheatsheets";

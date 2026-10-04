@@ -6,7 +6,7 @@
  * entries are excluded, matching what the catalog links). A single urlset is
  * enough — the site stays far below the 50,000-URL / 50MB sitemap limit.
  *
- * Served at https://luongnv89.github.io/awesome-cheatsheets/sitemap.xml and
+ * Served at https://luongnv.com/awesome-cheatsheets/sitemap.xml and
  * referenced from `public/robots.txt`.
  */
 import type { APIRoute } from "astro";

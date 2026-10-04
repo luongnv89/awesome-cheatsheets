@@ -6,7 +6,7 @@
  * absolute URL, summary, and last-updated date. Drafts and deprecated entries
  * are excluded, matching the catalog and the sitemap.
  *
- * Served at https://luongnv89.github.io/awesome-cheatsheets/llms.txt.
+ * Served at https://luongnv.com/awesome-cheatsheets/llms.txt.
  */
 import type { APIRoute } from "astro";
 import { getCollection } from "astro:content";

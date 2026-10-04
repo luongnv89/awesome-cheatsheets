@@ -29,9 +29,9 @@ The wedge is format + freshness + comparability:
 
 Start here:
 
-- Catalog: https://luongnv89.github.io/awesome-cheatsheets/
-- Hermes Agent: https://luongnv89.github.io/awesome-cheatsheets/cheatsheets/hermes-agent/
-- Pi: https://luongnv89.github.io/awesome-cheatsheets/cheatsheets/pi-dev/
+- Catalog: https://luongnv.com/awesome-cheatsheets/
+- Hermes Agent: https://luongnv.com/awesome-cheatsheets/cheatsheets/hermes-agent/
+- Pi: https://luongnv.com/awesome-cheatsheets/cheatsheets/pi-dev/
 - Contributor tutorial: https://github.com/luongnv89/awesome-cheatsheets/blob/main/docs/contributing.md
 
 Roadmap: Claude Code, Codex, OpenCode, OpenClaw, Harness Engineering, Agent Skills, Sub-agents, MCP, and Prompt Engineering / comparison.
@@ -54,7 +54,7 @@ External posting requires account access outside this repository. Record posted 
 3. The key constraint: visible freshness dates and CI-backed template linting.
 4. Contributors can use `/cheatsheet-scribe` plus the 30-minute tutorial.
 5. Roadmap: 9 more cheatsheets — Claude Code, Codex, OpenCode, OpenClaw, Harness Engineering, Agent Skills, Sub-agents, MCP, Prompt Engineering / comparison.
-6. Link: https://luongnv89.github.io/awesome-cheatsheets/
+6. Link: https://luongnv.com/awesome-cheatsheets/
 
 ## First-72-hour feedback triage
 
