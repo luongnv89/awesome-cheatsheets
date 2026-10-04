@@ -4,7 +4,7 @@
  * 404). Provides:
  *  - The new brand-aligned header (full.svg logo + nav: catalog, about) and
  *    footer (wordmark + repo link + license).
- *  - OG/Twitter meta tags pointing at the brand mark for social shares.
+ *  - OG/Twitter meta tags pointing at the 1200×630 share card for social links.
  *  - A system font stack — heading sans + body sans — kept off the network
  *    so the `no-cdn-check` CI gate stays green and Lighthouse perf doesn't
  *    regress.
@@ -23,21 +23,38 @@ import ConsentManager from '../components/ConsentManager.astro';
 import SecurityHeaders from '../components/SecurityHeaders.astro';
 import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
+import { SITE_ORIGIN, absoluteUrl, jsonLdScript } from '../lib/seo.js';
 
 interface Props {
   title: string;
   description?: string;
+  /** Page-specific JSON-LD (e.g. the catalog's ItemList) rendered as an extra script. */
+  extraJsonLd?: unknown;
 }
 
-const { title, description } = Astro.props;
+const { title, description, extraJsonLd } = Astro.props;
 const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, '');
-const siteOrigin = 'https://luongnv89.github.io';
-const canonicalUrl = `${siteOrigin}${Astro.url.pathname}`;
-const ogImage = `${siteOrigin}${baseUrl}/brand/mark.svg`;
+const canonicalUrl = `${SITE_ORIGIN}${Astro.url.pathname}`;
+const ogImage = absoluteUrl('/brand/og-card.png');
+const ogImageAlt = 'Awesome AI Cheatsheets — step-by-step setup guides for AI coding agents';
 
 const metaDescription =
   description ??
   'Rich-format, visibly-dated, mutually-comparable references for terminal-native AI coding agents and the concepts behind them.';
+
+// Homepage-only WebSite schema — describes the catalog itself (name, canonical
+// URL, language), not an individual page.
+const websiteJsonLd =
+  Astro.url.pathname === `${baseUrl}/`
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        name: 'Awesome AI Cheatsheets',
+        url: `${SITE_ORIGIN}${baseUrl}/`,
+        description: metaDescription,
+        inLanguage: 'en',
+      }
+    : null;
 ---
 
 <!doctype html>
@@ -71,14 +88,25 @@ const metaDescription =
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={ogImageAlt} />
     <meta property="og:site_name" content="Awesome AI Cheatsheets" />
 
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={metaDescription} />
     <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content={ogImageAlt} />
 
     <title>{title}</title>
+
+    {websiteJsonLd && (
+      <script type="application/ld+json" set:html={jsonLdScript(websiteJsonLd)} />
+    )}
+    {extraJsonLd && (
+      <script type="application/ld+json" set:html={jsonLdScript(extraJsonLd)} />
+    )}
 
     <ConsentManager />
   </head>
