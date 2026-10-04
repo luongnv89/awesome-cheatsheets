@@ -35,6 +35,7 @@ import ContentEnhance from '../components/cheatsheet/ContentEnhance.astro';
 // Staleness rule lives in `tools/utils/freshness.ts` — the single source of
 // truth shared with CatalogCard.astro and the freshness CI (issue #135).
 import { daysSinceUpdate, isStale } from '../../tools/utils/freshness.js';
+import { SITE_ORIGIN, absoluteUrl, jsonLdScript } from '../lib/seo.js';
 
 interface Props {
   title: string;
@@ -47,6 +48,8 @@ interface Props {
     stale_after_days: number;
     upstream_version?: string;
   };
+  /** Frontmatter authors — mapped into the Article JSON-LD `author` entities. */
+  authors?: { name: string; handle?: string; url?: string }[];
   /** Number of `### Step N — …` headings in the body (0 hides step UI). */
   stepCount?: number;
   /** Total estimated minutes summed from `**Time:**` step meta. */
@@ -63,6 +66,7 @@ interface Props {
 const {
   title,
   frontmatter,
+  authors = [],
   stepCount = 0,
   stepMinutes = 0,
   isDraft = false,
@@ -88,10 +92,60 @@ const relativeTime = getRelativeTime(daysCount);
 const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, '');
 const slug = Astro.url.pathname.replace(/\/$/, '').split('/').pop() ?? '';
 
-const siteOrigin = 'https://luongnv89.github.io';
-const canonicalUrl = `${siteOrigin}${Astro.url.pathname}`;
-const ogImage = `${siteOrigin}${baseUrl}/brand/mark.svg`;
+const canonicalUrl = `${SITE_ORIGIN}${Astro.url.pathname}`;
+const ogImage = absoluteUrl('/brand/og-card.png');
+const ogImageAlt = `${frontmatter.title} — Awesome AI Cheatsheets`;
 const metaDescription = frontmatter.summary;
+
+// Structured data — Article (the body is a dated technical reference) plus a
+// two-level breadcrumb. Author entities come from the frontmatter `authors`
+// block; publisher is the catalog itself. `dateModified` is the same
+// `last_updated` date the page renders, so the markup always matches the
+// visible freshness chip.
+const articleJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: frontmatter.title,
+  description: frontmatter.summary,
+  dateModified: frontmatter.last_updated,
+  inLanguage: 'en',
+  mainEntityOfPage: canonicalUrl,
+  image: ogImage,
+  publisher: {
+    '@type': 'Organization',
+    name: 'Awesome AI Cheatsheets',
+    url: `${SITE_ORIGIN}${baseUrl}/`,
+    logo: { '@type': 'ImageObject', url: ogImage },
+  },
+  ...(authors.length > 0
+    ? {
+        author: authors.map((author) => ({
+          '@type': 'Person',
+          name: author.name,
+          ...(author.url ? { url: author.url } : {}),
+        })),
+      }
+    : {}),
+};
+
+const breadcrumbJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Catalog',
+      item: `${SITE_ORIGIN}${baseUrl}/`,
+    },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: frontmatter.title,
+      item: canonicalUrl,
+    },
+  ],
+};
 ---
 
 <!doctype html>
@@ -125,14 +179,22 @@ const metaDescription = frontmatter.summary;
     <meta property="og:type" content="article" />
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={ogImageAlt} />
     <meta property="og:site_name" content="Awesome AI Cheatsheets" />
+    <meta property="article:modified_time" content={frontmatter.last_updated} />
 
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={metaDescription} />
     <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content={ogImageAlt} />
 
     <title>{title}</title>
+
+    <script type="application/ld+json" set:html={jsonLdScript(articleJsonLd)} />
+    <script type="application/ld+json" set:html={jsonLdScript(breadcrumbJsonLd)} />
 
     <ConsentManager />
   </head>

@@ -17,6 +17,7 @@ import CatalogCard from '../components/CatalogCard.astro';
 import CatalogSearch from '../components/CatalogSearch.astro';
 import FilterPills from '../components/FilterPills.astro';
 import { countSteps } from '../lib/steps';
+import { SITE_ORIGIN } from '../lib/seo.js';
 import '../styles/hero.css';
 
 const entries = await getCollection('cheatsheets', ({ data }) => {
@@ -55,9 +56,25 @@ for (const e of sorted) {
 const filterTags = Array.from(tagCounts.keys()).sort(
   (a, b) => (tagCounts.get(b) ?? 0) - (tagCounts.get(a) ?? 0) || a.localeCompare(b),
 );
+
+// Catalog ItemList schema — lets search and AI systems see the full published
+// set (title, URL, summary) without crawling every detail page.
+const itemListJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: 'AI coding agent cheatsheets',
+  numberOfItems: sorted.length,
+  itemListElement: sorted.map((entry, index) => ({
+    '@type': 'ListItem',
+    position: index + 1,
+    name: entry.data.title,
+    url: `${SITE_ORIGIN}${cheatsheetHref(entry.id)}`,
+    description: entry.data.summary,
+  })),
+};
 ---
 
-<Layout title="Awesome AI Cheatsheets">
+<Layout title="Awesome AI Cheatsheets" extraJsonLd={itemListJsonLd}>
   <main class="catalog-main">
     <header class="catalog-hero">
       <p class="catalog-hero-eyebrow" aria-hidden="true">Reference, refreshed.</p>
