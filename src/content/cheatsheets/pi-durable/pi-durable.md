@@ -3,11 +3,11 @@ slug: pi-durable
 title: Pi Durable — Durable Agent Harness Cheatsheet
 category: tool
 subcategory: agent-framework
-summary: Build long-running agents with Pi Durable, Earendil's experimental TypeScript harness that commits every model turn, tool call, and app state to storage so runs survive crashes, then add tools, subagents, durable tasks, compaction, multiplayer views, and Cloudflare Durable Objects.
-last_updated: 2026-10-15
+summary: Build long-running agents with Pi Durable, Earendil's experimental TypeScript harness that commits every model turn, tool call, and app state to storage so runs survive crashes, then add tools, subagents, durable tasks, compaction, multiplayer views, proactive agents that start from events and wait for approval, and Cloudflare Durable Objects.
+last_updated: 2026-10-21
 stale_after_days: 30
 upstream_version: "pi-durable 1.3.x"
-tags: [pi-durable, pi, earendil, agent-harness, durable-agents, typescript, crash-recovery, subagents, compaction, cloudflare-durable-objects]
+tags: [pi-durable, pi, earendil, agent-harness, durable-agents, typescript, crash-recovery, subagents, compaction, cloudflare-durable-objects, proactive-agents]
 status: published
 authors:
   - name: luongnv89
@@ -18,6 +18,8 @@ links:
   examples: https://github.com/earendil-works/pi/tree/v1.3.0/packages/durable/test/examples
   npm: https://www.npmjs.com/package/@earendil-works/pi-durable
   cloudflare: https://developers.cloudflare.com/agents/harnesses/pi/
+  video: https://youtu.be/DNDYYHsypZg
+  demo: https://github.com/disler/durable-pi
 ---
 
 # Pi Durable — Durable Agent Harness Cheatsheet
@@ -31,6 +33,7 @@ links:
 - [ ] An API key for a `@earendil-works/pi-ai` provider, such as `OPENAI_API_KEY` for `openaiProvider()`
 - [ ] Optional: a Pi checkout, to run the 30+ official examples and the demo agents
 - [ ] Optional for Cloudflare: a Workers project with a SQLite-backed Durable Object
+- [ ] Optional for the community demo (`disler/durable-pi`): Node.js 24, [`just`](https://github.com/casey/just), `zsh`, and an `OPENROUTER_API_KEY`
 
 > [!NOTE]
 > Pi Durable doesn't replace the Pi coding agent ([`pi-dev`](https://github.com/luongnv89/awesome-cheatsheets/blob/main/src/content/cheatsheets/pi-dev/pi-dev.md)). Use the coding agent when one person drives a terminal and restarts it by hand after a crash. Use Pi Durable when the agent has to outlive the terminal: Slack bots, triage daemons, long jobs, several people steering one conversation, or agents running in a container or Durable Object.
@@ -79,6 +82,28 @@ links:
 
    ```bash
    node packages/coding-agent/src/experimental/vacation/main.ts
+   ```
+
+6. Optional: install the community demo from the IndyDevDan video, a network of durable agents with web, terminal, and `curl` clients. Clone it outside the Pi checkout, and set `OPENROUTER_API_KEY` in `.env` after the copy:
+
+   ```bash
+   git clone https://github.com/disler/durable-pi.git
+   cd durable-pi
+   cp .env.example .env
+   cp dpi-network.example.yaml dpi-network.yaml
+   just install
+   just net up local
+   just hub build
+   ```
+
+   Then run this machine's device server, and in a second terminal the web UI on `http://localhost:4781`:
+
+   ```bash
+   just backend run
+   ```
+
+   ```bash
+   just hub start
    ```
 
 > [!TIP]
@@ -259,7 +284,7 @@ links:
 **Verify:** `await root.agent(context)` returns the configured model, tools, and `cwd`. In a Pi checkout, `20-inbox.ts` prints `rejected:` and `withdraw:` for the busy-conversation cases.
 
 > [!TIP]
-> A reviewer conversation can sit next to the main agent with a cheaper model, read-only tools, and its own checkout. See `28-reviewer.ts`, and `27-plan-mode.ts` for a read-only plan mode switched with `configure()`.
+> A reviewer conversation can sit next to the main agent with a cheaper model, read-only tools, and its own checkout. See `28-reviewer.ts`, and `27-plan-mode.ts` for a read-only plan mode switched with `configure()`. A `configure()` change applies from the agent's next model request with no restart, so you can flip a running agent to read-only mid-run, as the durable-pi demo's **Read only** switch does.
 
 ### Step 5 — Hooks, approvals, subagents, and child tasks
 
@@ -287,14 +312,23 @@ links:
    ```
 
 2. Know how hook chains run. `beforeTool` passes rewritten arguments down the chain and stops at the first block (and a throw blocks the call). `afterTool` passes the result down. `onYield` stops at the first hook that keeps the run going. Observers like `afterResponse` always run.
-3. Build a subagent as a `replay: "safe"` tool that creates a child conversation owned by the call. Inside `api.commit()`, reuse an existing child (`tx.scanConversations({ ownerTaskId: api.taskId }, 1)`) or create one with `ownership: { kind: "task", taskId: api.taskId }`. Then submit with a `requestId` derived from `api.taskId`.
-4. Use `defineTask` for your own multi-step durable work. A phase that commits `{ status: "waiting", checkpoint: { phase: "decide", … }, on: childTaskIds, policy: "failFast" }` runs no code until its children settle, then resumes in the checkpoint's phase. With `failFast`, the first failure aborts the rest; `allSettled` waits for all of them.
-5. Mark side work with `{ background: true }` (reminders, subagents that outlive the turn). An ordinary abort (Esc, `root.abort(context)`) leaves it alone, and `root.abort(context, { background: true })` stops it too.
+3. Turn a guard on for some conversations only. Without `settings.extensions`, every installed extension is selected everywhere. So list the default selection without the guard, then `add` it where you need it. The durable-pi demo's bash gate works this way: a `beforeTool` hook sends each `bash` command to a classifier, memos the verdict, and blocks irreversible commands. When the classifier is down, it lets the command run (fails open):
+
+   ```ts
+   // BashGate: your guard extension; Ops: your other extensions
+   registry.install(BashGate);
+   const harness = await Harness.open(storage, { models, registry, settings: { extensions: [CodingTools, Ops] } }, context);
+   await root.configure({ extensions: { add: [BashGate] } }, context); // this conversation only
+   ```
+
+4. Build a subagent as a `replay: "safe"` tool that creates a child conversation owned by the call. Inside `api.commit()`, reuse an existing child (`tx.scanConversations({ ownerTaskId: api.taskId }, 1)`) or create one with `ownership: { kind: "task", taskId: api.taskId }`. Then submit with a `requestId` derived from `api.taskId`.
+5. Use `defineTask` for your own multi-step durable work. A phase that commits `{ status: "waiting", checkpoint: { phase: "decide", … }, on: childTaskIds, policy: "failFast" }` runs no code until its children settle, then resumes in the checkpoint's phase. With `failFast`, the first failure aborts the rest; `allSettled` waits for all of them. The durable-pi demo's `release-check` job shows the shape: a subagent gathers evidence, then the job waits for a person before it publishes.
+6. Mark side work with `{ background: true }` (reminders, subagents that outlive the turn). An ordinary abort (Esc, `root.abort(context)`) leaves it alone, and `root.abort(context, { background: true })` stops it too.
 
 **Verify:** `harness.taskGraph(context)` lists live tasks with owner edges and `pending`/`running`/`waiting`/`completing` statuses. In a Pi checkout, `22-subagent-foreground.ts` prints the child's `assistant:` and `tool …(…)` lines indented under the call, and `24-child-tasks.ts` prints `payments:` outcomes and `checkout aborted`.
 
 > [!CAUTION]
-> `requestId` makes *submissions* exactly-once, not side effects. Charges, deploys, and webhooks inside tasks need their own idempotency key, such as `` `payment-${task.id}` ``, because a phase can rerun after a crash. Pi Durable has no built-in approval step yet; the hook above is how you build one.
+> `requestId` makes *submissions* exactly-once, not side effects. Charges, deploys, and webhooks inside tasks need their own idempotency key, such as `` `payment-${task.id}` ``, because a phase can rerun after a crash. Pi Durable has no built-in approval step yet. Build one with the hook above, or as a durable approval task (Step 9).
 
 ### Step 6 — Compose tools: nested calls, code mode, deferred tools
 
@@ -369,7 +403,28 @@ links:
    }, context);
    ```
 
-2. Tune background compaction, which summarizes older entries while the conversation keeps working:
+2. Share state across every conversation in one harness with `scope: "session"`. A session document takes no conversation id. When several agents or people write it, keep a revision counter in the document and reject stale saves. A commit callback that throws rolls back that commit:
+
+   ```ts
+   const Board = defineDoc<{ notes: string[]; revision: number }>({
+   	kind: "app.board",
+   	version: 1,
+   	scope: "session",
+   	initial: () => ({ notes: [], revision: 0 }),
+   });
+
+   await harness.commit(async (tx) => {
+   	const board = await tx.doc(Board);
+   	// seenRevision: the revision this writer last read
+   	if (board.revision !== seenRevision) throw Error("The board changed; reload it before saving.");
+   	board.notes.push("checkout fixed");
+   	board.revision++;
+   }, context);
+   ```
+
+   The durable-pi demo goes one level further. A separate harness over its own SQLite file holds one JSON document that every session on a device reads and writes through `read_state` and `update_state` tools. Each change is one path operation, a receipt per change key keeps a retried call from applying twice, and a stale full save gets `409 conflict`. Pi Durable doesn't share state across harnesses by itself.
+
+3. Tune background compaction, which summarizes older entries while the conversation keeps working:
 
    ```ts
    settings: {
@@ -377,21 +432,21 @@ links:
    },
    ```
 
-3. Compact by hand with instructions, or reset to a handoff note. Older entries always stay in storage:
+4. Compact by hand with instructions, or reset to a handoff note. Older entries always stay in storage:
 
    ```ts
    await root.compact("Keep the names of the failing tests", context);
    await root.reset("We were fixing the flaky login test. Continue.", context);
    ```
 
-4. Hot-reload an extension by installing it under the same name. A running call finishes on its old code, and the next call uses the new code:
+5. Hot-reload an extension by installing it under the same name. A running call finishes on its old code, and the next call uses the new code:
 
    ```ts
    // loadExtension: your own loader that imports the changed file
    registry.install(await loadExtension("./ops.ts")); // same name "ops": replaces it in one step
    ```
 
-5. After a process restart, install the same extensions again. Pending tasks of an extension's `tasks` resume only once that extension is installed.
+6. After a process restart, install the same extensions again. Pending tasks of an extension's `tasks` resume only once that extension is installed.
 
 **Verify:** `await harness.snapshot(Todos, root.id, context)` returns the committed list. In a Pi checkout, `25-compaction.ts` prints `manual compaction finished; its summary is` and `after the answer, the summary is`, and `31-reload-and-restart.ts` prints `after restart, before install:` then `after install:`.
 
@@ -422,14 +477,20 @@ links:
    });
    ```
 
-3. To run on Cloudflare, add the Agents SDK. Its `PiHarness` stores Pi in the object's SQLite (`pi_` tables) and schedules a Lifecycle job that wakes an evicted object to finish work:
+3. Or detach the agent from every client behind your own server. The durable-pi demo runs one `dpi-backend` server per device, and it owns that device's harnesses. The web hub, `dpi-tui`, and `curl` are thin clients of its bearer-token `/v1` HTTP API (demo code, not pi-durable), and a reconnect starts from a fresh snapshot instead of a replay. One request sends work and waits for the answer:
+
+   ```bash
+   curl -s "<DEVICE_URL>/v1/sessions/oneshot/agents/main/messages" -H "Authorization: Bearer <DPI_TOKEN>" -H 'content-type: application/json' -d '{"content":"How many files are in this directory? Use bash.","requestId":"oneshot-1","waitMs":120000}'
+   ```
+
+4. To run on Cloudflare, add the Agents SDK. Its `PiHarness` stores Pi in the object's SQLite (`pi_` tables) and schedules a Lifecycle job that wakes an evicted object to finish work:
 
    ```bash
    npm i agents @earendil-works/pi-durable @earendil-works/pi-ai
    ```
 
-4. Configure Wrangler with an `ai` binding, a Durable Object binding with a `new_sqlite_classes` migration for `Assistant`, and the `nodejs_compat` compatibility flag (see the Cloudflare page for the full file).
-5. Wire `PiHarness` into an `Agent`'s Lifecycle. The `harness` factory gets `storage` and `context`, and you build `models`, `registry`, `settings`, and `env` inside it:
+5. Configure Wrangler with an `ai` binding, a Durable Object binding with a `new_sqlite_classes` migration for `Assistant`, and the `nodejs_compat` compatibility flag (see the Cloudflare page for the full file).
+6. Wire `PiHarness` into an `Agent`'s Lifecycle. The `harness` factory gets `storage` and `context`, and you build `models`, `registry`, `settings`, and `env` inside it:
 
    ```ts
    import { Agent } from "agents";
@@ -457,23 +518,120 @@ links:
    }
    ```
 
-6. Submit with an `operationId` so the call is idempotent, then wait separately. This is the `PiHarness` API, not the core `requestId` API:
+7. Submit with an `operationId` so the call is idempotent, then wait separately. This is the `PiHarness` API, not the core `requestId` API:
 
    ```ts
    const receipt = await this.harness.submit("Summarize the latest report", { operationId: "report-summary-42" });
    const result = await this.harness.wait(receipt.operationId); // status: "done" | "unanswered"
    ```
 
-**Verify:** `this.harness.pending()` lists the submission as `queued` or `running` and then drops it, and `this.harness.wait()` returns `status: "done"` with `text` even if the object was evicted mid-run.
+**Verify:** `this.harness.pending()` lists the submission as `queued` or `running` and then drops it, and `this.harness.wait()` returns `status: "done"` with `text` even if the object was evicted mid-run. With the durable-pi demo running, the `curl` request returns `"status":"done"` with an `answer`.
 
 > [!WARNING]
 > Cloudflare limits: one model stream longer than about 15 minutes can be cut off by the alarm cap, background work is noticed up to 30 s late (the heartbeat interval), event streams always restart from a snapshot, and conversations can't be deleted yet.
+
+> [!CAUTION]
+> In the durable-pi demo network, a device token is effectively a shell: anyone holding it can run commands as that device's user. LAN `ssh` devices speak plain HTTP, and the hub holds every token. Keep the hub bound to `127.0.0.1`.
+
+### Step 9 — Proactive agents: start from an event, wait for approval
+
+**Goal:** An agent that an event starts, which does the first pass of the work and then waits, through restarts, for a person to approve the risky step · **Time:** ~45 min · **Level:** advanced
+
+1. See the pattern end to end in the community demo first. From the durable-pi checkout (Installation item 6), install and build the proactive demo:
+
+   ```bash
+   just proactive install
+   ```
+
+   ```bash
+   just proactive build
+   ```
+
+2. Start a fresh take. It prints a URL, deploys a bad commit at about 5 s, and the incident agent asks to deploy its fix at about 30 s:
+
+   ```bash
+   just proactive take
+   ```
+
+3. Split the work into three layers, and give each one the job it does best:
+   - **Code** owns thresholds and side effects. In the demo, 3 `incident` verdicts with one fingerprint within 120 s open an incident.
+   - **A cheap classifier** makes one bounded judgment per event. The demo has a hosted classifier label each log row `normal`, `suspicious`, or `incident` and score the impact.
+   - **The agent** does the open-ended work: investigate, find the root cause, write the fix and a regression test, then ask to deploy.
+4. Open the incident and its conversation in one commit, keyed by the event fingerprint, so a restarted watcher finds the same agent. Then submit the brief with a `requestId` derived from the incident:
+
+   ```ts
+   import { configure } from "@earendil-works/pi-durable";
+
+   // Incidents: a session doc of open incidents; OpsTools, worktree, brief: yours
+   const { id, conversationId } = await harness.commit(async (tx) => {
+   	const incidents = await tx.doc(Incidents);
+   	const open = incidents.items[fingerprint];
+   	if (open) return { id: open.id, conversationId: open.conversationId };
+   	const conversation = await tx.createConversation({ ownership: { kind: "ownerless" } });
+   	await configure(tx, conversation.id, { extensions: [CodingTools, OpsTools], cwd: worktree });
+   	const id = `INC-${++incidents.seq}`;
+   	incidents.items[fingerprint] = { id, conversationId: conversation.id };
+   	return { id, conversationId: conversation.id };
+   }, context);
+
+   const agent = await harness.conversation(conversationId, context);
+   await agent?.submit({ type: "input", content: brief(id), requestId: `incident:${id}:brief` }, context);
+   ```
+
+5. Make the risky step a child task that the tool call owns. The `deploy` tool creates the task, or finds it again after a crash, keyed by its own `api.taskId`, then waits with `api.waitForTask()`:
+
+   ```ts
+   const deploy = defineTool({
+   	name: "deploy",
+   	description: "Ask the on-call engineer to approve the fix, then ship it",
+   	parameters: Type.Object({ summary: Type.String() }),
+   	replay: "safe", // only creates or finds the task, then waits; the deploy runs in the task
+   	execute: async (args, api, context) => {
+   		// Deploys: a session doc of requests keyed by deploy task id; your approve/decline route sets `decision`
+   		const taskId = await api.commit(async (tx) => {
+   			const deploys = await tx.doc(Deploys);
+   			const existing = Object.values(deploys.items).find((d) => d.toolTaskId === api.taskId);
+   			if (existing) return existing.taskId; // a rerun after a crash waits on the same task
+   			const created = await tx.createTask(DeployTask, { summary: args.summary }, { ownership: { kind: "task", taskId: api.taskId } });
+   			deploys.items[String(created)] = { taskId: created, toolTaskId: api.taskId, decision: null };
+   			return created;
+   		}, context);
+   		const { outcome } = (await api.waitForTask(taskId, context)).state;
+   		const approved = outcome.status === "completed" && outcome.result.approved;
+   		return { output: [{ type: "text", text: approved ? "Deployed." : "Declined; nothing shipped." }] };
+   	},
+   });
+   ```
+
+6. Wait for the person inside the task. Pi Durable has no built-in approval signal, so the `approval` phase polls the committed document and sleeps between checks. The phase is checkpointed, so a restart resumes the same wait. Ship in a later phase with its own idempotency key, such as `` `deploy-${task.id}` ``:
+
+   ```ts
+   approval: async (task, runtime, context) => {
+   	for (;;) {
+   		const decision = (await runtime.snapshot(Deploys, context))?.items[String(task.id)]?.decision;
+   		if (decision === "declined")
+   			return void (await runtime.commit(() => ({ status: "terminal", outcome: { status: "completed", result: { approved: false } } }), context));
+   		if (decision === "approved")
+   			return void (await runtime.commit(() => ({ status: "running", checkpoint: { phase: "rollout" } }), context));
+   		await runtime.sleep(runtime.now() + 500, context);
+   	}
+   },
+   ```
+
+**Verify:** after `just proactive take`, the incident reaches review and the deploy waits for approval. SIGKILL the backend while the deploy waits, then start it again. The same deploy task is still awaiting approval, the same tool call is waiting on it, and only one brief exists per incident.
+
+> [!IMPORTANT]
+> The `just proactive` recipes, the watcher, and the incident tools belong to the `disler/durable-pi` demo, not to pi-durable. The demo pins pi-durable 1.0.3, so its tools return `content`; on 1.3.x, return `output`.
+
+> [!CAUTION]
+> The proactive demo has no login, and its incident agent runs `bash` unsandboxed as you. It binds `127.0.0.1`; keep it there unless you trust the network.
 
 ## Best Practices
 
 ### Do
 
-- ✅ Treat `replay: "safe"` as a contract. It suits reads and whole-file writes, but not edits that fail on already-replaced text, charges, or deploys. Re-audit it whenever a tool gains a write.
+- ✅ Go durable when the work has to outlive the window that started it. IndyDevDan's walkthrough names five reasons: proactive agents that an event starts, multi-client agents, multiplayer agents, long-running agents, and a human *near* the loop who approves work instead of driving it. A short, supervised session in one terminal is fine with plain Pi.
+- ✅ Treat `replay: "safe"` as a contract. It suits reads and whole-file writes, but not edits that fail on already-replaced text, charges, or deploys. Re-audit it whenever a tool gains a write. A tool that only creates or finds a child task and waits for it can be replay-safe, as long as the side effect runs in the task's checkpointed phases (Step 9).
 - ✅ Derive every retryable `requestId` (core) or `operationId` (Cloudflare) from something stable, such as an inbound event id, a job id, or `` `subagent:${api.taskId}` ``.
 - ✅ Store hook decisions with `api.memo()`, because hooks can run again after a crash.
 - ✅ Keep system prompt sections stable. Only changed sections are resent, which keeps provider prompt caches warm.
@@ -484,6 +642,9 @@ links:
 - ✅ Check `harness.usage(context)` or `docs["pi.usage"]`: per-model and per-tool spend, including failed attempts and summarization.
 - ✅ Restrict `callers` on tools that must not recurse. Nothing bounds how deeply nested calls go, and a tool with the default `callers` can even call itself.
 - ✅ Defer large tool sets (`deferred: true` plus `tool_search`), or route them through code mode, instead of offering every schema on every request.
+- ✅ Put a cheap classifier and code-owned thresholds in front of a proactive agent. The classifier judges each event, code decides when a run starts, and the agent only does the open-ended work.
+- ✅ Make each approval a durable task owned by the tool call, and record the decision in a committed document that the task polls. A restart then keeps waiting on the same task instead of asking again.
+- ✅ Decide whether each guard hook fails open or closed when its judge is unreachable. The durable-pi bash gate fails open.
 
 ### Don't
 
@@ -493,6 +654,7 @@ links:
 - ❌ Don't confuse the Cloudflare `PiHarness` API (`prompt()`, `operationId`, session `"1"`) with the core API (`root.submit().wait()`, `requestId`).
 - ❌ Don't rely on `MemoryStorage` outside tests; it persists nothing.
 - ❌ Don't float versions while the package is experimental. Pin them, and re-read the README after each upgrade.
+- ❌ Don't treat a classifier guard as a sandbox, or a client token for a remote agent as anything less than shell access to its machine.
 
 ## Quick Command Reference
 
@@ -516,6 +678,8 @@ Core harness (`@earendil-works/pi-durable`):
 | `watchEvents(harness, id, context)` | Coding-agent style event stream |
 | `harness.taskGraph(context)` · `harness.usage(context)` | Live task tree · spend per model and tool |
 | `api.executeTool(name, args, context, { key?, progress? })` | Nested tool call from inside a tool |
+| `tx.createTask(def, input, { ownership: { kind: "task", taskId } })` · `api.waitForTask(id, context)` | Child task owned by a tool call · wait for its outcome |
+| `harness.commit(fn, context)` · `harness.snapshot(SessionDoc, context)` | Write or read a `scope: "session"` document |
 
 Builders: `defineExtension`, `defineTool`, `wrapTool`, `section`, `hook(ToolTask | GenerationTask | CompactionTask, …)`, `defineTask`, `defineDoc`, `createRegistry`, `CodingTools` / `createBashTool` (from `/tools`), `createCodemodeExtension` (from `/codemode`), `createToolSearchExtension` (from `/tool-search`).
 
@@ -554,6 +718,18 @@ Run an official example (from `packages/durable` in a Pi checkout):
 node --conditions=source --experimental-strip-types test/examples/19-json.ts --events "What is in this directory?"
 ```
 
+Community demo (`disler/durable-pi`, not part of pi-durable):
+
+| Command | Use |
+|---|---|
+| `just net up <DEVICE>` | Bring a device online: env file, token, service, registry (idempotent) |
+| `just backend run` | This machine's device server on `:4780` |
+| `just hub start` | Web UI on `http://localhost:4781` |
+| `just tui attach <DEVICE>[:<SESSION>[:<AGENT>]]` | Terminal client attached to a device, session, or agent |
+| `just net status` | Probe every device in `dpi-network.yaml` |
+| `just check` | Type checks and unit tests on the faux model (free) |
+| `just proactive take` · `bug` · `stop` | Fresh proactive-demo take · deploy the bad commit now · end the demo |
+
 ## Expected Outcomes
 
 - A harness on SQLite or JSONL storage whose runs continue after a crash, with exactly-once submissions via `requestId`.
@@ -563,6 +739,7 @@ node --conditions=source --experimental-strip-types test/examples/19-json.ts --e
 - Tools that call tools, code-mode scripts that survive restarts, and deferred tool sets loaded through `tool_search`.
 - App state in documents that commit atomically with the transcript, background compaction, and handoffs that keep older history searchable.
 - Extensions hot-reloaded without stopping the agent, multiple clients watching and steering one conversation, and an optional Cloudflare Durable Object deployment that wakes itself to finish work.
+- A proactive agent that an event starts, which works through an incident and then waits, across restarts, for a person to approve the deploy.
 
 ## Reference
 
@@ -577,6 +754,11 @@ Official sources (facts and code):
 - Launch demos at `v1.0.0`: [durable coding agent](https://github.com/earendil-works/pi/tree/v1.0.0/packages/coding-agent/src/experimental/durable) · [vacation planner](https://github.com/earendil-works/pi/tree/v1.0.0/packages/coding-agent/src/experimental/vacation)
 - [Cloudflare Agents SDK — Pi harness (`PiHarness`)](https://developers.cloudflare.com/agents/harnesses/pi/)
 - [Pi homepage](https://pi.dev) · [Pi repository](https://github.com/earendil-works/pi)
+
+Community walkthrough (code-backed):
+
+- [Pi Durable PROACTIVE Agents](https://youtu.be/DNDYYHsypZg) (IndyDevDan, YouTube, 2026-10-12): a classifier-triggered on-call agent that fixes an incident and waits for deploy approval, a multi-device agent network with web, terminal, and `curl` clients, shared app state, durable jobs, tool sets changed mid-run, live-toggled extensions, and forks
+- [`disler/durable-pi`](https://github.com/disler/durable-pi): the video's code (MIT, pins pi-durable 1.0.3): `dpi-backend` and its [v1 API](https://github.com/disler/durable-pi/blob/main/apps/dpi-backend/API.md), the hub, `dpi-tui`, and the [proactive demo](https://github.com/disler/durable-pi/tree/main/apps/proactive-dpi-demo)
 
 Community discussion:
 
