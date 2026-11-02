@@ -41,7 +41,7 @@ Either way, you spend the first hour figuring out the shape of the thing instead
 
 A curated catalog of cheatsheets that hit the middle ground. Every entry follows the same locked structure, carries a visible last-updated date, and gets flagged when it goes stale — so you can skim it the same way every time and trust the freshness signal at a glance.
 
-**Where it stands:** the catalog holds 15 cheatsheets — 6 published and 9 in draft (10 tools, 3 concepts, 1 MCP, and 1 comparison) — all built on the same authoring and validation tooling.
+**Where it stands:** the catalog holds 21 published cheatsheets (15 tools, 4 concepts, 1 MCP, and 1 comparison), all built on the same authoring and validation tooling.
 
 Our wedge: **format + freshness + comparability**.
 
@@ -59,16 +59,15 @@ Our wedge: **format + freshness + comparability**.
 
 ## What's inside
 
-The catalog currently ships 6 published cheatsheets, with 9 more in draft:
+The catalog currently ships 21 published cheatsheets:
 
-- **Tools (published)** — [ASM](./src/content/cheatsheets/asm/asm.md), [Herdr](./src/content/cheatsheets/herdr/herdr.md), [Hermes Agent](./src/content/cheatsheets/hermes-agent/hermes-agent.md), [Obsidian](./src/content/cheatsheets/obsidian/obsidian.md), [Oh My Pi (omp)](./src/content/cheatsheets/omp/omp.md), and [Pi](./src/content/cheatsheets/pi-dev/pi-dev.md).
-- **Tools (draft)** — [Claude Code](./src/content/cheatsheets/claude-code/claude-code.md), [Codex](./src/content/cheatsheets/codex/codex.md), [OpenClaw](./src/content/cheatsheets/openclaw/openclaw.md), and [OpenCode](./src/content/cheatsheets/opencode/opencode.md).
-- **Concepts (draft)** — [Agent Skills](./src/content/cheatsheets/agent-skills/agent-skills.md), [Harness Engineering](./src/content/cheatsheets/harness-engineering/harness-engineering.md), and [Sub-agents](./src/content/cheatsheets/sub-agents/sub-agents.md).
-- **MCP (draft)** — [Model Context Protocol](./src/content/cheatsheets/mcp/mcp.md).
-- **Comparisons (draft)** — [Prompt Engineering](./src/content/cheatsheets/prompt-engineering-comparison/prompt-engineering-comparison.md).
+- **Tools** — [ASM](./src/content/cheatsheets/asm/asm.md), [Capy](./src/content/cheatsheets/capy/capy.md), [Claude Code](./src/content/cheatsheets/claude-code/claude-code.md), [Codex](./src/content/cheatsheets/codex/codex.md), [Devin](./src/content/cheatsheets/devin/devin.md), [Droid](./src/content/cheatsheets/droid/droid.md), [Herdr](./src/content/cheatsheets/herdr/herdr.md), [Hermes Agent](./src/content/cheatsheets/hermes-agent/hermes-agent.md), [Obsidian](./src/content/cheatsheets/obsidian/obsidian.md), [Oh My Pi (omp)](./src/content/cheatsheets/omp/omp.md), [OpenClaw](./src/content/cheatsheets/openclaw/openclaw.md), [OpenCode](./src/content/cheatsheets/opencode/opencode.md), [Pi](./src/content/cheatsheets/pi-dev/pi-dev.md), [Pi Durable](./src/content/cheatsheets/pi-durable/pi-durable.md), and [Superlogical Rex](./src/content/cheatsheets/superlogical-rex/superlogical-rex.md).
+- **Concepts** — [Agent Skills](./src/content/cheatsheets/agent-skills/agent-skills.md), [App Store Marketing 101](./src/content/cheatsheets/app-store-marketing/app-store-marketing.md), [Harness Engineering](./src/content/cheatsheets/harness-engineering/harness-engineering.md), and [Sub-agents](./src/content/cheatsheets/sub-agents/sub-agents.md).
+- **MCP** — [Model Context Protocol](./src/content/cheatsheets/mcp/mcp.md).
+- **Comparisons** — [Prompt Engineering](./src/content/cheatsheets/prompt-engineering-comparison/prompt-engineering-comparison.md).
 - **`cheatsheet-scribe`** — the authoring skill and template contract used to keep entries comparable.
 
-Draft entries render at their `/cheatsheets/<slug>/` URLs for review but stay off the catalog grid and search index until their frontmatter `status` flips to `published`.
+Draft entries (`status: poc`) render at their `/cheatsheets/<slug>/` URLs for review but stay off the catalog grid and search index until their frontmatter `status` flips to `published`.
 
 The broader catalog covers four kinds of references:
 
@@ -81,7 +80,7 @@ See the live site for the up-to-date list. The catalog is built statically and s
 
 ## Roadmap
 
-The v1.1 contribution wave is in draft — Claude Code, Codex, OpenCode, OpenClaw, Harness Engineering, Agent Skills, Sub-agents, MCP, and the Prompt Engineering comparison are committed and rendering at their URLs, awaiting `status: published`. Community additions ASM, Herdr, Obsidian, and Oh My Pi are already live. New seeds land as `good first issue`s on the [issue tracker](https://github.com/luongnv89/awesome-cheatsheets/issues) — each links back to the contributor tutorial and the scribe-friendly draft format.
+The v1.1 contribution wave is published: every entry in the catalog has `status: published`. New seeds land as `good first issue`s on the [issue tracker](https://github.com/luongnv89/awesome-cheatsheets/issues) — each links back to the contributor tutorial and the scribe-friendly draft format.
 
 ## Quick start
 

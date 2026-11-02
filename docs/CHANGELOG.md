@@ -6,6 +6,11 @@ This project follows a lightweight changelog for public-facing changes. Dates us
 
 ### Added
 
+- App Store Marketing 101 concept cheatsheet: selling iPhone, iPad and Mac
+  apps through the App Store, with Apple-verified limits, a Mac
+  availability table for Apple's marketing tools, and an agent workflow
+  (`asc` CLI plus App Store skills). The catalog now has 21 published
+  entries (#203).
 - Thirteen post-launch cheatsheets — ASM, Claude Code, Codex, Herdr, Obsidian,
   Oh My Pi (omp), OpenClaw, OpenCode, Agent Skills, Harness Engineering,
   Sub-agents, MCP, and the Prompt Engineering comparison — bringing the
