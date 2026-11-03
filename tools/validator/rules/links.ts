@@ -1,6 +1,8 @@
 /**
- * External link rule — extract every `http(s)://` URL from the AST and HEAD-
- * check it with a configurable timeout (default 5_000 ms per AC #5).
+ * External link rule — extract every `http(s)://` URL from the AST and probe
+ * it with `HEAD`, then at most one `GET` retry (see "Network details"). The
+ * configurable timeout (default 5_000 ms per AC #5) applies per request, so a
+ * link whose HEAD is rejected and whose GET hangs takes up to twice that.
  *
  * The rule is opt-out via `links: "skip"` or the `CHEATSHEET_LINT_SKIP_LINKS`
  * environment variable — required for offline test runs and to keep CI cheap.
@@ -25,7 +27,8 @@
  *    into a pass when GET itself succeeds, so it cannot hide a real break.
  *    `429` is not retried — an immediate second request would be throttled
  *    too.
- *  - Timeout uses `AbortController` so a slow host can't stall the validator.
+ *  - Each request (HEAD, and the GET retry if any) gets its own
+ *    `AbortController` timer, so a slow host can't stall the validator.
  *
  * @see ../../../2026_05_18_awesome_ai_cheatsheets/prd.md §3 M1, §3 M5
  */
