@@ -70,7 +70,7 @@ hc --version
 ```
 
 > [!TIP]
-> The installers download and run code — read them first if you prefer. Herdr TUI uses a different binary (`herdr`) and config folder, so it keeps working alongside the app.
+> The installers download and run code — read them first if you prefer. Herdr TUI uses a different binary (`herdr`) and config folder, and the FAQ says it keeps working — but side-by-side installs aren't explicitly documented.
 
 ## Step-by-Step Setup & Optimization
 
@@ -194,7 +194,7 @@ Use **herdr-core** to run and coordinate programs; use **herdr-app** to change w
    ```bash
    herdr-app do tab.new --name "fix login" --argv '["claude"]' --task "look at the login bug"
    ```
-5. Reuse prompts as templates — after saving one as `~/.config/herdr-core/templates/reviewer.md`, run it by name with a task:
+5. Reuse prompts as templates — after saving one as `~/.config/herdr-core/templates/reviewer.md` (Linux/macOS; Windows: `%APPDATA%\herdr-core\templates`), run it by name with a task:
    ```bash
    hc templates
    hc run --bg --name review reviewer "review src/x.rs"
@@ -208,7 +208,7 @@ Use **herdr-core** to run and coordinate programs; use **herdr-app** to change w
 > [!TIP]
 > A terminal you start yourself shows up in a Herdr tab when it carries Herdr's labels: `hc run --keep --label herdr.space=<SPACE_ID> --label herdr.tab=<TAB_ID> -- claude`. Agents report status through the **OSC 7501** escape sequence; terminals without it show as plain programs.
 
-**Verify:** `hc ls` lists `reviewer` and `tests`, and `hc wait reviewer` returns when the agent stops working.
+**Verify:** `hc ls --all` lists `reviewer` and `tests` (finished ones too), and `hc wait reviewer` returns when the agent stops working.
 
 ### Step 6 — Maintenance and troubleshooting
 

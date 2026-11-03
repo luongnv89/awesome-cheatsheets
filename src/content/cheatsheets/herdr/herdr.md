@@ -166,7 +166,7 @@ herdr channel set stable
 - Spawn or attach agents from scripts when useful. `agent start` activates an **existing idle shell pane** — create the pane first:
 
   ```bash
-  herdr pane split w1:p1 --direction right    # prints the new pane ID (here w1:p2)
+  herdr pane split w1:p1 --direction right    # JSON reply: .result.pane.pane_id (assumed w1:p2 below)
   herdr agent start reviewer --kind pi --pane w1:p2
   herdr agent prompt reviewer "review the last commit" --wait
   herdr agent list
@@ -290,7 +290,15 @@ herdr channel set stable
   herdr plugin link /path/to/local-plugin
   ```
 
-  Plugins are global per user; bind actions to keys with `[[keys.command]]` (see Configuration → Custom command keybindings).
+  Plugins are global per user. Bind an action to a free key:
+
+  ```toml
+  [[keys.command]]
+  key = "ctrl+alt+y"
+  type = "plugin_action"
+  command = "example.layout.apply"
+  description = "apply layout"
+  ```
 
 - **Session restore trade-offs** (read before enabling history):
 

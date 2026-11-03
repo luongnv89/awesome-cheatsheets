@@ -45,7 +45,7 @@ curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash
 iex (irm https://hermes-agent.nousresearch.com/install.ps1)
 ```
 
-**Android (Termux, aarch64):** configure the signed Hermes APT repository ([install docs](https://hermes-agent.nousresearch.com/docs/getting-started/installation)), then run:
+**Android (Termux, aarch64 — Tier 2, prerelease package only on releases cut with Termux support):** configure the signed Hermes APT repository ([install docs](https://hermes-agent.nousresearch.com/docs/getting-started/installation)), then run:
 ```bash
 pkg install hermes-agent
 ```
@@ -79,7 +79,7 @@ New installs land on the **stable** release channel. Built-in terminal backends:
    hermes status
    hermes memory status
    ```
-3. Production stability — stay on tagged releases (the default) and silence passive update notices:
+3. Production stability (source installs) — stay on tagged releases (already the default; bundled Desktop apps have a fixed channel and refuse changes) and silence passive update notices:
    ```bash
    hermes update --set-channel stable
    hermes config set updates.check false
@@ -124,9 +124,9 @@ If anything fails, re-run `hermes setup` and follow the prompts.
    ```
 
 > [!TIP]
-> Prompt caching is automatic — no config. Keep it effective by not editing `SOUL.md`, `AGENTS.md`, or memory files mid-session. `/model reset` returns a chat to the profile's model.
+> Prompt caching is automatic — no config. Memory is injected as a frozen snapshot at session start, so edits to memory files take effect in the **next** session without breaking the current cache. `/model reset` returns a chat to the profile's model.
 
-**Verify:** `hermes model` opens the selector and `hermes config get compression` shows your compression block.
+**Verify:** `hermes model` opens the selector and `hermes config get compression.threshold` prints your threshold.
 
 ### Step 3 — Persistent Memory (Compounding Intelligence)
 
@@ -187,13 +187,16 @@ Built-in memory files are injected into the system prompt as a frozen snapshot a
 
 **Goal:** Hermes reachable from Telegram with scheduled tasks running · **Time:** ~30 min · **Level:** intermediate
 
-1. Telegram (most popular path): create a bot with **BotFather** and save the token; disable privacy mode if you'll use it in groups; get your numeric user ID (e.g., via `@userinfobot`); add both to `~/.hermes/.env`.
-2. Configure and start the gateway (one gateway per machine serves all profiles since v0.22):
+1. Telegram (most popular path): create a bot with **BotFather** and save its token.
+2. In BotFather, disable privacy mode if you'll use the bot in group chats.
+3. Get your numeric Telegram user ID (e.g., via `@userinfobot`).
+4. Add the token and user ID to `~/.hermes/.env`.
+5. Configure and start the gateway (one gateway per machine serves all profiles since v0.22):
    ```bash
    hermes gateway setup
    hermes gateway
    ```
-3. Schedule a task — schedule first, then prompt:
+6. Schedule a task — schedule first, then prompt:
    ```bash
    hermes cron create "every 1d at 08:00" "Send me a morning briefing" --name "Daily briefing"
    ```
@@ -201,19 +204,19 @@ Built-in memory files are injected into the system prompt as a frozen snapshot a
    ```text
    /cron add "every 2h" "Check server status"
    ```
-4. Set the home channel for cron output (run in your preferred chat):
+7. Set the home channel for cron output (run in your preferred chat):
    ```text
    /sethome
    ```
-5. Manage jobs:
+8. Manage jobs (`cancel` only stops a run in flight; `remove` deletes the job):
    ```bash
    hermes cron list
    hermes cron pause "Daily briefing"
-   hermes cron cancel "Daily briefing"
+   hermes cron remove "Daily briefing"
    ```
 
 > [!NOTE]
-> v0.22 renamed agent tools: `cronjob` → `cronjob_manage`, `todo` → `todo_list`, `process` → `process_manage`. Update custom prompts and skills that name them.
+> v0.22 renamed agent tools: `cronjob` → `cronjob_manage`, `todo` → `todo_list`, `process` → `process_manage`. The old names still work; prefer the new ones in new prompts and skills.
 
 **Verify:** `hermes cron list` shows your job and the gateway delivers its output to your home channel.
 
@@ -298,11 +301,9 @@ Use Kanban when work has parallel subtasks, dependencies, or role pipelines (e.g
    - Sandbox tool execution (Docker, Modal, Daytona, Vercel Sandbox).
    - Configure secret redaction in logs.
    - Never run as `root`.
-2. VPS bootstrap (community script; sets up a non-root user, firewall, Caddy, systemd units) — download, read, then run:
+2. VPS / service-user install: run the source installer **as the intended service user** (its home, config, and launcher must belong to that user), with `~/.local/bin` on that user's `PATH`. For a Linux user service that must survive logout, enable lingering as an administrator:
    ```bash
-   curl -fsSLo vps-bootstrap.sh https://raw.githubusercontent.com/OnlyTerp/hermes-optimization-guide/main/scripts/vps-bootstrap.sh
-   less vps-bootstrap.sh
-   sudo bash vps-bootstrap.sh
+   sudo loginctl enable-linger <SERVICE_USER>
    ```
 3. Observability: Langfuse tracing moved to the Plugin Catalog in v0.22 — install it from there for traces and cost analytics.
 4. Weekly hygiene: run `/insights` and `/usage`, review `~/.hermes/memories/MEMORY.md` and `USER.md`, and check skill health:
@@ -324,13 +325,13 @@ Use Kanban when work has parallel subtasks, dependencies, or role pipelines (e.g
 - ✅ Run `hermes doctor` weekly and before any production change.
 - ✅ Stay on the stable channel in production; use `hermes update --plan` before updating multi-profile machines.
 - ✅ Route frontier models *only* for hard reasoning; default to fast/cheap or local.
-- ✅ Treat `MEMORY.md`, `USER.md`, `AGENTS.md`, `SOUL.md` as **immutable mid-session** (cache preservation).
+- ✅ Expect edits to `MEMORY.md`, `USER.md`, `SOUL.md` to apply from the **next** session — the running session keeps its frozen snapshot.
 - ✅ Convert any recurring multi-step task into a skill on first repeat.
 - ✅ Give each Bot a narrow role, its own model pin, and only the skills/MCP servers it needs.
 - ✅ Sandbox tool execution before exposing the agent over Telegram/Slack.
 
 ### Don't
-- ❌ Edit memory or `SOUL.md` while a session is live — it busts prompt cache.
+- ❌ Expect a live session to pick up memory or `SOUL.md` edits — start a new session to load them.
 - ❌ Use frontier models for trivial tasks — the most common cost leak.
 - ❌ Call a memory `replace` action — it no longer exists; use `patch`.
 - ❌ Point two agent processes at the same Hermes home directory.
@@ -347,7 +348,7 @@ Use Kanban when work has parallel subtasks, dependencies, or role pipelines (e.g
 | Goal | Command |
 |---|---|
 | Update / check / preview | `hermes update` · `hermes update --check` · `hermes update --plan` |
-| Pin update channel | `hermes update --set-channel stable` |
+| Pin update channel (source installs) | `hermes update --set-channel stable` |
 | Diagnose / health | `hermes doctor` · `hermes status` |
 | Memory health / provider | `hermes memory status` · `hermes memory setup` |
 | Install a catalog plugin | `hermes plugins install <PLUGIN_NAME>` |
@@ -357,7 +358,8 @@ Use Kanban when work has parallel subtasks, dependencies, or role pipelines (e.g
 | Curator status | `hermes curator status` |
 | Gateway setup / run | `hermes gateway setup` · `hermes gateway` |
 | Scheduled task | `hermes cron create "<SCHEDULE>" "<PROMPT>" --name "<JOB_NAME>"` |
-| List / cancel jobs | `hermes cron list` · `hermes cron cancel <JOB_ID_OR_NAME>` |
+| List / remove jobs | `hermes cron list` · `hermes cron remove <JOB_ID_OR_NAME>` |
+| Stop a running job | `hermes cron cancel <JOB_ID_OR_NAME>` |
 | Create a Bot (profile) | `hermes profile create <PROFILE_NAME> --clone` |
 | Chat with a Bot | `hermes -p <BOT_NAME> chat` |
 | Message a Bot on another machine | `hermes peer add <PEER> --url <URL> --key <API_SERVER_KEY>` |
@@ -369,7 +371,7 @@ Use Kanban when work has parallel subtasks, dependencies, or role pipelines (e.g
 | In-chat: compress / verbose | `/compress` · `/verbose` |
 | In-chat: schedule / home channel | `/cron add "<SCHEDULE>" "<PROMPT>"` · `/sethome` |
 
-## Expected Outcomes (after Steps 1–7)
+## Expected Outcomes (after Steps 1–8)
 
 - **Cost:** lower token spend from model routing, cheaper compression summaries, and intact prompt caching.
 - **Speed on repeat tasks:** procedures run as one slash command instead of being re-derived.
@@ -400,7 +402,7 @@ Use Kanban when work has parallel subtasks, dependencies, or role pipelines (e.g
 
 ### Community (tips only; commands from official docs)
 
-- **Optimization guide (OnlyTerp):** [hermes-optimization-guide](https://github.com/OnlyTerp/hermes-optimization-guide) — VPS bootstrap, production configs, LightRAG.
+- **Optimization guide (OnlyTerp):** [hermes-optimization-guide](https://github.com/OnlyTerp/hermes-optimization-guide) — production configs, LightRAG, deep-dive guides.
 - **Awesome list:** [0xNyk/awesome-hermes-agent](https://github.com/0xNyk/awesome-hermes-agent)
 - **v0.22 memory-provider audit (2026-10):** [wallabytoken.com](https://wallabytoken.com/blog/p/hermes-v022-memory-providers)
 - **Bot Mode launch coverage (2026-08):** [MarkTechPost](https://www.marktechpost.com/2026/08/17/nous-research-hermes-bot-mode/)
