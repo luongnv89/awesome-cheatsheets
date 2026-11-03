@@ -203,27 +203,27 @@ Apple says search ranking uses **text relevance** (your app name, subtitle, keyw
 
 **Rule of thumb:** most visitors see only the icon, the first screenshots and the rating before they decide, so treat **screenshots as ads**: one benefit per screenshot, with a short caption.
 
-1. Generate a screenshot set from your app or landing page, one benefit per frame, and tell the agent where to save each set. Use one folder per platform and device size: `asc screenshots upload --locale` reads only the files directly inside `--path` and checks every one against `--device-type`, so a mixed folder fails. The sizes below are the ones Apple requires: the large iPhone size (6.9", or 6.5" if you don't provide 6.9"), the 13" iPad size if the app runs on iPad, and a 16:10 Mac size.
+1. Generate a screenshot set from your app or landing page, one benefit per frame, and save it to `./screenshots`. `/appstore-assets` writes one folder per device size (`./screenshots/iphone-6.9`, `./screenshots/ipad-13` and `./screenshots/mac`), which is what the upload needs: `asc screenshots upload --locale` reads only the files directly inside `--path` and checks every one against `--device-type`, so a mixed folder fails. The sizes below are the ones Apple requires: the large iPhone size (6.9", or 6.5" if you don't provide 6.9"), the 13" iPad size if the app runs on iPad, and a 16:10 Mac size.
    ```text
-   /appstore-assets Create iPhone, iPad and Mac screenshots for Acme Focus, one benefit per frame with a caption; first frame uses: <POSITIONING_SENTENCE>. Save 6.9" iPhone frames (1320 × 2868) to ./screenshots/ios/framed/iphone, 13" iPad frames (2064 × 2752) to ./screenshots/ios/framed/ipad and Mac frames (2880 × 1800) to ./screenshots/mac/framed.
+   /appstore-assets Create iPhone, iPad and Mac screenshots for Acme Focus, one benefit per frame with a caption; first frame uses: <POSITIONING_SENTENCE>. Include 6.9" iPhone (1320 × 2868), 13" iPad (2064 × 2752) and Mac (2880 × 1800) frames, and save the set to ./screenshots.
    ```
 2. Preview the iPhone upload. The dry run checks every file's size against the device type and shows what would be uploaded, without changing anything:
    ```bash
-   asc screenshots upload --app "<APP_ID>" --version "<VERSION>" --platform IOS --locale "en-US" --device-type APP_IPHONE_69 --path ./screenshots/ios/framed/iphone --dry-run
+   asc screenshots upload --app "<APP_ID>" --version "<VERSION>" --platform IOS --locale "en-US" --device-type APP_IPHONE_69 --path ./screenshots/iphone-6.9 --dry-run
    ```
 3. Upload the iPhone set:
    ```bash
-   asc screenshots upload --app "<APP_ID>" --version "<VERSION>" --platform IOS --locale "en-US" --device-type APP_IPHONE_69 --path ./screenshots/ios/framed/iphone
+   asc screenshots upload --app "<APP_ID>" --version "<VERSION>" --platform IOS --locale "en-US" --device-type APP_IPHONE_69 --path ./screenshots/iphone-6.9
    ```
 4. Preview, then upload, the iPad set:
    ```bash
-   asc screenshots upload --app "<APP_ID>" --version "<VERSION>" --platform IOS --locale "en-US" --device-type APP_IPAD_PRO_3GEN_129 --path ./screenshots/ios/framed/ipad --dry-run
-   asc screenshots upload --app "<APP_ID>" --version "<VERSION>" --platform IOS --locale "en-US" --device-type APP_IPAD_PRO_3GEN_129 --path ./screenshots/ios/framed/ipad
+   asc screenshots upload --app "<APP_ID>" --version "<VERSION>" --platform IOS --locale "en-US" --device-type APP_IPAD_PRO_3GEN_129 --path ./screenshots/ipad-13 --dry-run
+   asc screenshots upload --app "<APP_ID>" --version "<VERSION>" --platform IOS --locale "en-US" --device-type APP_IPAD_PRO_3GEN_129 --path ./screenshots/ipad-13
    ```
 5. Preview, then upload, the Mac set:
    ```bash
-   asc screenshots upload --app "<APP_ID>" --version "<VERSION>" --platform MAC_OS --locale "en-US" --device-type APP_DESKTOP --path ./screenshots/mac/framed --dry-run
-   asc screenshots upload --app "<APP_ID>" --version "<VERSION>" --platform MAC_OS --locale "en-US" --device-type APP_DESKTOP --path ./screenshots/mac/framed
+   asc screenshots upload --app "<APP_ID>" --version "<VERSION>" --platform MAC_OS --locale "en-US" --device-type APP_DESKTOP --path ./screenshots/mac --dry-run
+   asc screenshots upload --app "<APP_ID>" --version "<VERSION>" --platform MAC_OS --locale "en-US" --device-type APP_DESKTOP --path ./screenshots/mac
    ```
 6. Repeat steps 2–5 for each other locale, with that locale's `--locale` and folders. To replace a set that already has screenshots, add `--replace --confirm`; preview it first with `--replace --dry-run`.
 7. Add a short app preview video (15–30 s, up to three per device size and language).
@@ -406,12 +406,12 @@ asc localizations list --app "<APP_ID>" --type app-info
 
 ```bash
 # One folder per device type; run each with --dry-run first, then without it
-asc screenshots upload --app "<APP_ID>" --version "<VERSION>" --platform IOS --locale "en-US" --device-type APP_IPHONE_69 --path ./screenshots/ios/framed/iphone --dry-run
-asc screenshots upload --app "<APP_ID>" --version "<VERSION>" --platform IOS --locale "en-US" --device-type APP_IPHONE_69 --path ./screenshots/ios/framed/iphone
-asc screenshots upload --app "<APP_ID>" --version "<VERSION>" --platform IOS --locale "en-US" --device-type APP_IPAD_PRO_3GEN_129 --path ./screenshots/ios/framed/ipad --dry-run
-asc screenshots upload --app "<APP_ID>" --version "<VERSION>" --platform IOS --locale "en-US" --device-type APP_IPAD_PRO_3GEN_129 --path ./screenshots/ios/framed/ipad
-asc screenshots upload --app "<APP_ID>" --version "<VERSION>" --platform MAC_OS --locale "en-US" --device-type APP_DESKTOP --path ./screenshots/mac/framed --dry-run
-asc screenshots upload --app "<APP_ID>" --version "<VERSION>" --platform MAC_OS --locale "en-US" --device-type APP_DESKTOP --path ./screenshots/mac/framed
+asc screenshots upload --app "<APP_ID>" --version "<VERSION>" --platform IOS --locale "en-US" --device-type APP_IPHONE_69 --path ./screenshots/iphone-6.9 --dry-run
+asc screenshots upload --app "<APP_ID>" --version "<VERSION>" --platform IOS --locale "en-US" --device-type APP_IPHONE_69 --path ./screenshots/iphone-6.9
+asc screenshots upload --app "<APP_ID>" --version "<VERSION>" --platform IOS --locale "en-US" --device-type APP_IPAD_PRO_3GEN_129 --path ./screenshots/ipad-13 --dry-run
+asc screenshots upload --app "<APP_ID>" --version "<VERSION>" --platform IOS --locale "en-US" --device-type APP_IPAD_PRO_3GEN_129 --path ./screenshots/ipad-13
+asc screenshots upload --app "<APP_ID>" --version "<VERSION>" --platform MAC_OS --locale "en-US" --device-type APP_DESKTOP --path ./screenshots/mac --dry-run
+asc screenshots upload --app "<APP_ID>" --version "<VERSION>" --platform MAC_OS --locale "en-US" --device-type APP_DESKTOP --path ./screenshots/mac
 asc video-previews list --version-localization "<VERSION_LOCALIZATION_ID>"
 asc product-pages --help
 asc app-events list --app "<APP_ID>"
