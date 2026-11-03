@@ -127,6 +127,96 @@ describe("link rule (mocked fetch)", () => {
     expect(maxInFlight).toBeLessThanOrEqual(8);
   });
 
+  describe("GET retry when HEAD is rejected (issue #206)", () => {
+    /** Mock fetch that answers by HTTP method and records each call's method. */
+    const byMethod = (head: number, get: number | Error) => {
+      const methods: string[] = [];
+      const mockFetch = vi
+        .fn()
+        .mockImplementation(async (_url: string, init: RequestInit) => {
+          const method = init.method ?? "GET";
+          methods.push(method);
+          if (method === "HEAD") return new Response(null, { status: head });
+          if (get instanceof Error) throw get;
+          return new Response(null, { status: get });
+        });
+      return { mockFetch, methods };
+    };
+
+    it("passes when HEAD returns 405 and GET returns 200", async () => {
+      const { mockFetch, methods } = byMethod(405, 200);
+      vi.stubGlobal("fetch", mockFetch);
+
+      const result = await validate(fixture("with-link.md"), {});
+      const linkErrors = result.errors.filter((e) => e.rule === "link-broken");
+      expect(linkErrors).toEqual([]);
+      const heads = methods.filter((m) => m === "HEAD").length;
+      expect(heads).toBeGreaterThan(0);
+      // Exactly one GET retry per URL.
+      expect(methods.filter((m) => m === "GET").length).toBe(heads);
+    });
+
+    it("passes when HEAD returns 404 and GET returns 200", async () => {
+      const { mockFetch } = byMethod(404, 200);
+      vi.stubGlobal("fetch", mockFetch);
+
+      const result = await validate(fixture("with-link.md"), {});
+      expect(result.errors.filter((e) => e.rule === "link-broken")).toEqual([]);
+    });
+
+    it("still fails when both HEAD and GET return 404", async () => {
+      const { mockFetch, methods } = byMethod(404, 404);
+      vi.stubGlobal("fetch", mockFetch);
+
+      const result = await validate(fixture("with-link.md"), {});
+      const linkErrors = result.errors.filter((e) => e.rule === "link-broken");
+      expect(linkErrors.length).toBeGreaterThan(0);
+      expect(linkErrors[0]?.message).toMatch(/HTTP 404$/);
+      expect(methods).toContain("GET");
+    });
+
+    it("reports the GET status when it differs from HEAD", async () => {
+      const { mockFetch } = byMethod(405, 410);
+      vi.stubGlobal("fetch", mockFetch);
+
+      const result = await validate(fixture("with-link.md"), {});
+      const linkErrors = result.errors.filter((e) => e.rule === "link-broken");
+      expect(linkErrors[0]?.message).toMatch(/HTTP 410 \(HEAD returned 405\)/);
+    });
+
+    it("reports a GET network failure after a rejected HEAD", async () => {
+      const { mockFetch } = byMethod(405, new Error("connection reset"));
+      vi.stubGlobal("fetch", mockFetch);
+
+      const result = await validate(fixture("with-link.md"), {});
+      const linkErrors = result.errors.filter((e) => e.rule === "link-broken");
+      expect(linkErrors[0]?.message).toMatch(
+        /HTTP 405 on HEAD; GET failed: connection reset/,
+      );
+    });
+
+    it("sends no GET when HEAD succeeds", async () => {
+      const { mockFetch, methods } = byMethod(200, 500);
+      vi.stubGlobal("fetch", mockFetch);
+
+      const result = await validate(fixture("with-link.md"), {});
+      expect(result.errors.filter((e) => e.rule === "link-broken")).toEqual([]);
+      expect(methods.length).toBeGreaterThan(0);
+      expect(methods.every((m) => m === "HEAD")).toBe(true);
+    });
+
+    it("does not retry statuses outside the retry set (e.g. 500)", async () => {
+      const { mockFetch, methods } = byMethod(500, 200);
+      vi.stubGlobal("fetch", mockFetch);
+
+      const result = await validate(fixture("with-link.md"), {});
+      const linkErrors = result.errors.filter((e) => e.rule === "link-broken");
+      expect(linkErrors.length).toBeGreaterThan(0);
+      expect(linkErrors[0]?.message).toMatch(/HTTP 500$/);
+      expect(methods.every((m) => m === "HEAD")).toBe(true);
+    });
+  });
+
   it('links: "skip" bypasses the network entirely', async () => {
     const mockFetch = vi.fn();
     vi.stubGlobal("fetch", mockFetch);

@@ -15,9 +15,16 @@
  * occurrence in the document.
  *
  * Network details:
- *  - We try `HEAD` first because it's the lightest probe. Some hosts answer
- *    `405 Method Not Allowed` to HEAD — we treat any 4xx/5xx response as a
- *    broken link.
+ *  - We try `HEAD` first because it's the lightest probe. Some hosts reject
+ *    HEAD even though the page loads — e.g. news.ycombinator.com answers
+ *    `405`, support.google.com answers `404`, while `GET` returns 200. When
+ *    HEAD returns one of `HEAD_RETRY_WITH_GET_STATUSES` (403, 404, 405, 501)
+ *    we retry once with `GET` and judge the link by the GET status (issue
+ *    #206). Any other 4xx/5xx, or a 2xx/3xx HEAD, is final: a successful
+ *    HEAD never costs a second request. The retry can only turn a failure
+ *    into a pass when GET itself succeeds, so it cannot hide a real break.
+ *    `429` is not retried — an immediate second request would be throttled
+ *    too.
  *  - Timeout uses `AbortController` so a slow host can't stall the validator.
  *
  * @see ../../../2026_05_18_awesome_ai_cheatsheets/prd.md §3 M1, §3 M5
@@ -91,40 +98,80 @@ function collectLinks(tree: Root): FoundLink[] {
 }
 
 /**
- * HEAD-probe a single URL, treating any non-2xx/3xx response (or a network
- * error / timeout) as broken.
- *
- * Returns a short reason string on failure, `undefined` on success.
+ * HEAD statuses that some hosts return for pages that load fine with GET.
+ * 403 and 404 come from hosts that block or don't route HEAD; 405 and 501 mean
+ * the method itself is unsupported. A link with one of these HEAD statuses
+ * gets one GET retry before it is reported as broken.
  */
-async function probe(url: string, timeoutMs: number): Promise<string | undefined> {
+export const HEAD_RETRY_WITH_GET_STATUSES: ReadonlySet<number> = new Set([
+  403, 404, 405, 501,
+]);
+
+type ProbeOutcome = { status: number } | { error: string };
+
+/**
+ * Send one request and release its body. Returns the HTTP status, or a short
+ * error string on a network error / timeout.
+ */
+async function request(
+  url: string,
+  method: "HEAD" | "GET",
+  timeoutMs: number,
+): Promise<ProbeOutcome> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const res = await fetch(url, {
-      method: "HEAD",
+      method,
       redirect: "follow",
       signal: controller.signal,
     });
     // Release the connection before returning: an unconsumed body keeps the
     // keep-alive socket open and stalls the pool (issue #139 / F-BUG-004).
     // Best-effort — a stream that rejects cancellation still lets us report
-    // the status we already received.
+    // the status we already received. For GET this also stops the download.
     try {
       await res.body?.cancel();
     } catch {
       /* ignore — the HTTP status is already known */
     }
-    if (res.status >= 200 && res.status < 400) return undefined;
-    return `HTTP ${res.status}`;
+    return { status: res.status };
   } catch (err) {
     if (err instanceof Error) {
-      if (err.name === "AbortError") return `timeout after ${timeoutMs} ms`;
-      return err.message;
+      if (err.name === "AbortError") {
+        return { error: `timeout after ${timeoutMs} ms` };
+      }
+      return { error: err.message };
     }
-    return String(err);
+    return { error: String(err) };
   } finally {
     clearTimeout(timer);
   }
+}
+
+const isOk = (status: number): boolean => status >= 200 && status < 400;
+
+/**
+ * Probe a single URL: HEAD first, then one GET retry when HEAD returns a
+ * status in `HEAD_RETRY_WITH_GET_STATUSES`. Any non-2xx/3xx final response
+ * (or a network error / timeout) counts as broken.
+ *
+ * Returns a short reason string on failure, `undefined` on success.
+ */
+async function probe(url: string, timeoutMs: number): Promise<string | undefined> {
+  const head = await request(url, "HEAD", timeoutMs);
+  if ("error" in head) return head.error;
+  if (isOk(head.status)) return undefined;
+  if (!HEAD_RETRY_WITH_GET_STATUSES.has(head.status)) {
+    return `HTTP ${head.status}`;
+  }
+
+  const get = await request(url, "GET", timeoutMs);
+  if ("error" in get) return `HTTP ${head.status} on HEAD; GET failed: ${get.error}`;
+  if (isOk(get.status)) return undefined;
+  return get.status === head.status
+    ? `HTTP ${get.status}`
+    : `HTTP ${get.status} (HEAD returned ${head.status})`;
 }
 
 /**

@@ -18,6 +18,9 @@ This project follows a lightweight changelog for public-facing changes. Dates us
 
 ### Fixed
 
+- Link checks no longer flag pages whose host rejects `HEAD`: when HEAD
+  returns 403, 404, 405 or 501, the probe retries once with `GET` and
+  judges the link by that status (#206).
 - Link check probes now cancel the response body before returning and run
   through a bounded pool (`MAX_IN_FLIGHT = 8`) instead of an unbounded
   `Promise.all` fan-out — no more leaked keep-alive sockets or descriptor
