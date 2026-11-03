@@ -3,35 +3,41 @@ slug: herdr
 title: Herdr — Agent Multiplexer Cheatsheet
 category: tool
 subcategory: agent-multiplexer
-summary: Checklist-first path to install Herdr, run multiple coding agents with sidebar state, detach/reattach, configure integrations, and automate workspaces via CLI and plugins.
-last_updated: 2026-07-18
+summary: Checklist-first path to install Herdr TUI, run multiple coding agents with sidebar state, detach/reattach, connect SSH machines, configure integrations, and automate agents via CLI and plugins.
+last_updated: 2026-11-03
 stale_after_days: 90
-upstream_version: "docs as of 2026-07"
-tags: [herdr, agent-multiplexer, terminal, tmux, cli, agents, plugins, remote]
+upstream_version: "v0.9.5"
+tags: [herdr, agent-multiplexer, terminal, tmux, cli, agents, plugins, remote, ssh]
 status: published
 authors:
   - name: luongnv89
 links:
-  homepage: https://herdr.dev/
-  docs: https://herdr.dev/docs/
-  repo: https://github.com/ogulcancelik/herdr
-  install: https://herdr.dev/docs/install/
-  quick-start: https://herdr.dev/docs/quick-start/
-  agents: https://herdr.dev/docs/agents/
-  configuration: https://herdr.dev/docs/configuration/
-  session-state: https://herdr.dev/docs/session-state/
-  socket-api: https://herdr.dev/docs/socket-api/
-  plugins: https://herdr.dev/docs/plugins/
+  homepage: https://herdr.dev/tui/
+  docs: https://herdr.dev/tui/docs/
+  repo: https://github.com/herdrdev/herdr
+  install: https://herdr.dev/tui/docs/install/
+  quick-start: https://herdr.dev/tui/docs/quick-start/
+  agents: https://herdr.dev/tui/docs/agents/
+  agent-automation: https://herdr.dev/tui/docs/agent-automation/
+  connecting-machines: https://herdr.dev/tui/docs/connecting-machines/
+  configuration: https://herdr.dev/tui/docs/configuration/
+  session-state: https://herdr.dev/tui/docs/session-state/
+  socket-api: https://herdr.dev/tui/docs/socket-api/
+  plugins: https://herdr.dev/tui/docs/plugins/
+  troubleshooting: https://herdr.dev/tui/docs/troubleshooting/
   agent-guide: https://herdr.dev/agent-guide.md
 ---
 
 # Herdr — Agent Multiplexer Cheatsheet
 
-**One-line:** Herdr is a terminal-native agent multiplexer (Rust binary) that keeps real panes running, shows agent state (`working` / `blocked` / `done` / `idle`) in a sidebar, and detaches/reattaches like tmux — with CLI, remote attach, and plugins for multi-agent workflows.
+**One-line:** Herdr is a terminal-native agent multiplexer (Rust binary) that keeps real panes running, shows agent state (`working` / `blocked` / `done` / `idle`) in a sidebar, and detaches/reattaches like tmux — with CLI, remote attach, saved SSH machines, and plugins for multi-agent workflows.
+
+> [!NOTE]
+> This sheet covers **Herdr TUI** (`herdr` CLI, `~/.config/herdr`). [herdr.dev](https://herdr.dev/) now also leads with the separate **Herdr app** (desktop, `herdr-app` + herdr-core `hc` CLIs, `~/.config/herdr-app`); per its FAQ the two do not share agents. See the [Herdr App cheatsheet](/cheatsheets/herdr-app/).
 
 ## Installation
 
-Stable on **Linux and macOS**. Native **Windows is preview beta** only.
+Stable-channel binaries ship for **Linux, macOS, and Windows** (Windows is generally available since v0.8.2, with documented platform limits).
 
 **Linux / macOS (official installer):**
 ```bash
@@ -46,17 +52,22 @@ brew install herdr
 **mise:**
 ```bash
 mise use -g herdr
-# fallback if registry is old: mise use -g github:ogulcancelik/herdr
+# fallback if registry is old: mise use -g github:herdrdev/herdr
 ```
 
 **Nix (pin a release tag when possible):**
 ```bash
-nix run github:ogulcancelik/herdr/v0.x.y   # replace with latest tag
+nix run github:herdrdev/herdr/v0.x.y   # replace with latest tag
 ```
 
-**Windows preview beta:**
+**Windows:**
 ```powershell
 powershell -ExecutionPolicy Bypass -c "irm https://herdr.dev/install.ps1 | iex"
+```
+
+**Windows fallback (Command Prompt, when endpoint security blocks the PowerShell one-liner):**
+```bat
+curl.exe -fsSLo install.cmd https://herdr.dev/install.cmd && install.cmd && del install.cmd
 ```
 
 **Verify and first attach:**
@@ -70,12 +81,15 @@ herdr
 
 **Update (depends on install method):**
 ```bash
-herdr update                 # direct installer only
+herdr update                 # direct installer only; old compatible server keeps running
 herdr update --handoff       # experimental live server handoff (direct installs)
-herdr channel set preview    # Linux/macOS direct installs only
+herdr channel set preview    # direct installs (Linux, macOS, Windows)
 herdr channel set stable
-# Homebrew / mise / Nix: update through that package manager, then restart the session when ready
+# Homebrew / mise / Nix: update through that package manager; preview channel not available there
 ```
+
+> [!NOTE]
+> After an update, `herdr` reconnects with the new client while the compatible old server keeps your panes alive. Restart it (`herdr server stop`, then `herdr`) only when you want server-side changes. `herdr update` also lists saved SSH machines — update each one there.
 
 ## Step-by-Step Setup & Optimization
 
@@ -132,6 +146,15 @@ herdr channel set stable
   herdr --remote workbox --session agents
   ```
 
+- **Saved SSH machines (v0.9+)** show remote sessions in the same sidebar; `--machine` routes CLI/API commands to one:
+
+  ```bash
+  herdr machine add workbox --label "Build machine"
+  herdr machine list
+  herdr machine status
+  herdr --machine "Build machine" agent list
+  ```
+
 - Use **named sessions** only when you need separate servers/sockets (workspaces usually come first):
 
   ```bash
@@ -140,12 +163,14 @@ herdr channel set stable
   herdr session stop work
   ```
 
-- Spawn or attach agents from scripts when useful:
+- Spawn or attach agents from scripts when useful. `agent start` activates an **existing idle shell pane** — create the pane first:
 
   ```bash
-  herdr agent start reviewer --cwd ~/project --split right -- pi
+  herdr pane split w1:p1 --direction right    # prints the new pane ID (here w1:p2)
+  herdr agent start reviewer --kind pi --pane w1:p2
+  herdr agent prompt reviewer "review the last commit" --wait
   herdr agent list
-  herdr agent wait reviewer --status blocked
+  herdr agent wait reviewer --until blocked
   herdr agent attach reviewer
   ```
 
@@ -171,7 +196,7 @@ herdr channel set stable
   herdr integration install pi
   herdr integration install hermes
   herdr integration install opencode
-  # also: omp, copilot, devin, droid, kimi, kilo, qodercli, cursor, mastracode
+  # also: omp, copilot, devin, droid, kimi, kilo, qodercli, qwen, letta, cursor, mastracode, grok
   herdr integration status
   ```
 
@@ -183,14 +208,14 @@ herdr channel set stable
   delay_seconds = 1
   ```
 
-- Optional theme and prefix:
+- Optional theme and prefix (`prefix` accepts one key or an array):
 
   ```toml
   [theme]
   name = "catppuccin"
 
   [keys]
-  prefix = "ctrl+b"
+  prefix = ["ctrl+b", "ctrl+s"]
   ```
 
 - Optional prefix-free chords (safe family is often `ctrl+alt`; verify against your OS/terminal):
@@ -217,7 +242,7 @@ herdr channel set stable
   herdr worktree create --branch worktree/api
   herdr worktree list
   herdr worktree open --branch worktree/api
-  # herdr worktree remove --workspace <id>   # explicit checkout delete; does not delete branch
+  # herdr worktree remove --workspace <WORKSPACE_ID>   # explicit checkout delete; does not delete branch
   ```
 
   ```toml
@@ -232,21 +257,24 @@ herdr channel set stable
   herdr tab create --label logs
   herdr pane split w1:p1 --direction right
   herdr pane run w1:p2 "npm test"
-  herdr wait agent-status w1:p1 --status done
+  herdr pane wait-output w1:p2 --match "PASS" --timeout 600000
+  herdr agent wait w1:p1 --until done
   herdr pane read w1:p2 --source recent --lines 50
   ```
+
+  Use `pane wait-output` for commands and servers, `agent wait` for coding agents. Both wait forever without `--timeout`.
 
 - **Agent detection debug** when status looks wrong:
 
   ```bash
-  herdr agent explain <target>
+  herdr agent explain <TARGET>
   herdr agent explain --file screen.txt --agent codex --json
   herdr server update-agent-manifests
-  # local override: ~/.config/herdr/agent-detection/<agent>.toml
+  # local override: ~/.config/herdr/agent-detection/<AGENT>.toml
   herdr server reload-agent-manifests
   ```
 
-- **Sandbox wrappers (Linux):** if Bubblewrap/VM/`fence` hides the process, set a scoped hint:
+- **Sandbox wrappers (Linux/macOS):** if Bubblewrap/VM/`fence`/`nono` hides the process, set a scoped hint:
 
   ```bash
   HERDR_AGENT=claude fence -- claude
@@ -255,26 +283,21 @@ herdr channel set stable
 - **Plugins** for reusable workflows (vet manifests; full CLI access):
 
   ```bash
-  herdr plugin install ogulcancelik/herdr-plugin-examples/agent-telegram-notify
+  herdr plugin install ogulcancelik/herdr-plugin-examples/worktree-bootstrap
   herdr plugin list
+  herdr plugin update
   herdr plugin action list
   herdr plugin link /path/to/local-plugin
   ```
 
-  ```toml
-  [[keys.command]]
-  key = "prefix+l"
-  type = "plugin_action"
-  command = "example.layout.apply"
-  description = "apply layout"
-  ```
+  Plugins are global per user; bind actions to keys with `[[keys.command]]` (see Configuration → Custom command keybindings).
 
 - **Session restore trade-offs** (read before enabling history):
 
   | Path | Processes keep running | Agent conversation |
   | ---- | ---------------------- | ------------------ |
   | Detach / reattach | Yes | Yes (process never stopped) |
-  | Server restart + native restore | No (new process) | Only with current official integrations |
+  | Server restart + native restore | No (new process) | With official integrations, or agents that report their own resume command |
   | `herdr update --handoff` | Best-effort if handoff succeeds | Yes if process survives |
 
   ```toml
@@ -298,9 +321,13 @@ herdr channel set stable
 **Goal:** Safe upgrades and a working debug loop · **Time:** ~10 min · **Level:** intermediate
 
 - Prefer detach over `server stop` when agents should keep working.
-- After package-manager upgrades, restart the Herdr server when you need the new binary (`herdr server stop` then `herdr`, or named `herdr session stop <name>` then reattach).
+- After upgrades the compatible old server keeps running; restart it only for server-side changes (`herdr server stop` then `herdr`, or `herdr session stop <SESSION_NAME>` then reattach).
+- On Linux/macOS (v0.9.4+), closing the shell that started Herdr no longer stops the server; scripts that relied on SIGHUP should use `herdr server stop` or SIGTERM.
+- Codex users on v0.9.5+: re-run `herdr integration install codex` (Herdr no longer installs Codex turn hooks).
+
 > [!WARNING]
 > Do **not** nest `tmux` inside a Herdr pane — detection sees `tmux`, not the agent. Herdr *as* outer terminal is fine.
+
 - Check status and logs:
 
   ```bash
@@ -311,6 +338,7 @@ herdr channel set stable
   # ~/.config/herdr/herdr-client.log
   # ~/.config/herdr/herdr-server.log
   HERDR_LOG=herdr=debug herdr
+  herdr machine reconnect "Build machine"   # re-auth a saved SSH machine
   ```
 
 - Shell completions (optional):
@@ -332,7 +360,8 @@ herdr channel set stable
 - ✅ Install **integrations** for agents you resume after restarts; check `herdr integration status`.
 - ✅ Detach with `prefix+q` instead of killing the session when work should continue.
 - ✅ Use `ssh … && herdr` on phone/tablet; use `herdr --remote` when you want a local thin client.
-- ✅ Prefer CLI wrappers (`herdr workspace|pane|agent|wait …`) over raw sockets until you need events.
+- ✅ Prefer CLI wrappers (`herdr workspace|pane|agent …`) over raw sockets until you need events.
+- ✅ Save remote boxes with `herdr machine add` when you watch agents on several machines.
 - ✅ Vet plugins: skim `herdr-plugin.toml` and commands; pin `--ref`; avoid `--yes` for unknown sources.
 - ✅ Treat `~/.config/herdr` like terminal history — especially if `pane_history` is enabled.
 
@@ -343,7 +372,7 @@ herdr channel set stable
 - ❌ Expect arbitrary processes (servers/tests) to resume after `server stop` — only layout + optional agent native resume.
 - ❌ Enable `pane_history` casually on machines that show tokens/secrets in terminal output.
 - ❌ Rely on `herdr update` for Homebrew/mise/Nix installs (use the package manager).
-- ❌ Assume Windows is production-stable (preview beta; `herdr --remote` not part of Windows beta).
+- ❌ Expect direct `herdr terminal attach` or live `--handoff` on Windows — both are unsupported there (Windows `--remote` and saved machines work).
 
 ## Quick Command Reference
 
@@ -353,7 +382,7 @@ herdr
 herdr --session work
 herdr --remote workbox
 herdr --remote workbox --handoff
-herdr --no-session
+herdr --machine "Build machine" agent list
 
 # Status / update / config
 herdr status
@@ -363,6 +392,12 @@ herdr update
 herdr channel show
 herdr server stop
 herdr server reload-config
+
+# Saved SSH machines
+herdr machine add workbox --label "Build machine"
+herdr machine list
+herdr machine status
+herdr machine reconnect "Build machine"
 
 # Sessions
 herdr session list
@@ -376,30 +411,31 @@ herdr workspace list
 herdr tab create --label logs
 herdr worktree create --branch feature/x
 herdr worktree list
+herdr workspace close w1 --group
 
 # Panes
 herdr pane split w1:p1 --direction right
 herdr pane run w1:p2 "npm test"
 herdr pane read w1:p2 --source recent --lines 50
 herdr pane send-keys w1:p1 enter
+herdr pane wait-output w1:p2 --match "PASS"
 
 # Agents
-herdr agent start reviewer --cwd ~/project --split right -- pi
+herdr agent start reviewer --kind pi --pane w1:p2
+herdr agent prompt reviewer "summarize the diff" --wait
 herdr agent list
-herdr agent wait reviewer --status blocked
+herdr agent wait reviewer --until blocked
+herdr agent send-keys reviewer enter
 herdr agent attach reviewer
 herdr agent explain w1:p1
 herdr agent rename w1:p1 reviewer
-
-# Waits
-herdr wait agent-status w1:p1 --status done
-herdr wait output w1:p2 --match "PASS"
 
 # Integrations / plugins
 herdr integration install claude
 herdr integration status
 herdr plugin install owner/repo/subdir
 herdr plugin list
+herdr plugin update
 herdr plugin action invoke example.layout.apply
 
 # Direct terminal
@@ -407,7 +443,7 @@ herdr terminal attach term_abc123
 herdr terminal attach term_abc123 --takeover
 ```
 
-**Default prefix (`ctrl+b`) quick map:** `c` new tab · `v`/`-` split · `h/j/k/l` focus · `n`/`p` tabs · `w` workspaces · `z` zoom · `x` close pane · `[` copy mode · `b` sidebar · `q` detach · `?` help
+**Default prefix (`ctrl+b`) quick map:** `c` new tab · `v`/`-` split · `h/j/k/l` focus · `n`/`p` tabs · `w` workspaces · `z` zoom · `x` close pane · `[` copy mode · `b` sidebar · `g` go to · `r` resize · `q` detach · `?` help (`/` filters)
 
 ## Expected Outcomes
 
@@ -434,34 +470,43 @@ After Steps 4–5 you should also be able to:
 
 | Topic | URL |
 | ----- | --- |
-| Docs home | https://herdr.dev/docs/ |
-| Install | https://herdr.dev/docs/install/ |
-| Quick start | https://herdr.dev/docs/quick-start/ |
-| Concepts | https://herdr.dev/docs/concepts/ |
-| Keyboard | https://herdr.dev/docs/keyboard/ |
-| How to work (local/SSH/remote) | https://herdr.dev/docs/how-to-work/ |
-| Agents & detection | https://herdr.dev/docs/agents/ |
-| Integrations | https://herdr.dev/docs/integrations/ |
-| Configuration | https://herdr.dev/docs/configuration/ |
-| Config reference | https://herdr.dev/docs/config-reference/ |
-| Session state | https://herdr.dev/docs/session-state/ |
-| Persistence & remote | https://herdr.dev/docs/persistence-remote/ |
-| CLI reference | https://herdr.dev/docs/cli-reference/ |
-| Socket API | https://herdr.dev/docs/socket-api/ |
-| Plugins | https://herdr.dev/docs/plugins/ |
-| Marketplace | https://herdr.dev/docs/marketplace/ |
+| TUI home | https://herdr.dev/tui/ |
+| Docs home | https://herdr.dev/tui/docs/ |
+| Install | https://herdr.dev/tui/docs/install/ |
+| Quick start | https://herdr.dev/tui/docs/quick-start/ |
+| Concepts | https://herdr.dev/tui/docs/concepts/ |
+| Keyboard | https://herdr.dev/tui/docs/keyboard/ |
+| How to work (local/SSH/remote) | https://herdr.dev/tui/docs/how-to-work/ |
+| Connecting machines | https://herdr.dev/tui/docs/connecting-machines/ |
+| Agents & detection | https://herdr.dev/tui/docs/agents/ |
+| Agent automation | https://herdr.dev/tui/docs/agent-automation/ |
+| Agent skill | https://herdr.dev/tui/docs/agent-skill/ |
+| Integrations | https://herdr.dev/tui/docs/integrations/ |
+| Configuration | https://herdr.dev/tui/docs/configuration/ |
+| Config reference | https://herdr.dev/tui/docs/config-reference/ |
+| Session state | https://herdr.dev/tui/docs/session-state/ |
+| Persistence & remote | https://herdr.dev/tui/docs/persistence-remote/ |
+| CLI reference | https://herdr.dev/tui/docs/cli-reference/ |
+| Socket API | https://herdr.dev/tui/docs/socket-api/ |
+| Plugins | https://herdr.dev/tui/docs/plugins/ |
+| Marketplace | https://herdr.dev/tui/docs/marketplace/ |
+| Windows support & limits | https://herdr.dev/tui/docs/windows-beta/ |
+| Troubleshooting | https://herdr.dev/tui/docs/troubleshooting/ |
 | Agent onboarding guide | https://herdr.dev/agent-guide.md |
-| Repository | https://github.com/ogulcancelik/herdr |
-| Releases | https://github.com/ogulcancelik/herdr/releases |
+| Herdr app (separate product) | https://herdr.dev/ |
+| Repository | https://github.com/herdrdev/herdr |
+| Releases | https://github.com/herdrdev/herdr/releases |
 
 ### Community / walkthroughs (tips only; commands from official docs)
 
 | Source | URL |
 | ------ | --- |
+| Official blog: Connecting the machines (v0.9, 2026-09) | https://herdr.dev/blog/connecting-the-machines/ |
+| Official blog: Live updates / handoff | https://herdr.dev/blog/live-updates-without-killing-your-terminal-processes/ |
+| Flavio Copes: Herdr vs cmux | https://flaviocopes.com/herdr-vs-cmux/ |
+| dev.to: throughput case for parallel agents (`agent start --kind`) | https://dev.to/pvgomes/herdr-and-the-throughput-case-for-parallel-coding-agents-4dk0 |
 | Better Stack: agent state awareness | https://betterstack.com/community/guides/ai/herdr-ai-agent/ |
-| shareuhack herdr guide (2026) | https://www.shareuhack.com/en/posts/herdr-terminal-agent-multiplexer-guide-2026 |
 | DevelopersIO: tmux → herdr | https://dev.classmethod.jp/en/articles/herdr-tmux-replacement/ |
-| Live updates / handoff blog | https://herdr.dev/blog/live-updates-without-killing-your-terminal-processes/ |
 
 ### Omitted from this cheatsheet (see docs)
 
@@ -469,7 +514,8 @@ After Steps 4–5 you should also be able to:
 - Complete raw socket protocol, event subscription shapes, and graphics streaming
 - Per-agent integration install paths and hook file locations (see Integrations)
 - Full plugin manifest authoring cookbook and marketplace publishing
-- Windows beta limitations detail (`/docs/windows-beta/` / preview docs)
+- Windows platform limitations detail (`/tui/docs/windows-beta/`) and preview-channel docs
+- The separate Herdr app and `herdr-core` (`hc` CLI) — see the [Herdr App cheatsheet](/cheatsheets/herdr-app/)
 - Experimental IME / Kitty graphics settings beyond a mention of trade-offs
 
 ### Environment variables (selected)
@@ -482,6 +528,7 @@ After Steps 4–5 you should also be able to:
 | `HERDR_LOG` | e.g. `herdr=debug` |
 | `HERDR_DISABLE_SOUND` | Mute sound notifications |
 | `HERDR_AGENT` | Scoped agent-manifest hint for sandboxed processes |
+| `HERDR_PROCESS_DETECTION` | Linux detection strategy: `native` (default) or opt-in `child-groups` |
 | `HERDR_REMOTE_BINARY` | Local binary path for remote attach bootstrap |
 | `HERDR_ENV` / `HERDR_PANE_ID` / `HERDR_TAB_ID` / `HERDR_WORKSPACE_ID` | Injected into managed panes |
 
