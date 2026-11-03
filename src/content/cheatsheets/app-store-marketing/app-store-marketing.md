@@ -164,7 +164,7 @@ Apple says search ranking uses **text relevance** (your app name, subtitle, keyw
 | Description | 4,000 characters | Write it for people. Apple doesn't list it among its search ranking inputs. Google Play does use descriptions in search. |
 | Promoted in-app purchases | Up to 20 on the product page | Promoted in-app purchases can show up in search results. Consumables never do. |
 
-1. Pull the live metadata into files. Acme Focus ships on two platforms, so pass `--platform`. Repeat steps 1 and 3–6 with `--platform MAC_OS` for the Mac version.
+1. Pull the live metadata into files. Acme Focus ships on two platforms, so pass `--platform`. Repeat steps 1–6 for the Mac version with `--platform MAC_OS --dir "./metadata-mac"`; reuse the approved keyword plan from step 2. Keep the two folders apart: `pull` refuses to overwrite files that already exist.
    ```bash
    asc metadata pull --app "<APP_ID>" --version "<VERSION>" --platform IOS --dir "./metadata"
    ```
@@ -203,29 +203,36 @@ Apple says search ranking uses **text relevance** (your app name, subtitle, keyw
 
 **Rule of thumb:** most visitors see only the icon, the first screenshots and the rating before they decide, so treat **screenshots as ads**: one benefit per screenshot, with a short caption.
 
-1. Generate a screenshot set from your app or landing page, one benefit per frame, and save the framed images to `./screenshots/framed`:
+1. Generate a screenshot set from your app or landing page, one benefit per frame. Save the iPhone and iPad frames to `./screenshots/ios/framed` and the Mac frames to `./screenshots/mac/framed`. Keep the platforms in separate folders all the way through: `asc` groups approved screenshots by display type, not by platform, so a shared folder would send Mac frames to the iOS version.
    ```text
    /appstore-assets Create iPhone and Mac screenshots for Acme Focus, one benefit per frame with a caption; first frame uses: <POSITIONING_SENTENCE>
    ```
-2. Generate the review report for the framed set:
+2. Generate the review report for the iPhone and iPad set:
    ```bash
-   asc screenshots review-generate --framed-dir ./screenshots/framed
+   asc screenshots review-generate --framed-dir ./screenshots/ios/framed --output-dir ./screenshots/ios/review
    ```
 3. Approve the screenshots that are ready:
    ```bash
-   asc screenshots review-approve --all-ready --output-dir ./screenshots/review
+   asc screenshots review-approve --all-ready --output-dir ./screenshots/ios/review
    ```
-4. Preview the upload plan for the approved iPhone and iPad screenshots. Repeat steps 4 and 5 with `--platform MAC_OS` for the Mac screenshots:
+4. Preview the upload plan:
    ```bash
-   asc screenshots plan --app "<APP_ID>" --version "<VERSION>" --platform IOS --review-output-dir "./screenshots/review"
+   asc screenshots plan --app "<APP_ID>" --version "<VERSION>" --platform IOS --review-output-dir "./screenshots/ios/review"
    ```
 5. Upload them:
    ```bash
-   asc screenshots apply --app "<APP_ID>" --version "<VERSION>" --platform IOS --review-output-dir "./screenshots/review" --confirm
+   asc screenshots apply --app "<APP_ID>" --version "<VERSION>" --platform IOS --review-output-dir "./screenshots/ios/review" --confirm
    ```
-6. Add a short app preview video (15–30 s, up to three per device size and language).
-7. Use promotional text (170 characters) for news such as a sale or a new feature. It changes without a new submission.
-8. Check what your platform allows before you plan tests or campaigns:
+6. Run the same four commands for the Mac set, with the `mac` folders and `--platform MAC_OS`:
+   ```bash
+   asc screenshots review-generate --framed-dir ./screenshots/mac/framed --output-dir ./screenshots/mac/review
+   asc screenshots review-approve --all-ready --output-dir ./screenshots/mac/review
+   asc screenshots plan --app "<APP_ID>" --version "<VERSION>" --platform MAC_OS --review-output-dir "./screenshots/mac/review"
+   asc screenshots apply --app "<APP_ID>" --version "<VERSION>" --platform MAC_OS --review-output-dir "./screenshots/mac/review" --confirm
+   ```
+7. Add a short app preview video (15–30 s, up to three per device size and language).
+8. Use promotional text (170 characters) for news such as a sale or a new feature. It changes without a new submission.
+9. Check what your platform allows before you plan tests or campaigns:
 
 | Apple tool | iPhone / iPad | Mac App Store |
 |---|---|---|
@@ -242,9 +249,9 @@ Apple says search ranking uses **text relevance** (your app name, subtitle, keyw
 > Apple documents Product Page Optimization, Custom Product Pages and creative assets only for iOS and iPadOS, and its Featuring Nominations help says In-App Events "are only available on iPhone and iPad apps." So plan as if a Mac app can't A/B test its page, run campaign-specific pages, show header creative or publish store events. **Rule of thumb:** that makes the icon, the screenshots and the traffic you bring from outside the store (Step 7) carry more weight on the Mac.
 
 > [!WARNING]
-> Guideline **2.3.14**: creative assets must relate to your app's content and functionality or overall brand, follow the standard metadata rules and suit all audiences. They must not include inappropriate content, references to other apps meant to mislead, unverifiable claims, or specific or discounted prices.
+> Guideline **2.3.14**: creative assets "must pertain to your app's content and functionality or overarching brand, follow standard metadata guidelines, and be appropriate for all audiences. They should not include inappropriate content, references to other apps with an intent to mislead, unverifiable product claims, or specific or discounted pricing information."
 
-**Verify:** `asc screenshots plan` lists the approved screenshots you expect, `asc screenshots apply` completes, and the first frame's caption matches your positioning sentence.
+**Verify:** for each platform, `asc screenshots plan` lists only that platform's approved screenshots, `asc screenshots apply` completes, and the first frame's caption matches your positioning sentence.
 
 ### Step 5 — Monetize without tricks
 
@@ -321,7 +328,7 @@ Apple says search ranking uses **text relevance** (your app name, subtitle, keyw
    /product-launch Plan a free launch for Acme Focus (Mac + iPhone): Product Hunt, Show HN, relevant subreddits, newsletters, YouTube reviewers, directories and bundles.
    ```
 4. Give before you promote. Read and follow each community's self-promotion rules (for example Hacker News's Show HN guidelines). Pitch newsletters and YouTube reviewers for editorial coverage, not paid placements.
-5. Submit a Featuring Nomination in App Store Connect under **Featuring → Nominations**. Choose New Content, App Enhancements or App Launch, then choose the platforms. Apple's Nominations help asks for at least 3 weeks' notice (Getting featured says 2) and recommends up to three months for wider consideration.
+5. Submit a Featuring Nomination in App Store Connect under **Featuring → Nominations**. Choose New Content, App Enhancements or App Launch, then choose the platforms. Apple's Nominations help asks for at least 3 weeks' notice; Getting featured says 2 weeks and recommends up to three months for wider consideration.
 6. Shape the release around what editors look for:
    - user experience;
    - UI design;
@@ -389,20 +396,25 @@ asc metadata keywords audit --app "<APP_ID>" --version "<VERSION>" --platform IO
 asc metadata validate --dir "./metadata"
 asc metadata push --app "<APP_ID>" --version "<VERSION>" --platform IOS --dir "./metadata" --dry-run
 asc metadata push --app "<APP_ID>" --version "<VERSION>" --platform IOS --dir "./metadata"
-# Mac version: repeat pull, keywords audit, validate and push with --platform MAC_OS
-asc metadata push --app "<APP_ID>" --version "<VERSION>" --platform MAC_OS --dir "./metadata"
+# Mac version: its own folder; repeat keywords audit and validate on it too
+asc metadata pull --app "<APP_ID>" --version "<VERSION>" --platform MAC_OS --dir "./metadata-mac"
+asc metadata push --app "<APP_ID>" --version "<VERSION>" --platform MAC_OS --dir "./metadata-mac"
 asc localizations list --app "<APP_ID>" --type app-info
 ```
 
 **Product page and media**
 
 ```bash
-asc screenshots review-generate --framed-dir ./screenshots/framed
-asc screenshots review-approve --all-ready --output-dir ./screenshots/review
-asc screenshots plan --app "<APP_ID>" --version "<VERSION>" --platform IOS --review-output-dir "./screenshots/review"
-asc screenshots apply --app "<APP_ID>" --version "<VERSION>" --platform IOS --review-output-dir "./screenshots/review" --confirm
-# Mac screenshots: repeat plan and apply with --platform MAC_OS
-asc screenshots apply --app "<APP_ID>" --version "<VERSION>" --platform MAC_OS --review-output-dir "./screenshots/review" --confirm
+# iPhone and iPad
+asc screenshots review-generate --framed-dir ./screenshots/ios/framed --output-dir ./screenshots/ios/review
+asc screenshots review-approve --all-ready --output-dir ./screenshots/ios/review
+asc screenshots plan --app "<APP_ID>" --version "<VERSION>" --platform IOS --review-output-dir "./screenshots/ios/review"
+asc screenshots apply --app "<APP_ID>" --version "<VERSION>" --platform IOS --review-output-dir "./screenshots/ios/review" --confirm
+# Mac: separate folders, --platform MAC_OS
+asc screenshots review-generate --framed-dir ./screenshots/mac/framed --output-dir ./screenshots/mac/review
+asc screenshots review-approve --all-ready --output-dir ./screenshots/mac/review
+asc screenshots plan --app "<APP_ID>" --version "<VERSION>" --platform MAC_OS --review-output-dir "./screenshots/mac/review"
+asc screenshots apply --app "<APP_ID>" --version "<VERSION>" --platform MAC_OS --review-output-dir "./screenshots/mac/review" --confirm
 asc video-previews list --version-localization "<VERSION_LOCALIZATION_ID>"
 asc product-pages --help
 asc app-events list --app "<APP_ID>"
