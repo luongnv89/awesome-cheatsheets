@@ -25,45 +25,6 @@ links:
 
 **Read time:** ~8 min · **Apply Steps 1–4:** under 30 min
 
-## Mental Model
-
-```mermaid
-flowchart LR
-  subgraph Capture["Capture"]
-    Daily[Daily Notes]
-    Quick[Quick / fleeting notes]
-  end
-
-  subgraph Process["Process"]
-    Perm[Permanent notes<br/>your own words + 3+ links]
-    Props[Properties<br/>tags / aliases / created]
-  end
-
-  subgraph Navigate["Navigate"]
-    Links["[[Wiki links]] + Backlinks"]
-    MOC[Maps of Content<br/>index pages]
-    Graph[Graph View]
-  end
-
-  subgraph Durability["Durability"]
-    MD[Plain .md files]
-    Backup[(Git / Sync / iCloud)]
-  end
-
-  Capture --> Process
-  Process --> Navigate
-  Process --> MD
-  MD --> Backup
-  Navigate -.surfaces clusters.-> Process
-```
-
-**Layers worth distinguishing:**
-- **Links** = the connective tissue (prefer over folders)
-- **Folders** = a few broad buckets only (e.g. `Daily`, `Attachments`)
-- **MOCs** = curated index pages you write by hand
-- **Properties / tags** = lightweight metadata for querying, kept consistent
-- **Plain Markdown** = the durability guarantee — no vendor lock-in
-
 ## Installation
 
 Obsidian is a desktop/mobile **application** (not a CLI). It is free for personal use, requires no account, and runs on Windows, macOS, Linux, iOS, and Android.
@@ -144,6 +105,47 @@ Open **Settings (⚙)** → **Core plugins** and turn on the essentials:
 **Goal:** The link-as-you-write habit and core note syntax · **Time:** ~10 min · **Level:** beginner
 
 This is the single highest-leverage habit in Obsidian.
+
+How the pieces fit together:
+
+```mermaid
+flowchart LR
+  subgraph Capture["Capture"]
+    Daily[Daily Notes]
+    Quick[Quick / fleeting notes]
+  end
+
+  subgraph Process["Process"]
+    Perm[Permanent notes<br/>your own words + 3+ links]
+    Props[Properties<br/>tags / aliases / created]
+  end
+
+  subgraph Navigate["Navigate"]
+    Links["[[Wiki links]] + Backlinks"]
+    MOC[Maps of Content<br/>index pages]
+    Graph[Graph View]
+  end
+
+  subgraph Durability["Durability"]
+    MD[Plain .md files]
+    Backup[(Git / Sync / iCloud)]
+  end
+
+  Capture --> Process
+  Process --> Navigate
+  Process --> MD
+  MD --> Backup
+  Navigate -.surfaces clusters.-> Process
+```
+
+**Layers worth distinguishing:**
+- **Links** = the connective tissue (prefer over folders)
+- **Folders** = a few broad buckets only (e.g. `Daily`, `Attachments`)
+- **MOCs** = curated index pages you write by hand
+- **Properties / tags** = lightweight metadata for querying, kept consistent
+- **Plain Markdown** = the durability guarantee — no vendor lock-in
+
+**The core moves:**
 
 - New note: `Ctrl/Cmd + N`.
 - Link inline: type `[[` to trigger the picker, then a note title. Linking to a note that doesn't exist yet creates it on click — that's intentional and good.
