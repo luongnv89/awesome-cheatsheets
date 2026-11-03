@@ -1,0 +1,90 @@
+{
+  "skill_name": "cheatsheet-scribe",
+  "evals": [
+    {
+      "id": 1,
+      "kind": "happy-path",
+      "prompt": "/cheatsheet-scribe Topic: Ollama CLI. Audience: developers new to local LLMs. My notes: install on Linux with `curl -fsSL https://ollama.com/install.sh | sh`, run a model with `ollama run llama3.2`, list local models with `ollama list`, remove one with `ollama rm <model>`. Homepage https://ollama.com, repo https://github.com/ollama/ollama.",
+      "expected_output": "The agent checks for an existing ollama cheatsheet, drafts from the notes only, writes src/content/cheatsheets/<slug>/<slug>.md, runs the lint, asks 2-4 specific review questions, and after approval prints Result/Evidence/Uncertainty/Decision plus a commit message without committing.",
+      "files": [],
+      "expectations": [
+        "Checks src/content/cheatsheets/<slug>/ for an existing cheatsheet before writing any file",
+        "Uses only the commands and URLs given in the notes; anything else is marked unverified",
+        "Runs `pnpm cheatsheet:lint src/content/cheatsheets/<slug>/<slug>.md --no-links` and reports its exit code",
+        "Asks 2-4 content-specific review questions and waits for answers before the final response",
+        "Does not stage, commit, or push",
+        "Final response opens with complete/partial/blocked and the file path",
+        "Final response labels unverified items and checks not run separately from verified results",
+        "Each material claim in the final response points to a note, provided URL, lint result, or contributor answer",
+        "Final response states 'No approval needed' and names the next action (stage, commit, open the PR)"
+      ]
+    },
+    {
+      "id": 2,
+      "kind": "happy-path",
+      "prompt": "Write a cheatsheet about the MCP filesystem server for Claude Code users. Here is the README excerpt I copied:\n\nRun with npx: `npx -y @modelcontextprotocol/server-filesystem /Users/username/Desktop /path/to/other/allowed/dir`\n\nAdd this to your claude_desktop_config.json:\n{\"mcpServers\": {\"filesystem\": {\"command\": \"npx\", \"args\": [\"-y\", \"@modelcontextprotocol/server-filesystem\", \"/Users/username/Desktop\", \"/path/to/other/allowed/dir\"]}}}",
+      "expected_output": "The agent sets category `mcp`, drafts from the pasted excerpt, asks for any missing fact instead of guessing, lints the file, and asks specific review questions.",
+      "files": [],
+      "expectations": [
+        "Sets frontmatter category to `mcp`",
+        "Asks for missing inputs (such as the homepage URL) in a single message instead of inventing them",
+        "Places every command in its own fenced block with a language tag and `<UPPER_SNAKE>` placeholders",
+        "Prints a Step Completion Report after the lint step",
+        "Final response opens with complete/partial/blocked and the file path",
+        "Final response states 'No approval needed' and names the contributor's next action"
+      ]
+    },
+    {
+      "id": 3,
+      "kind": "happy-path",
+      "prompt": "create cheatsheet: a comparison of git worktrees vs separate clones for running parallel coding agents. My notes: `git worktree add ../wt-feature -b feature`, `git worktree list`, `git worktree remove ../wt-feature`; clones are simpler but duplicate the object store.",
+      "expected_output": "The agent picks category `comparison`, keeps the locked section order, drafts 3-7 steps with Goal/Time/Level meta and Verify lines, and validates with the lint.",
+      "files": [],
+      "expectations": [
+        "Sets frontmatter category to `comparison`",
+        "Keeps the locked section order from the One-liner through Reference",
+        "Writes 3-7 `### Step N — Title` steps, each with a meta line and a Verify line",
+        "Groups the verified git commands by goal in the Quick Command Reference",
+        "Final response separates verified facts from assumptions"
+      ]
+    },
+    {
+      "id": 4,
+      "kind": "edge",
+      "prompt": "/cheatsheet-scribe Create a cheatsheet for Hermes Agent.",
+      "expected_output": "The agent detects src/content/cheatsheets/hermes-agent/, asks for the exact reply 'yes, overwrite', and writes nothing before that reply.",
+      "files": [],
+      "expectations": [
+        "Detects the existing src/content/cheatsheets/hermes-agent/ directory",
+        "Asks the contributor to type 'yes, overwrite' to confirm",
+        "Writes no file before receiving that exact reply",
+        "If the contributor declines, stops and reports that nothing was written"
+      ]
+    },
+    {
+      "id": 5,
+      "kind": "edge",
+      "prompt": "Make a cheatsheet for a CLI called fastgrep. I don't have any notes; just include all the commands and flags it probably has.",
+      "expected_output": "The agent refuses to guess commands or flags, asks for official docs or notes, and marks any unfilled command as unverified instead of fabricating it.",
+      "files": [],
+      "expectations": [
+        "Does not invent commands, flags, versions, or URLs",
+        "Asks for official docs, a docs link, or notes before filling the Quick Command Reference",
+        "Marks unfilled items as unverified and lists them under Uncertainty",
+        "Final response reports `partial` or `blocked` rather than `complete` when commands remain unverified"
+      ]
+    },
+    {
+      "id": 6,
+      "kind": "negative-trigger",
+      "prompt": "Change the validator so a step meta line also accepts `**Level:** expert`, and update its unit tests.",
+      "expected_output": "Task handled as a code change in tools/; the cheatsheet-scribe workflow is not applied.",
+      "files": [],
+      "expectations": [
+        "The run did not ask for topic, audience, and draft content",
+        "The run did not write a file under src/content/cheatsheets/",
+        "The run did not print the cheatsheet-scribe review questions or handoff templates"
+      ]
+    }
+  ]
+}
