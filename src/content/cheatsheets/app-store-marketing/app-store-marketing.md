@@ -164,7 +164,7 @@ Apple says search ranking uses **text relevance** (your app name, subtitle, keyw
 | Description | 4,000 characters | Write it for people. Apple doesn't list it among its search ranking inputs. Google Play does use descriptions in search. |
 | Promoted in-app purchases | Up to 20 on the product page | Promoted in-app purchases can show up in search results. Consumables never do. |
 
-1. Pull the live metadata into files. Acme Focus ships on two platforms, so pass `--platform`. Repeat steps 1–6 for the Mac version with `--platform MAC_OS --dir "./metadata-mac"`; reuse the approved keyword plan from step 2. Keep the two folders apart: `pull` refuses to overwrite files that already exist.
+1. Pull the live metadata into files. Acme Focus ships on two platforms, so pass `--platform`. After step 6, repeat steps 1 and 3–6 for the Mac version with `--platform MAC_OS --dir "./metadata-mac"`, and apply the approved keyword plan from step 2 to the files in `./metadata-mac`. Keep the two folders apart: `pull` refuses to overwrite files that already exist.
    ```bash
    asc metadata pull --app "<APP_ID>" --version "<VERSION>" --platform IOS --dir "./metadata"
    ```
@@ -172,21 +172,21 @@ Apple says search ranking uses **text relevance** (your app name, subtitle, keyw
    ```text
    /aso-marketing Plan keywords and metadata for Acme Focus on the US App Store using ./metadata. Positioning: <POSITIONING_SENTENCE>
    ```
-3. Put competitor trademarks in a blocklist, one per line, then audit the keywords for duplicates, overlap with the name and subtitle, the byte budget and blocked terms:
-   ```bash
-   asc metadata keywords audit --app "<APP_ID>" --version "<VERSION>" --platform IOS --blocked-terms-file "./blocked-terms.txt"
-   ```
-4. Validate the edited files locally:
+3. Validate the edited files locally (lengths and limits):
    ```bash
    asc metadata validate --dir "./metadata"
    ```
-5. Preview the upload:
+4. Preview the upload:
    ```bash
    asc metadata push --app "<APP_ID>" --version "<VERSION>" --platform IOS --dir "./metadata" --dry-run
    ```
-6. Push the metadata:
+5. Push the metadata:
    ```bash
    asc metadata push --app "<APP_ID>" --version "<VERSION>" --platform IOS --dir "./metadata"
+   ```
+6. Audit the pushed keywords before you submit. `keywords audit` reads App Store Connect, not `./metadata`, so it only sees your plan after the push. Put competitor trademarks in a blocklist, one per line; the audit reports duplicates, overlap with the name and subtitle, the byte budget and blocked terms. If it flags anything, fix the files and repeat steps 3–6.
+   ```bash
+   asc metadata keywords audit --app "<APP_ID>" --version "<VERSION>" --platform IOS --blocked-terms-file "./blocked-terms.txt"
    ```
 
 > [!WARNING]
@@ -195,7 +195,7 @@ Apple says search ranking uses **text relevance** (your app name, subtitle, keyw
 > [!TIP]
 > Each localization has its own keywords field, so localizing lets you target each language's own search terms. Long, specific phrases ("focus timer for coding") usually beat broad ones ("productivity") for a new app. **That second point is a rule of thumb.** Practitioners also report that some storefronts index more than one locale, for example US English plus Spanish (Mexico). Apple doesn't document this, so test it before you rely on it.
 
-**Verify:** `asc metadata keywords audit` reports no duplicates, no name or subtitle overlap and no blocked terms, and stays within the byte budget.
+**Verify:** for each platform, `asc metadata keywords audit` on the pushed version reports no duplicates, no name or subtitle overlap and no blocked terms, and stays within the byte budget.
 
 ### Step 4 — Convert on the product page
 
@@ -203,33 +203,29 @@ Apple says search ranking uses **text relevance** (your app name, subtitle, keyw
 
 **Rule of thumb:** most visitors see only the icon, the first screenshots and the rating before they decide, so treat **screenshots as ads**: one benefit per screenshot, with a short caption.
 
-1. Generate a screenshot set from your app or landing page, one benefit per frame. Save the iPhone and iPad frames to `./screenshots/ios/framed` and the Mac frames to `./screenshots/mac/framed`. Keep the platforms in separate folders all the way through: `asc` groups approved screenshots by display type, not by platform, so a shared folder would send Mac frames to the iOS version.
+1. Generate a screenshot set from your app or landing page, one benefit per frame, and tell the agent where to save each set. Use one folder per platform and device size: `asc screenshots upload --locale` reads only the files directly inside `--path` and checks every one against `--device-type`, so a mixed folder fails. The sizes below are the ones Apple requires: the large iPhone size (6.9", or 6.5" if you don't provide 6.9"), the 13" iPad size if the app runs on iPad, and a 16:10 Mac size.
    ```text
-   /appstore-assets Create iPhone and Mac screenshots for Acme Focus, one benefit per frame with a caption; first frame uses: <POSITIONING_SENTENCE>
+   /appstore-assets Create iPhone, iPad and Mac screenshots for Acme Focus, one benefit per frame with a caption; first frame uses: <POSITIONING_SENTENCE>. Save 6.9" iPhone frames (1320 × 2868) to ./screenshots/ios/framed/iphone, 13" iPad frames (2064 × 2752) to ./screenshots/ios/framed/ipad and Mac frames (2880 × 1800) to ./screenshots/mac/framed.
    ```
-2. Generate the review report for the iPhone and iPad set:
+2. Preview the iPhone upload. The dry run checks every file's size against the device type and shows what would be uploaded, without changing anything:
    ```bash
-   asc screenshots review-generate --framed-dir ./screenshots/ios/framed --output-dir ./screenshots/ios/review
+   asc screenshots upload --app "<APP_ID>" --version "<VERSION>" --platform IOS --locale "en-US" --device-type APP_IPHONE_69 --path ./screenshots/ios/framed/iphone --dry-run
    ```
-3. Approve the screenshots that are ready:
+3. Upload the iPhone set:
    ```bash
-   asc screenshots review-approve --all-ready --output-dir ./screenshots/ios/review
+   asc screenshots upload --app "<APP_ID>" --version "<VERSION>" --platform IOS --locale "en-US" --device-type APP_IPHONE_69 --path ./screenshots/ios/framed/iphone
    ```
-4. Preview the upload plan:
+4. Preview, then upload, the iPad set:
    ```bash
-   asc screenshots plan --app "<APP_ID>" --version "<VERSION>" --platform IOS --review-output-dir "./screenshots/ios/review"
+   asc screenshots upload --app "<APP_ID>" --version "<VERSION>" --platform IOS --locale "en-US" --device-type APP_IPAD_PRO_3GEN_129 --path ./screenshots/ios/framed/ipad --dry-run
+   asc screenshots upload --app "<APP_ID>" --version "<VERSION>" --platform IOS --locale "en-US" --device-type APP_IPAD_PRO_3GEN_129 --path ./screenshots/ios/framed/ipad
    ```
-5. Upload them:
+5. Preview, then upload, the Mac set:
    ```bash
-   asc screenshots apply --app "<APP_ID>" --version "<VERSION>" --platform IOS --review-output-dir "./screenshots/ios/review" --confirm
+   asc screenshots upload --app "<APP_ID>" --version "<VERSION>" --platform MAC_OS --locale "en-US" --device-type APP_DESKTOP --path ./screenshots/mac/framed --dry-run
+   asc screenshots upload --app "<APP_ID>" --version "<VERSION>" --platform MAC_OS --locale "en-US" --device-type APP_DESKTOP --path ./screenshots/mac/framed
    ```
-6. Run the same four commands for the Mac set, with the `mac` folders and `--platform MAC_OS`:
-   ```bash
-   asc screenshots review-generate --framed-dir ./screenshots/mac/framed --output-dir ./screenshots/mac/review
-   asc screenshots review-approve --all-ready --output-dir ./screenshots/mac/review
-   asc screenshots plan --app "<APP_ID>" --version "<VERSION>" --platform MAC_OS --review-output-dir "./screenshots/mac/review"
-   asc screenshots apply --app "<APP_ID>" --version "<VERSION>" --platform MAC_OS --review-output-dir "./screenshots/mac/review" --confirm
-   ```
+6. Repeat steps 2–5 for each other locale, with that locale's `--locale` and folders. To replace a set that already has screenshots, add `--replace --confirm`; preview it first with `--replace --dry-run`.
 7. Add a short app preview video (15–30 s, up to three per device size and language).
 8. Use promotional text (170 characters) for news such as a sale or a new feature. It changes without a new submission.
 9. Check what your platform allows before you plan tests or campaigns:
@@ -251,7 +247,7 @@ Apple says search ranking uses **text relevance** (your app name, subtitle, keyw
 > [!WARNING]
 > Guideline **2.3.14**: creative assets "must pertain to your app's content and functionality or overarching brand, follow standard metadata guidelines, and be appropriate for all audiences. They should not include inappropriate content, references to other apps with an intent to mislead, unverifiable product claims, or specific or discounted pricing information."
 
-**Verify:** for each platform, `asc screenshots plan` lists only that platform's approved screenshots, `asc screenshots apply` completes, and the first frame's caption matches your positioning sentence.
+**Verify:** for each device type, the `asc screenshots upload … --dry-run` lists the files you expect with no size errors, the upload without `--dry-run` completes, and the first frame's caption matches your positioning sentence.
 
 ### Step 5 — Monetize without tricks
 
@@ -391,30 +387,31 @@ asc apps list --output table
 **ASO and metadata**
 
 ```bash
+# iPhone and iPad version
 asc metadata pull --app "<APP_ID>" --version "<VERSION>" --platform IOS --dir "./metadata"
-asc metadata keywords audit --app "<APP_ID>" --version "<VERSION>" --platform IOS --blocked-terms-file "./blocked-terms.txt"
 asc metadata validate --dir "./metadata"
 asc metadata push --app "<APP_ID>" --version "<VERSION>" --platform IOS --dir "./metadata" --dry-run
 asc metadata push --app "<APP_ID>" --version "<VERSION>" --platform IOS --dir "./metadata"
-# Mac version: its own folder; repeat keywords audit and validate on it too
+asc metadata keywords audit --app "<APP_ID>" --version "<VERSION>" --platform IOS --blocked-terms-file "./blocked-terms.txt"
+# Mac version: its own folder; apply the same keyword plan before validating
 asc metadata pull --app "<APP_ID>" --version "<VERSION>" --platform MAC_OS --dir "./metadata-mac"
+asc metadata validate --dir "./metadata-mac"
+asc metadata push --app "<APP_ID>" --version "<VERSION>" --platform MAC_OS --dir "./metadata-mac" --dry-run
 asc metadata push --app "<APP_ID>" --version "<VERSION>" --platform MAC_OS --dir "./metadata-mac"
+asc metadata keywords audit --app "<APP_ID>" --version "<VERSION>" --platform MAC_OS --blocked-terms-file "./blocked-terms.txt"
 asc localizations list --app "<APP_ID>" --type app-info
 ```
 
 **Product page and media**
 
 ```bash
-# iPhone and iPad
-asc screenshots review-generate --framed-dir ./screenshots/ios/framed --output-dir ./screenshots/ios/review
-asc screenshots review-approve --all-ready --output-dir ./screenshots/ios/review
-asc screenshots plan --app "<APP_ID>" --version "<VERSION>" --platform IOS --review-output-dir "./screenshots/ios/review"
-asc screenshots apply --app "<APP_ID>" --version "<VERSION>" --platform IOS --review-output-dir "./screenshots/ios/review" --confirm
-# Mac: separate folders, --platform MAC_OS
-asc screenshots review-generate --framed-dir ./screenshots/mac/framed --output-dir ./screenshots/mac/review
-asc screenshots review-approve --all-ready --output-dir ./screenshots/mac/review
-asc screenshots plan --app "<APP_ID>" --version "<VERSION>" --platform MAC_OS --review-output-dir "./screenshots/mac/review"
-asc screenshots apply --app "<APP_ID>" --version "<VERSION>" --platform MAC_OS --review-output-dir "./screenshots/mac/review" --confirm
+# One folder per device type; run each with --dry-run first, then without it
+asc screenshots upload --app "<APP_ID>" --version "<VERSION>" --platform IOS --locale "en-US" --device-type APP_IPHONE_69 --path ./screenshots/ios/framed/iphone --dry-run
+asc screenshots upload --app "<APP_ID>" --version "<VERSION>" --platform IOS --locale "en-US" --device-type APP_IPHONE_69 --path ./screenshots/ios/framed/iphone
+asc screenshots upload --app "<APP_ID>" --version "<VERSION>" --platform IOS --locale "en-US" --device-type APP_IPAD_PRO_3GEN_129 --path ./screenshots/ios/framed/ipad --dry-run
+asc screenshots upload --app "<APP_ID>" --version "<VERSION>" --platform IOS --locale "en-US" --device-type APP_IPAD_PRO_3GEN_129 --path ./screenshots/ios/framed/ipad
+asc screenshots upload --app "<APP_ID>" --version "<VERSION>" --platform MAC_OS --locale "en-US" --device-type APP_DESKTOP --path ./screenshots/mac/framed --dry-run
+asc screenshots upload --app "<APP_ID>" --version "<VERSION>" --platform MAC_OS --locale "en-US" --device-type APP_DESKTOP --path ./screenshots/mac/framed
 asc video-previews list --version-localization "<VERSION_LOCALIZATION_ID>"
 asc product-pages --help
 asc app-events list --app "<APP_ID>"
@@ -462,7 +459,7 @@ After working through Steps 1–7 you have:
 
 - A funnel table with one named leak and one change in progress, measured in App Store Connect Analytics and your in-app events.
 - A single positioning sentence reused in the subtitle, the first screenshot, the website and the launch posts.
-- Keywords that use the full 100-byte budget with no duplicates or trademarks, checked by `asc metadata keywords audit`.
+- Keywords that use the full 100-byte budget with no duplicates or trademarks, checked by `asc metadata keywords audit` on the pushed iPhone and Mac versions before you submit.
 - A product page with benefit-led screenshots, an app preview and current promotional text, plus a clear list of which tests and campaigns your platform supports.
 - A monetization flow that passes `/appstore-review-checker` and `asc validate`, and Small Business Program enrollment if you qualify.
 - Rating prompts that follow Apple's limits, and replies to every low-star review.

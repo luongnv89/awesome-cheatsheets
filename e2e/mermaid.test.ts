@@ -24,7 +24,10 @@ test.describe("Mermaid diagrams", () => {
     await expect(svg).toBeVisible({ timeout: 20_000 });
 
     // A drawn diagram carries the node labels; a failed render shows
-    // mermaid's error graphic instead.
+    // mermaid's error graphic instead. The labels come from the Step 1
+    // funnel in src/content/cheatsheets/app-store-marketing/app-store-marketing.md
+    // (`A[Impressions]` and `G[Recommends]`, lines 110 and 115 when this test
+    // was written). Edit that diagram and you must update these assertions.
     await expect(svg).toContainText("Impressions");
     await expect(svg).toContainText("Recommends");
     await expect(svg).not.toContainText("Syntax error");
