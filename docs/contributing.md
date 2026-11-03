@@ -52,7 +52,7 @@ After generating your draft, the skill presents 2–4 **specific** questions. Ex
 
 ```
 1. The slug `hermes-agent` vs `hermes-agent-cli` — which is more recognized?
-2. The Mental Model shows sequential flow. Should I add a branch for multi-agent?
+2. The Installation block shows only the curl one-liner. Should I add a Homebrew alternative?
 3. Commands reference v0.13 — should I note this is current as of May 2026?
 ```
 
@@ -84,13 +84,15 @@ gh pr create --title "docs(cheatsheet): add hermes-agent cheatsheet" --body "...
 
 Every cheatsheet has 7 sections in locked order:
 
-1. **One-liner** — One-sentence summary
-2. **Mental Model** — Mermaid flowchart
-3. **Step-by-Step Setup & Optimization** — Numbered steps
+1. **One-liner** — `**One-line:**` summary before the first H2
+2. **Installation** — Copy-paste installer(s) and the first-run flow
+3. **Step-by-Step Setup & Optimization** — `### Step N — Title` steps, each with a Goal/Time/Level meta line and a Verify line
 4. **Best Practices** — Do/Don't bullets
 5. **Quick Command Reference** — Code examples
 6. **Expected Outcomes** — What the user gets
-7. **Reference** — Collapsed sources
+7. **Reference** — Collapsed `<details>` block with sources
+
+An optional `## Prerequisites` task list (`- [ ] …`) may come before Installation. Mermaid diagrams are allowed in any section but no longer required. The full rules live in [`skills/cheatsheet-scribe/template-contract.md`](../skills/cheatsheet-scribe/template-contract.md).
 
 ---
 
@@ -103,12 +105,11 @@ Here's what the `/cheatsheet-scribe` flow produces (condensed):
 > Audience: Users who want to optimize for cost, memory, productivity  
 > Draft: Persistent memory (MEMORY.md, USER.md), skills system, multi-channel gateways, Kanban, self-evolution
 
-**Skill output:** 327-line cheatsheet with frontmatter, Mermaid flowchart, 8 steps, Do/Don't bullets, 14 commands, expected outcomes, collapsed references.
+**Skill output:** a cheatsheet with frontmatter, a copy-paste Installation block, 8 steps, Do/Don't bullets, a quick command reference, expected outcomes, and collapsed references.
 
 **Review questions asked:**
 1. "Slug: `hermes-agent` vs `hermes-agent-cli`?" → confirmed `hermes-agent`
-2. "Add parallel agent branch in Mental Model?" → approved current design
-3. "Note v0.13 is current as of May 2026?" → confirmed to add
+2. "Note v0.13 is current as of May 2026?" → confirmed to add
 
 **Final commit:**
 ```
