@@ -11,6 +11,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { resolve } from "node:path";
 
 import { validate } from "../index.js";
+import { HEAD_RETRY_WITH_GET_STATUSES } from "../rules/links.js";
 
 const fixture = (name: string): string =>
   resolve(import.meta.dirname, "fixtures", name);
@@ -125,6 +126,126 @@ describe("link rule (mocked fetch)", () => {
     // Still parallel — the cap bounds concurrency, it doesn't serialize.
     expect(maxInFlight).toBeGreaterThan(1);
     expect(maxInFlight).toBeLessThanOrEqual(8);
+  });
+
+  describe("GET retry when HEAD is rejected (issue #206)", () => {
+    /** Mock fetch that answers by HTTP method and records each call's method. */
+    const byMethod = (head: number, get: number | Error) => {
+      const methods: string[] = [];
+      const mockFetch = vi
+        .fn()
+        .mockImplementation(async (_url: string, init: RequestInit) => {
+          const method = init.method ?? "GET";
+          methods.push(method);
+          if (method === "HEAD") return new Response(null, { status: head });
+          if (get instanceof Error) throw get;
+          return new Response(null, { status: get });
+        });
+      return { mockFetch, methods };
+    };
+
+    it("retries exactly the documented HEAD statuses", () => {
+      expect([...HEAD_RETRY_WITH_GET_STATUSES].sort((a, b) => a - b)).toEqual([
+        403, 404, 405, 501,
+      ]);
+    });
+
+    it.each([403, 404, 405, 501])(
+      "passes when HEAD returns %i and GET returns 200",
+      async (headStatus) => {
+        const { mockFetch, methods } = byMethod(headStatus, 200);
+        vi.stubGlobal("fetch", mockFetch);
+
+        const result = await validate(fixture("with-link.md"), {});
+        const linkErrors = result.errors.filter((e) => e.rule === "link-broken");
+        expect(linkErrors).toEqual([]);
+        const heads = methods.filter((m) => m === "HEAD").length;
+        expect(heads).toBeGreaterThan(0);
+        // Exactly one GET retry per URL.
+        expect(methods.filter((m) => m === "GET").length).toBe(heads);
+      },
+    );
+
+    it("still fails when both HEAD and GET return 404", async () => {
+      const { mockFetch, methods } = byMethod(404, 404);
+      vi.stubGlobal("fetch", mockFetch);
+
+      const result = await validate(fixture("with-link.md"), {});
+      const linkErrors = result.errors.filter((e) => e.rule === "link-broken");
+      expect(linkErrors.length).toBeGreaterThan(0);
+      expect(linkErrors[0]?.message).toMatch(/HTTP 404$/);
+      expect(methods).toContain("GET");
+    });
+
+    it("reports the GET status when it differs from HEAD", async () => {
+      const { mockFetch } = byMethod(405, 410);
+      vi.stubGlobal("fetch", mockFetch);
+
+      const result = await validate(fixture("with-link.md"), {});
+      const linkErrors = result.errors.filter((e) => e.rule === "link-broken");
+      expect(linkErrors[0]?.message).toMatch(/HTTP 410 \(HEAD returned 405\)/);
+    });
+
+    it("reports a GET network failure after a rejected HEAD", async () => {
+      const { mockFetch } = byMethod(405, new Error("connection reset"));
+      vi.stubGlobal("fetch", mockFetch);
+
+      const result = await validate(fixture("with-link.md"), {});
+      const linkErrors = result.errors.filter((e) => e.rule === "link-broken");
+      expect(linkErrors[0]?.message).toMatch(
+        /HTTP 405 on HEAD; GET failed: connection reset/,
+      );
+    });
+
+    it("reports a GET timeout after a rejected HEAD", async () => {
+      // HEAD answers 405 at once; the GET retry hangs until its own timer
+      // aborts it (the timeout applies per request).
+      const mockFetch = vi
+        .fn()
+        .mockImplementation((_url: string, init: RequestInit) => {
+          if (init.method === "HEAD") {
+            return Promise.resolve(new Response(null, { status: 405 }));
+          }
+          return new Promise((_resolve, reject) => {
+            init.signal!.addEventListener("abort", () => {
+              const err = new Error("aborted");
+              err.name = "AbortError";
+              reject(err);
+            });
+          });
+        });
+      vi.stubGlobal("fetch", mockFetch);
+
+      const result = await validate(fixture("with-link.md"), {
+        linkTimeoutMs: 25,
+      });
+      const linkErrors = result.errors.filter((e) => e.rule === "link-broken");
+      expect(linkErrors.length).toBeGreaterThan(0);
+      expect(linkErrors[0]?.message).toMatch(
+        /HTTP 405 on HEAD; GET failed: timeout after 25 ms/,
+      );
+    });
+
+    it("sends no GET when HEAD succeeds", async () => {
+      const { mockFetch, methods } = byMethod(200, 500);
+      vi.stubGlobal("fetch", mockFetch);
+
+      const result = await validate(fixture("with-link.md"), {});
+      expect(result.errors.filter((e) => e.rule === "link-broken")).toEqual([]);
+      expect(methods.length).toBeGreaterThan(0);
+      expect(methods.every((m) => m === "HEAD")).toBe(true);
+    });
+
+    it("does not retry statuses outside the retry set (e.g. 500)", async () => {
+      const { mockFetch, methods } = byMethod(500, 200);
+      vi.stubGlobal("fetch", mockFetch);
+
+      const result = await validate(fixture("with-link.md"), {});
+      const linkErrors = result.errors.filter((e) => e.rule === "link-broken");
+      expect(linkErrors.length).toBeGreaterThan(0);
+      expect(linkErrors[0]?.message).toMatch(/HTTP 500$/);
+      expect(methods.every((m) => m === "HEAD")).toBe(true);
+    });
   });
 
   it('links: "skip" bypasses the network entirely', async () => {

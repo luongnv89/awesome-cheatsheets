@@ -6,6 +6,11 @@ This project follows a lightweight changelog for public-facing changes. Dates us
 
 ### Added
 
+- App Store Marketing 101 concept cheatsheet: selling iPhone, iPad and Mac
+  apps through the App Store, with Apple-verified limits, a Mac
+  availability table for Apple's marketing tools, and an agent workflow
+  (`asc` CLI plus App Store skills). The catalog now has 21 published
+  entries (#203).
 - Thirteen post-launch cheatsheets — ASM, Claude Code, Codex, Herdr, Obsidian,
   Oh My Pi (omp), OpenClaw, OpenCode, Agent Skills, Harness Engineering,
   Sub-agents, MCP, and the Prompt Engineering comparison — bringing the
@@ -13,6 +18,14 @@ This project follows a lightweight changelog for public-facing changes. Dates us
 
 ### Fixed
 
+- Production dependency audit is clean again (19 advisories, 1 critical):
+  astro 7.4, mermaid 12.2 and zod 4.6.7, plus tightened `dompurify`, `vite`
+  and new `undici@8` overrides. The e2e web server runs
+  `astro preview --ignore-lock` so Astro 7.4 doesn't background it inside AI
+  agent shells (#205).
+- Link checks no longer flag pages whose host rejects `HEAD`: when HEAD
+  returns 403, 404, 405 or 501, the probe retries once with `GET` and
+  judges the link by that status (#206).
 - Link check probes now cancel the response body before returning and run
   through a bounded pool (`MAX_IN_FLIGHT = 8`) instead of an unbounded
   `Promise.all` fan-out — no more leaked keep-alive sockets or descriptor
