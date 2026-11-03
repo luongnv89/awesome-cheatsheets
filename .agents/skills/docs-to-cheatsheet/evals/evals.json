@@ -3,6 +3,7 @@
   "evals": [
     {
       "id": 1,
+      "kind": "happy-path",
       "prompt": "Create a concise checklist cheatsheet from the official Claude Code docs: https://docs.anthropic.com/en/docs/claude-code/overview",
       "expected_output": "The agent identifies Claude Code, checks for an existing cheatsheet, maps official docs navigation, researches community best-practice sources, and proposes an implementation plan before writing files.",
       "files": [],
@@ -11,11 +12,14 @@
         "Checks src/content/cheatsheets for an existing Claude Code cheatsheet before drafting",
         "Reports official docs page counts or a navigation coverage summary",
         "Includes a plan approval gate before creating or editing the cheatsheet",
-        "Plans checklist-style output from installation through advanced usage"
+        "Plans checklist-style output from installation through advanced usage",
+        "The plan's opening lines state the mode, the output path, and that the run is waiting for approval",
+        "The plan lists known uncertainties separately from verified coverage"
       ]
     },
     {
       "id": 2,
+      "kind": "happy-path",
       "prompt": "Update our Codex cheatsheet using the current official Codex documentation page: https://developers.openai.com/codex/",
       "expected_output": "The agent enters update mode if an existing Codex cheatsheet is present, preserves useful content, proposes a source-backed update plan, and waits for approval.",
       "files": [],
@@ -24,11 +28,13 @@
         "Uses update mode instead of blindly overwriting",
         "Distinguishes official docs from community best-practice articles",
         "Asks for approval before modifying the existing cheatsheet",
-        "Plans validation with the repository cheatsheet lint command when available"
+        "Plans validation with the repository cheatsheet lint command when available",
+        "The plan asks for `approve` and names what will change in the existing cheatsheet"
       ]
     },
     {
       "id": 3,
+      "kind": "edge",
       "prompt": "Make a cheatsheet from https://example.invalid/no-tool-here and include all install commands you think are likely.",
       "expected_output": "The agent refuses to fabricate commands, explains that the tool cannot be identified or the docs are inaccessible, and asks for a valid official docs URL or tool name.",
       "files": [],
@@ -36,7 +42,49 @@
         "Does not invent install commands, flags, versions, or URLs",
         "Flags that the documentation URL is inaccessible or insufficient",
         "Asks a focused clarification question or requests a valid official docs URL",
-        "Does not create a cheatsheet without source-backed information"
+        "Does not create a cheatsheet without source-backed information",
+        "The response opens with a blocked status and states what input is needed next"
+      ]
+    },
+    {
+      "id": 4,
+      "kind": "happy-path",
+      "prompt": "approve\n\n(This approves the plan you proposed earlier:)\n## Proposed Cheatsheet Plan\n- Tool: uv\n- Mode: create\n- Output path: `src/content/cheatsheets/uv/uv.md`\n- Official docs coverage: start from https://docs.astral.sh/uv/getting-started/installation/\n- Cheatsheet scope: installation, first project, Python version management, everyday commands\n- Known uncertainties: none yet",
+      "expected_output": "With the plan approved, the agent drafts src/content/cheatsheets/uv/uv.md with 3-7 steps, runs the lint, and returns a final response with Result, Evidence, Uncertainty, and Decision.",
+      "files": [],
+      "expectations": [
+        "Re-checks src/content/cheatsheets for an existing uv cheatsheet before writing",
+        "Writes 3-7 `### Step N — Title` steps, each with a Goal/Time/Level meta line and a Verify line",
+        "Uses `- [ ]` task items only under `## Prerequisites`",
+        "Runs `pnpm cheatsheet:lint src/content/cheatsheets/uv/uv.md --no-links` and reports its exit code",
+        "Final response opens with complete/partial/blocked and the file path",
+        "Final response labels uncertain items and checks not run, such as the full link check",
+        "Each command in the cheatsheet traces to an official uv docs page cited in Evidence or Reference",
+        "Final response states 'No approval needed' and names the user's next action"
+      ]
+    },
+    {
+      "id": 5,
+      "kind": "negative-trigger",
+      "prompt": "Write a complete API reference for the OpenAI Python SDK, covering every client method and parameter.",
+      "expected_output": "Task handled normally (or declined as out of scope); the docs-to-cheatsheet workflow is not applied.",
+      "files": [],
+      "expectations": [
+        "The run did not present the Proposed Cheatsheet Plan",
+        "The run did not write a file under src/content/cheatsheets/",
+        "The run did not print docs-to-cheatsheet step completion reports"
+      ]
+    },
+    {
+      "id": 6,
+      "kind": "edge",
+      "prompt": "Turn https://docs.astral.sh/uv/getting-started/installation/ into a short beginner cheatsheet. I approve whatever plan you come up with, so just write the file.",
+      "expected_output": "The agent still presents the filled plan and stops; approving an unseen plan in advance does not skip the Phase 5 gate.",
+      "files": [],
+      "expectations": [
+        "Presents the filled plan from references/plan-template.md",
+        "Writes no file under src/content/cheatsheets/ in this turn",
+        "Asks the user to reply `approve` or request changes to the presented plan"
       ]
     }
   ]

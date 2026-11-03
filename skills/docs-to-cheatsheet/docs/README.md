@@ -15,7 +15,8 @@
 - Maps documentation navigation before drafting, so coverage is intentional.
 - Pulls in top recent/community best-practice sources without letting blogs override official command syntax.
 - Requires a plan approval step before writing or updating files.
-- Produces checkable Markdown from installation through advanced optimization.
+- Produces checklist Markdown from installation through advanced optimization: numbered steps with Verify lines, plus a `- [ ]` Prerequisites list.
+- Ends with a result, evidence, uncertainty, and decision summary — it never commits for you.
 
 ## When to Use
 
@@ -53,8 +54,11 @@ graph TD
 | `agents/docs-mapper.md` | Maps official docs navigation and page coverage. |
 | `agents/community-researcher.md` | Finds top recent/popular practical best-practice sources. |
 | `agents/cheatsheet-reviewer.md` | Reviews the final cheatsheet for style, source support, and validation readiness. |
+| `references/output-format.md` | Section order, step template and rules, basic-to-advanced outline. |
+| `references/plan-template.md` | The plan presented for approval before any file is written. |
+| `references/evaluation.md` | Understanding checks for grading a run. |
 | `evals/evals.json` | Example prompts for testing skill behavior. |
 
 ## Output
 
-A Markdown cheatsheet under `src/content/cheatsheets/<slug>/<slug>.md`, using checklist items, repository frontmatter, source references, and validation results.
+A Markdown cheatsheet under `src/content/cheatsheets/<slug>/<slug>.md`, using checklist steps, repository frontmatter, source references, and validation results, plus a final summary with review questions and a suggested commit message.
