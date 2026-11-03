@@ -18,6 +18,11 @@ This project follows a lightweight changelog for public-facing changes. Dates us
 
 ### Fixed
 
+- Production dependency audit is clean again (19 advisories, 1 critical):
+  astro 7.4, mermaid 12.2 and zod 4.6.7, plus tightened `dompurify`, `vite`
+  and new `undici@8` overrides. The e2e web server runs
+  `astro preview --ignore-lock` so Astro 7.4 doesn't background it inside AI
+  agent shells (#205).
 - Link checks no longer flag pages whose host rejects `HEAD`: when HEAD
   returns 403, 404, 405 or 501, the probe retries once with `GET` and
   judges the link by that status (#206).

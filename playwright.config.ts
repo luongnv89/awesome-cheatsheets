@@ -18,7 +18,10 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "npx astro preview",
+    // `--ignore-lock` keeps the server in the foreground: since Astro 7.4,
+    // `astro preview` auto-backgrounds itself when it detects an AI agent,
+    // and Playwright then sees the command exit early (issue #205).
+    command: "npx astro preview --ignore-lock",
     url: "http://localhost:4321/awesome-cheatsheets",
     reuseExistingServer: !process.env.CI,
     timeout: 30_000,
