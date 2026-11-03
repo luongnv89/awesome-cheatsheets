@@ -4,9 +4,9 @@ title: App Store Marketing 101 — Selling Apple Apps Cheatsheet
 category: concept
 subcategory: app-marketing
 summary: "Basic marketing for selling iPhone, iPad and Mac apps through the App Store. Covers the download funnel, positioning, App Store Optimization, product-page conversion, honest monetization, ratings and retention, off-store traffic and Apple's free featuring. Each claim is checked against Apple's docs, and the work can be done with an AI agent."
-last_updated: 2026-11-02
+last_updated: 2026-11-03
 stale_after_days: 180
-tags: [app-store, aso, marketing, apple, indie-dev, mac-apps, app-store-connect, agent-workflows]
+tags: [app-store, aso, marketing, apple, indie-dev, mac-apps, app-store-connect, agent-workflows, skills]
 status: published
 authors:
   - name: luongnv89
@@ -21,10 +21,10 @@ links:
 
 # App Store Marketing 101 — Selling Apple Apps Cheatsheet
 
-**One-line:** To sell an Apple app, find the leakiest stage of your funnel and fix it first: get found (ASO), turn product-page views into downloads, monetize honestly, earn ratings, and bring in traffic from outside the store. Mac apps depend on that outside traffic most, because several App Store marketing tools are iPhone and iPad only.
+**One-line:** To sell an Apple app, find the leakiest stage of your funnel and fix it first: get found (ASO), turn product-page views into downloads, monetize honestly, earn ratings, and bring in traffic from outside the store. Several of Apple's in-store marketing tools are documented for iPhone and iPad only, so (**rule of thumb**) Mac apps lean hardest on that outside traffic.
 
 > [!NOTE]
-> **How to read this sheet.** Limits, guideline numbers and platform availability come from Apple's own pages, linked in [Reference](#reference). Anything tagged **Rule of thumb** is practitioner advice, not Apple data. Treat those as starting points to test, not as benchmarks. The running example, **Acme Focus**, is a fictional focus timer for Mac and iPhone.
+> **How to read this sheet.** Limits, guideline numbers and platform availability come from Apple's own pages, linked in [Reference](#reference). Anything tagged **Rule of thumb** is practitioner advice, not Apple data. Treat those as starting points to test, not as benchmarks. The running example, **Acme Focus**, is a fictional focus timer that blocks distractions, for Mac and iPhone.
 
 ## Prerequisites
 
@@ -97,6 +97,8 @@ First-run flow:
 > [!TIP]
 > `asc --help` and `asc <command> --help` are the authoritative flag reference. The CLI moves fast, so check there before you script anything.
 
+`asc` also ships its own agent skills for builds, TestFlight, metadata sync, submissions and signing; install them with `asc install-skills`.
+
 ## Step-by-Step Setup & Optimization
 
 ### Step 1 — Measure the funnel and find the leak
@@ -115,20 +117,21 @@ flowchart LR
 
 | Stage | Where you measure it |
 |---|---|
-| Impressions, product page views, downloads, conversion rate, source | **App Store Connect Analytics → Acquisition**, split by source type (App Store search, App Store browse, App referrer, Web referrer, and others) |
-| Activation (the first "aha"), paid conversion, D1/D7/D30 retention, sharing | **In your app.** Analytics has usage metrics and an app-retention view, but only your own events show *why* users stay |
+| Impressions, product page views, downloads, conversion rate, source | **App Store Connect Analytics → Acquisition → Sources**, split by source type (App Store search, App Store browse, App referrer, Web referrer, and others) |
+| Paid conversion, proceeds, subscriptions | **App Store Connect Analytics.** Since March 2026 it includes monetization and subscription metrics, plus a download-to-paid conversion benchmark against peers |
+| Activation (the first "aha"), D1/D7/D30 retention, sharing | **In your app.** Analytics has usage metrics and an app-retention view, but only your own events show *why* users stay |
 
-1. Open App Store Connect Analytics, then **Acquisition**, and note unique impressions, unique product page views, total downloads and conversion rate for the last 30 days.
+1. Open App Store Connect Analytics, then **Acquisition → Sources**, and note unique impressions, unique product page views, total downloads and conversion rate for the last 30 days.
 2. Segment by source type to see whether people find you through search, browsing, other apps or the web.
 3. Write the number for each stage in a table and pick **one** stage to fix: the one with the biggest drop.
 
 > [!IMPORTANT]
-> Apple's **Conversion Rate** is total downloads and pre-orders divided by **unique impressions**, not by product page views. To get product-page conversion, divide downloads by unique product page views yourself.
+> Apple's **Conversion Rate** is total downloads and pre-orders divided by **unique device impressions**, not by product page views. To get product-page conversion, divide downloads by unique product page views yourself.
 
 > [!NOTE]
 > **Rule of thumb:** around 3–5% product-page conversion (downloads ÷ unique product page views, computed yourself) is fine. Below about 2%, fix the page before you spend anything on traffic. This is a practitioner benchmark, not an Apple figure, and it varies a lot by category and price.
 
-**Verify:** You can name the leakiest stage and the number from App Store Connect Analytics → Acquisition behind it.
+**Verify:** You can name the leakiest stage and the number from App Store Connect Analytics → Acquisition → Sources behind it.
 
 ### Step 2 — Write your positioning sentence
 
@@ -156,12 +159,12 @@ Apple says search ranking uses **text relevance** (your app name, subtitle, keyw
 |---|---|---|
 | App name | 2–30 characters | Carries your strongest keyword next to your brand. |
 | Subtitle | 30 characters | Use a keyword-bearing benefit, not a slogan. |
-| Keywords | 100 bytes, comma-separated, no spaces after commas. Non-Latin scripts take more than one byte per character | Don't repeat words already in the name, subtitle or category, or plurals of them. Leave out "app", filler words and competitor names. |
+| Keywords | 100 bytes, comma-separated, no spaces after commas. App Store Connect counts bytes; Apple's search page says "100 characters". Our inference: non-Latin scripts use more than one byte per character | Don't repeat words already in the name, subtitle or category, or plurals of them. Leave out "app", filler words and competitor names. |
 | Promotional text | 170 characters | **Doesn't affect search ranking**, so don't put keywords here. |
 | Description | 4,000 characters | Write it for people. Apple doesn't list it among its search ranking inputs. Google Play does use descriptions in search. |
 | Promoted in-app purchases | Up to 20 on the product page | Promoted in-app purchases can show up in search results. Consumables never do. |
 
-1. Pull the live metadata into files. Acme Focus ships on two platforms, so pass `--platform`. Repeat steps 1–5 with `MAC_OS` for the Mac version.
+1. Pull the live metadata into files. Acme Focus ships on two platforms, so pass `--platform`. Repeat steps 1 and 3–6 with `--platform MAC_OS` for the Mac version.
    ```bash
    asc metadata pull --app "<APP_ID>" --version "<VERSION>" --platform IOS --dir "./metadata"
    ```
@@ -198,7 +201,7 @@ Apple says search ranking uses **text relevance** (your app name, subtitle, keyw
 
 **Goal:** A page where icon, first screenshots and rating sell the app · **Time:** ~2 h · **Level:** intermediate
 
-Most visitors see only the icon, the first screenshots and the rating before they decide, so treat **screenshots as ads**: one benefit per screenshot, with a short caption. **That's a rule of thumb.**
+**Rule of thumb:** most visitors see only the icon, the first screenshots and the rating before they decide, so treat **screenshots as ads**: one benefit per screenshot, with a short caption.
 
 1. Generate a screenshot set from your app or landing page, one benefit per frame, and save the framed images to `./screenshots/framed`:
    ```text
@@ -212,13 +215,13 @@ Most visitors see only the icon, the first screenshots and the rating before the
    ```bash
    asc screenshots review-approve --all-ready --output-dir ./screenshots/review
    ```
-4. Preview the upload plan for the approved screenshots:
+4. Preview the upload plan for the approved iPhone and iPad screenshots. Repeat steps 4 and 5 with `--platform MAC_OS` for the Mac screenshots:
    ```bash
-   asc screenshots plan --app "<APP_ID>" --version "<VERSION>" --review-output-dir "./screenshots/review"
+   asc screenshots plan --app "<APP_ID>" --version "<VERSION>" --platform IOS --review-output-dir "./screenshots/review"
    ```
 5. Upload them:
    ```bash
-   asc screenshots apply --app "<APP_ID>" --version "<VERSION>" --review-output-dir "./screenshots/review" --confirm
+   asc screenshots apply --app "<APP_ID>" --version "<VERSION>" --platform IOS --review-output-dir "./screenshots/review" --confirm
    ```
 6. Add a short app preview video (15–30 s, up to three per device size and language).
 7. Use promotional text (170 characters) for news such as a sale or a new feature. It changes without a new submission.
@@ -229,14 +232,17 @@ Most visitors see only the icon, the first screenshots and the rating before the
 | Screenshots | 1–10 per device size | ✅ Required for Mac apps, 16:10 (for example 2880 × 1800) |
 | App previews | Up to 3, 15–30 s | ✅ Landscape only, 1920 × 1080 |
 | Promotional text (170 characters, no review) | ✅ iOS 11 or later | ⚠️ Apple's page names only iOS. Check your Mac page in App Store Connect |
-| Product Page Optimization: A/B test up to 3 treatments of icon, screenshots and previews for up to 90 days | ✅ iOS/iPadOS 15 or later | ❌ Apple documents it for iOS and iPadOS only |
-| Custom Product Pages: up to 70, each with its own URL and keywords | ✅ iOS/iPadOS 15 or later | ❌ Apple documents them for iOS and iPadOS only |
+| Product Page Optimization: A/B test up to 3 treatments of icon, screenshots and previews for up to 90 days; header creative assets too | ✅ iOS/iPadOS 15 or later; header creative assets on iOS/iPadOS 27 or later | ❌ Apple documents it for iOS and iPadOS only |
+| Custom Product Pages: up to 70, each with its own URL; you can assign keywords from your app's approved keyword list to each | ✅ iOS/iPadOS 15 or later | ❌ Apple documents them for iOS and iPadOS only |
 | In-App Events: up to 10 published, each up to 31 days | ✅ iOS/iPadOS 15 or later | ❌ Apple says they are "only available on iPhone and iPad apps" |
-| Creative assets: product page header and search-result images and video (October 2026) | ✅ | ⚠️ Apple's announcement and specifications don't state platforms. Check the App Store Connect preview tool |
+| Creative assets: product page header and search-result images and video (October 2026) | ✅ iOS/iPadOS 27 or later | ❌ Apple documents them for iOS and iPadOS 27 or later only |
 | Promoted in-app purchases in search | ✅ iOS | ⚠️ Apple's page mentions only iOS |
 
 > [!IMPORTANT]
-> Apple documents Product Page Optimization and Custom Product Pages only for iOS and iPadOS, and its Featuring Nominations help says In-App Events "are only available on iPhone and iPad apps." So plan as if a Mac app can't A/B test its page, run campaign-specific pages or publish store events. That makes the icon, the screenshots and the traffic you bring from outside the store (Step 7) carry more weight on the Mac.
+> Apple documents Product Page Optimization, Custom Product Pages and creative assets only for iOS and iPadOS, and its Featuring Nominations help says In-App Events "are only available on iPhone and iPad apps." So plan as if a Mac app can't A/B test its page, run campaign-specific pages, show header creative or publish store events. **Rule of thumb:** that makes the icon, the screenshots and the traffic you bring from outside the store (Step 7) carry more weight on the Mac.
+
+> [!WARNING]
+> Guideline **2.3.14**: creative assets must relate to your app's content and functionality or overall brand, follow the standard metadata rules and suit all audiences. They must not include inappropriate content, references to other apps meant to mislead, unverifiable claims, or specific or discounted prices.
 
 **Verify:** `asc screenshots plan` lists the approved screenshots you expect, `asc screenshots apply` completes, and the first frame's caption matches your positioning sentence.
 
@@ -264,14 +270,19 @@ Most visitors see only the icon, the first screenshots and the rating before the
 
 **Goal:** More ratings from happy users, and replies to unhappy ones · **Time:** ~1 h · **Level:** intermediate
 
-1. Ask for a rating with the system prompt, `RequestReviewAction` (SwiftUI; iOS 16 and later, macOS 13 and later). Call it after the user finishes something successfully:
+1. Ask for a rating with the system prompt, `RequestReviewAction` (SwiftUI; iOS and iPadOS 16, Mac Catalyst 16, macOS 13 and visionOS 1 or later). Call it after the user finishes something successfully and, like Apple's sample, at most once per app version:
    ```swift
    @Environment(\.requestReview) private var requestReview
    @AppStorage("completedSessions") private var completedSessions = 0
+   @AppStorage("lastVersionPromptedForReview") private var lastVersionPrompted = ""
 
    func sessionCompleted() {
        completedSessions += 1
-       if completedSessions >= 5 { requestReview() }
+       let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? ""
+       if completedSessions >= 5, version != lastVersionPrompted {
+           requestReview()
+           lastVersionPrompted = version
+       }
    }
    ```
 2. Follow Apple's rules for the prompt:
@@ -292,7 +303,7 @@ Most visitors see only the icon, the first screenshots and the rating before the
 6. Watch retention at D1, D7 and D30 in your in-app analytics, and build sharing into the product, for example exportable session summaries. **Rule of thumb:** improving retention usually pays more than buying acquisition.
 
 > [!CAUTION]
-> Never pay for or incentivize ratings. The App Review Guidelines (Section 3 introduction and **5.6.3 Discovery Fraud**) forbid manipulating reviews with paid, incentivized, filtered or fake feedback. **3.2.2(x)** forbids forcing users to rate the app to unlock features. **5.6.1** forbids custom review prompts.
+> Never pay for or incentivize ratings. The **Section 3 introduction** of the App Review Guidelines forbids manipulating reviews or chart rankings with paid, incentivized, filtered or fake feedback. **3.2.2(x)** forbids forcing users to rate the app to unlock features. **5.6.3 Discovery Fraud** forbids manipulating reviews, charts, search or referrals. **5.6.1** forbids custom review prompts.
 
 **Verify:** `asc reviews list --app "<APP_ID>" --stars 1,2` shows every recent low-star review answered.
 
@@ -310,7 +321,7 @@ Most visitors see only the icon, the first screenshots and the rating before the
    /product-launch Plan a free launch for Acme Focus (Mac + iPhone): Product Hunt, Show HN, relevant subreddits, newsletters, YouTube reviewers, directories and bundles.
    ```
 4. Give before you promote. Read and follow each community's self-promotion rules (for example Hacker News's Show HN guidelines). Pitch newsletters and YouTube reviewers for editorial coverage, not paid placements.
-5. Submit a Featuring Nomination in App Store Connect under **Featuring → Nominations**. Choose New Content, App Enhancements or App Launch, then choose the platforms. Apple asks for at least 2–3 weeks' notice and recommends up to three months for wider consideration.
+5. Submit a Featuring Nomination in App Store Connect under **Featuring → Nominations**. Choose New Content, App Enhancements or App Launch, then choose the platforms. Apple's Nominations help asks for at least 3 weeks' notice (Getting featured says 2) and recommends up to three months for wider consideration.
 6. Shape the release around what editors look for:
    - user experience;
    - UI design;
@@ -342,7 +353,7 @@ Most visitors see only the icon, the first screenshots and the rating before the
 - Spend all 100 keyword bytes, without repeating words from the name or subtitle.
 - Localize the product page. It helps users and gives you more keyword fields.
 - Use promotional text for timely news, because it needs no review.
-- For Mac apps, put more effort into the website, communities and featuring, since Product Page Optimization, Custom Product Pages and In-App Events aren't documented for the Mac App Store.
+- For Mac apps, put more effort into the website, communities and featuring, since Product Page Optimization, Custom Product Pages, creative assets and In-App Events aren't documented for the Mac App Store.
 - Let the agent draft and audit, and keep a human approval step before anything goes live: run `--dry-run` first, approve the ASO plan, and post launch posts yourself.
 
 ### Don't
@@ -350,14 +361,14 @@ Most visitors see only the icon, the first screenshots and the rating before the
 - Buy traffic before the page converts.
 - Change several things at once, because then you can't tell what worked.
 - Use a vague subtitle ("Your productivity companion") that carries no keyword or benefit.
-- Show the paywall on first launch, before the user has seen any value.
+- Show the paywall on first launch, before the user has seen any value. **Rule of thumb.**
 - Ignore reviews. **Rule of thumb:** unanswered 1-star reviews turn away visitors who are deciding.
-- Market only inside the store. That hurts Mac apps most.
-- Put competitor names in keywords or subtitles (2.3.7), use custom rating prompts (5.6.1) or incentivize ratings (5.6.3).
+- Market only inside the store. **Rule of thumb:** that hurts Mac apps most.
+- Put competitor names in keywords or subtitles (2.3.7), use custom rating prompts (5.6.1) or incentivize ratings (Section 3 intro; 3.2.2(x)).
 
 ## Quick Command Reference
 
-Commands are grouped by goal. `asc` flags are taken from the CLI's README and command docs; run `asc <command> --help` to confirm them for your version.
+Commands are grouped by goal. `asc` flags are taken from the CLI's README, command docs and `--help`; run `asc <command> --help` to confirm them for your version.
 
 **Setup**
 
@@ -378,6 +389,8 @@ asc metadata keywords audit --app "<APP_ID>" --version "<VERSION>" --platform IO
 asc metadata validate --dir "./metadata"
 asc metadata push --app "<APP_ID>" --version "<VERSION>" --platform IOS --dir "./metadata" --dry-run
 asc metadata push --app "<APP_ID>" --version "<VERSION>" --platform IOS --dir "./metadata"
+# Mac version: repeat pull, keywords audit, validate and push with --platform MAC_OS
+asc metadata push --app "<APP_ID>" --version "<VERSION>" --platform MAC_OS --dir "./metadata"
 asc localizations list --app "<APP_ID>" --type app-info
 ```
 
@@ -386,8 +399,10 @@ asc localizations list --app "<APP_ID>" --type app-info
 ```bash
 asc screenshots review-generate --framed-dir ./screenshots/framed
 asc screenshots review-approve --all-ready --output-dir ./screenshots/review
-asc screenshots plan --app "<APP_ID>" --version "<VERSION>" --review-output-dir "./screenshots/review"
-asc screenshots apply --app "<APP_ID>" --version "<VERSION>" --review-output-dir "./screenshots/review" --confirm
+asc screenshots plan --app "<APP_ID>" --version "<VERSION>" --platform IOS --review-output-dir "./screenshots/review"
+asc screenshots apply --app "<APP_ID>" --version "<VERSION>" --platform IOS --review-output-dir "./screenshots/review" --confirm
+# Mac screenshots: repeat plan and apply with --platform MAC_OS
+asc screenshots apply --app "<APP_ID>" --version "<VERSION>" --platform MAC_OS --review-output-dir "./screenshots/review" --confirm
 asc video-previews list --version-localization "<VERSION_LOCALIZATION_ID>"
 asc product-pages --help
 asc app-events list --app "<APP_ID>"
@@ -456,17 +471,20 @@ After working through Steps 1–7 you have:
 - [App preview specifications](https://developer.apple.com/help/app-store-connect/reference/app-information/app-preview-specifications) — 15–30 s; macOS landscape 1920 × 1080
 - [Promoting your In-App Purchases](https://developer.apple.com/app-store/promoting-in-app-purchases/) — up to 20 promoted; can show in search; consumables excluded
 - [Product page optimization](https://developer.apple.com/app-store/product-page-optimization/) and the [App Store Connect help overview](https://developer.apple.com/help/app-store-connect/create-product-page-optimization-tests/overview-of-product-page-optimization) — iOS/iPadOS 15 or later, 3 treatments, 90 days
-- [Custom product pages](https://developer.apple.com/app-store/custom-product-pages/) and [Configure multiple product page versions](https://developer.apple.com/help/app-store-connect/create-custom-product-pages/configure-multiple-product-page-versions) — up to 70, keywords, iOS/iPadOS 15 or later
+- [Custom product pages](https://developer.apple.com/app-store/custom-product-pages/) and [Configure multiple product page versions](https://developer.apple.com/help/app-store-connect/create-custom-product-pages/configure-multiple-product-page-versions) — up to 70, keywords from your latest approved app version, iOS/iPadOS 15 or later
 - [In-App Events](https://developer.apple.com/app-store/in-app-events/) and the [App Store Connect help overview](https://developer.apple.com/help/app-store-connect/offer-in-app-events/overview-of-in-app-events) — iOS/iPadOS 15 or later, 10 published, 31 days
 - [Creative assets announcement (October 2026)](https://developer.apple.com/news/?id=ljpl7kyn) and [Creative assets specifications](https://developer.apple.com/help/app-store-connect/reference/app-information/creative-assets-specifications)
-- [App Store Connect Analytics: Acquisition](https://developer.apple.com/help/app-store-connect-analytics/acquisition/acquisition/) — impressions, page views, downloads, conversion rate, source types, macOS attribution note
-- [Performance metrics reference](https://developer.apple.com/help/app-store-connect/reference/performance-metrics) — Conversion Rate is downloads and pre-orders divided by unique impressions
+- [Manage your App Store assets](https://developer.apple.com/help/app-store-connect/manage-app-information/manage-your-app-store-assets) — creative assets "available for iOS and iPadOS apps and games running iOS 27 or iPadOS 27 or later"
+- [App Store asset best practices](https://developer.apple.com/app-store/asset-best-practices/) — creative assets appear in iOS 27 and iPadOS 27 and later; product page optimization can test alternative header visuals
+- [App Store Connect Analytics: Acquisition](https://developer.apple.com/help/app-store-connect-analytics/acquisition/acquisition/) — Acquisition → Sources; impressions, page views, downloads, conversion rate, source types, macOS attribution note
+- [Metric definitions](https://developer.apple.com/help/app-store-connect-analytics/reference/metrics-definitions) — Conversion Rate is total downloads and pre-orders divided by unique device impressions
+- [Analytics update, March 2026](https://developer.apple.com/news/?id=hh6v4b55) — more than 100 new metrics, including monetization and subscription data; download-to-paid conversion benchmark
 
 **Apple: rules, ratings, money and featuring**
 
-- [App Review Guidelines](https://developer.apple.com/app-store/review/guidelines/) — 2.3.7 metadata and trademarks; 3.1.2(a)/(c) subscriptions; 3.2.2(x) forced ratings; Section 3 intro on incentivized reviews; 5.6, 5.6.1, 5.6.3
+- [App Review Guidelines](https://developer.apple.com/app-store/review/guidelines/) — 2.3.7 metadata and trademarks; 2.3.14 creative assets; 3.1.2(a)/(c) subscriptions; 3.2.2(x) forced ratings; Section 3 intro on paid and incentivized reviews; 5.6, 5.6.1, 5.6.3
 - [Requesting App Store reviews](https://developer.apple.com/documentation/storekit/requesting-app-store-reviews) — at most 3 prompts in 365 days, timing guidance, `action=write-review`
-- [`RequestReviewAction`](https://developer.apple.com/documentation/storekit/requestreviewaction) — iOS 16 or later, macOS 13 or later
+- [`RequestReviewAction`](https://developer.apple.com/documentation/storekit/requestreviewaction) — iOS and iPadOS 16, Mac Catalyst 16, macOS 13, visionOS 1 or later
 - [App Store Small Business Program](https://developer.apple.com/app-store/small-business-program/) — 15% commission, US$1 million threshold, enrollment required
 - [Promoting apps with Smart App Banners](https://developer.apple.com/documentation/webkit/promoting-apps-with-smart-app-banners) — Safari on iOS, `apple-itunes-app` meta tag
 - [Getting featured on the App Store](https://developer.apple.com/app-store/getting-featured/) — what editors look for, at least 2 weeks' notice, up to 3 months for wider consideration
@@ -475,19 +493,18 @@ After working through Steps 1–7 you have:
 
 **Other stores and communities**
 
-These two hosts reject the link checker's `HEAD` probe (404 and 405) but load fine in a browser, so they're listed as plain URLs:
-
-- Google Play Console Help, "Get discovered on Google Play search" (Play search considers app descriptions): `https://support.google.com/googleplay/android-developer/answer/4448378`
-- Hacker News, Show HN guidelines: `https://news.ycombinator.com/showhn.html`
+- [Google Play Console Help: Get discovered on Google Play search](https://support.google.com/googleplay/android-developer/answer/4448378) — Play search considers app descriptions
+- [Hacker News: Show HN guidelines](https://news.ycombinator.com/showhn.html)
 
 **Agent tooling**
 
 - [`asc`: App Store Connect CLI](https://github.com/rorkai/App-Store-Connect-CLI) (independent, MIT) and its [command map](https://github.com/rorkai/App-Store-Connect-CLI/blob/main/docs/COMMANDS.md)
 - [luongnv89/skills](https://github.com/luongnv89/skills): `aso-marketing`, `appstore-assets`, `appstore-review-checker`, `product-launch`
+- [asc agent skills](https://github.com/rorkai/app-store-connect-cli-skills), installed with `asc install-skills`
 - [agent-skill-manager (`asm`)](https://github.com/luongnv89/agent-skill-manager)
 - [Related: ASM cheatsheet](https://github.com/luongnv89/awesome-cheatsheets/blob/main/src/content/cheatsheets/asm/asm.md)
 - [Related: Agent Skills cheatsheet](https://github.com/luongnv89/awesome-cheatsheets/blob/main/src/content/cheatsheets/agent-skills/agent-skills.md)
 
-**Labelled as practitioner advice (not Apple data):** the 3–5% and 2% conversion benchmarks; long-tail beats broad keywords; storefronts indexing extra locales (US + Spanish (Mexico)); screenshots-as-ads; free tier, paywall timing and yearly default; not prompting after errors; retention beats acquisition; unanswered 1-star reviews deter visitors; and the 2–4 week test window.
+**Labelled as practitioner advice (not Apple data):** the 3–5% and 2% conversion benchmarks; long-tail beats broad keywords; storefronts indexing extra locales (US + Spanish (Mexico)); screenshots-as-ads; free tier, paywall timing and yearly default; not prompting after errors; retention beats acquisition; unanswered 1-star reviews deter visitors; Mac apps leaning hardest on off-store traffic; and the 2–4 week test window.
 
 </details>
