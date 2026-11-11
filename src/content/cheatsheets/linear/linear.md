@@ -68,7 +68,7 @@ Initiatives group projects toward a company goal (replaced "Roadmaps" in 2024)
 ```
 
 1. Open **Settings → Teams → Issue statuses** and review the default workflow: **Backlog → Todo → In Progress → Done → Canceled** (plus a system *Duplicate* status).
-2. Keep the defaults for now. Every status belongs to one category — Backlog, Unstarted, Started, Completed, Canceled (plus Triage when enabled) — which drives automations later.
+2. Keep the defaults for now. Every status belongs to one category — Backlog, Unstarted, Started, Completed, Canceled, and the system-managed Duplicate (plus Triage when enabled) — which drives automations later.
 3. Note that issue IDs are `TEAMKEY-number`. Moving an issue to another team (`Cmd/Ctrl Shift M`) gives it a new ID, but old IDs and URLs still resolve.
 
 **Verify:** Your team appears in the sidebar and its workflow shows the five default statuses.
@@ -90,7 +90,7 @@ Initiatives group projects toward a company goal (replaced "Roadmaps" in 2024)
 | `Shift P` | Add to project |
 | `M` then `B` / `X` / `R` | Mark *blocked by* / *blocking* / *related* |
 
-3. Break large work down: open the issue and press `Cmd/Ctrl Shift O` to add sub-issues. To nest existing issues, select them and press `Cmd Shift P` (or run *Set parent issue* from `Cmd/Ctrl K`).
+3. Break large work down: open the issue and press `Cmd/Ctrl Shift O` to add sub-issues. To nest existing issues, select them and press `Cmd Shift P` on macOS (on Windows/Linux, run *Set parent issue* from `Cmd/Ctrl K`).
 4. When you forget a shortcut, press `Cmd/Ctrl K` — the command menu runs every action by name.
 
 **Verify:** A new issue `<TEAM>-1` shows an assignee, a priority icon, and a label in the team's issue list.
