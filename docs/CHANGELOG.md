@@ -6,6 +6,11 @@ This project follows a lightweight changelog for public-facing changes. Dates us
 
 ### Added
 
+- UI SDK tool cheatsheet: install and adapters, the `ui-sdk` agent skill,
+  the `definePrimitive` → `createParts` pattern with React and Web
+  Components examples and the import for each adapter, a behavior quick
+  reference, and `createAgent` plus WebMCP, with a prominent beta caveat. The README list now also names Amp, Herdr App and Linear, and
+  the catalog has 25 published entries (#213).
 - App Store Marketing 101 concept cheatsheet: selling iPhone, iPad and Mac
   apps through the App Store, with Apple-verified limits, a Mac
   availability table for Apple's marketing tools, and an agent workflow

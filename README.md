@@ -41,7 +41,7 @@ Either way, you spend the first hour figuring out the shape of the thing instead
 
 A curated catalog of cheatsheets that hit the middle ground. Every entry follows the same locked structure, carries a visible last-updated date, and gets flagged when it goes stale — so you can skim it the same way every time and trust the freshness signal at a glance.
 
-**Where it stands:** the catalog holds 21 published cheatsheets (15 tools, 4 concepts, 1 MCP, and 1 comparison), all built on the same authoring and validation tooling.
+**Where it stands:** the catalog holds 25 published cheatsheets (19 tools, 4 concepts, 1 MCP, and 1 comparison), all built on the same authoring and validation tooling.
 
 Our wedge: **format + freshness + comparability**.
 
@@ -59,9 +59,9 @@ Our wedge: **format + freshness + comparability**.
 
 ## What's inside
 
-The catalog currently ships 21 published cheatsheets:
+The catalog currently ships 25 published cheatsheets:
 
-- **Tools** — [ASM](./src/content/cheatsheets/asm/asm.md), [Capy](./src/content/cheatsheets/capy/capy.md), [Claude Code](./src/content/cheatsheets/claude-code/claude-code.md), [Codex](./src/content/cheatsheets/codex/codex.md), [Devin](./src/content/cheatsheets/devin/devin.md), [Droid](./src/content/cheatsheets/droid/droid.md), [Herdr](./src/content/cheatsheets/herdr/herdr.md), [Hermes Agent](./src/content/cheatsheets/hermes-agent/hermes-agent.md), [Obsidian](./src/content/cheatsheets/obsidian/obsidian.md), [Oh My Pi (omp)](./src/content/cheatsheets/omp/omp.md), [OpenClaw](./src/content/cheatsheets/openclaw/openclaw.md), [OpenCode](./src/content/cheatsheets/opencode/opencode.md), [Pi](./src/content/cheatsheets/pi-dev/pi-dev.md), [Pi Durable](./src/content/cheatsheets/pi-durable/pi-durable.md), and [Superlogical Rex](./src/content/cheatsheets/superlogical-rex/superlogical-rex.md).
+- **Tools** — [Amp](./src/content/cheatsheets/amp-code/amp-code.md), [ASM](./src/content/cheatsheets/asm/asm.md), [Capy](./src/content/cheatsheets/capy/capy.md), [Claude Code](./src/content/cheatsheets/claude-code/claude-code.md), [Codex](./src/content/cheatsheets/codex/codex.md), [Devin](./src/content/cheatsheets/devin/devin.md), [Droid](./src/content/cheatsheets/droid/droid.md), [Herdr](./src/content/cheatsheets/herdr/herdr.md), [Herdr App](./src/content/cheatsheets/herdr-app/herdr-app.md), [Hermes Agent](./src/content/cheatsheets/hermes-agent/hermes-agent.md), [Linear](./src/content/cheatsheets/linear/linear.md), [Obsidian](./src/content/cheatsheets/obsidian/obsidian.md), [Oh My Pi (omp)](./src/content/cheatsheets/omp/omp.md), [OpenClaw](./src/content/cheatsheets/openclaw/openclaw.md), [OpenCode](./src/content/cheatsheets/opencode/opencode.md), [Pi](./src/content/cheatsheets/pi-dev/pi-dev.md), [Pi Durable](./src/content/cheatsheets/pi-durable/pi-durable.md), [Superlogical Rex](./src/content/cheatsheets/superlogical-rex/superlogical-rex.md), and [UI SDK](./src/content/cheatsheets/ui-sdk/ui-sdk.md).
 - **Concepts** — [Agent Skills](./src/content/cheatsheets/agent-skills/agent-skills.md), [App Store Marketing 101](./src/content/cheatsheets/app-store-marketing/app-store-marketing.md), [Harness Engineering](./src/content/cheatsheets/harness-engineering/harness-engineering.md), and [Sub-agents](./src/content/cheatsheets/sub-agents/sub-agents.md).
 - **MCP** — [Model Context Protocol](./src/content/cheatsheets/mcp/mcp.md).
 - **Comparisons** — [Prompt Engineering](./src/content/cheatsheets/prompt-engineering-comparison/prompt-engineering-comparison.md).
