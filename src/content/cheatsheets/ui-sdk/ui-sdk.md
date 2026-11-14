@@ -49,7 +49,7 @@ npx skills add vercel-labs/ui --skill ui-sdk
 ```
 
 > [!NOTE]
-> On 2026-11-14 the npm `latest` tag of every `@ui-sdk/*` package points to `0.1.0-beta.1` and the `beta` tag to `0.1.0-beta.2` (the version in the repo's `package.json` files), so a plain `npm install` gets beta.1. Check [`@ui-sdk/core` on npm](https://www.npmjs.com/package/@ui-sdk/core) for the current tags.
+> On 2026-11-14 the npm `latest` tag of every `@ui-sdk/*` package points to `0.1.0-beta.1` and the `beta` tag to `0.1.0-beta.2` (the version in the repo's `package.json` files), so a plain `npm install` gets beta.1. Everything on this sheet works on beta.1 as well. Check [`@ui-sdk/core` on npm](https://www.npmjs.com/package/@ui-sdk/core) for the current tags.
 
 For an optional default look, import the stylesheet once. In React that's the top of `app/layout.tsx` (Next.js) or `main.tsx` (Vite); other frameworks and Tailwind setups are on each [installation page](https://ui-sdk.dev/docs/react/installation):
 
@@ -71,6 +71,7 @@ import "@ui-sdk/core/web.css"
    2. Add a note to AGENTS.md, creating it if needed: before using ui-sdk, follow the ui-sdk skill if it's installed, and read node_modules/@ui-sdk/react/docs/llms.txt. To build a new component, also search node_modules/@ui-sdk/react/docs/core.md by heading, and read rendering.md next to it.
    3. If you support skills, run: npx skills add vercel-labs/ui --skill ui-sdk
    ```
+   The official prompt repeats the Installation steps for an agent starting from scratch.
 2. Know what the docs prompt relies on: each adapter package ships Markdown docs for the installed version. `docs/llms.txt` is the index, `docs/core.md` covers the behaviors, and `docs/rendering.md` explains rendering in your framework ([Build with an Agent](https://ui-sdk.dev/docs/agents/build-with-an-agent)). The skill warns that `core.md` is over 300 KB, so search it by heading ([`SKILL.md`](https://github.com/vercel-labs/ui/blob/main/packages/core/skills/ui-sdk/SKILL.md)).
 3. Use a ready-made component before you build one. There are more than 50 ([Introducing UI SDK](https://ui-sdk.dev/docs/core/changelog/introducing-ui-sdk)), each imported from its own entry; there is no root import from a framework package ([React installation](https://ui-sdk.dev/docs/react/installation)):
    ```tsx
@@ -87,7 +88,7 @@ import "@ui-sdk/core/web.css"
 
 **Goal:** Your agent follows UI SDK's own workflow for building, wiring and testing components · **Time:** ~10 min · **Level:** beginner
 
-1. Install the skill. The repo's [`skills.sh.json`](https://github.com/vercel-labs/ui/blob/main/skills.sh.json) points the skills CLI at `./packages/core/skills`:
+1. If you skipped it during Installation, install the skill. The repo's [`skills.sh.json`](https://github.com/vercel-labs/ui/blob/main/skills.sh.json) points the skills CLI at `./packages/core/skills`:
    ```bash
    npx skills add vercel-labs/ui --skill ui-sdk
    ```
@@ -253,7 +254,7 @@ import "@ui-sdk/core/web.css"
 > WebMCP is not a finished web standard. Its specification is a [Draft Community Group Report](https://webmachinelearning.github.io/webmcp/) of the W3C Web Machine Learning Community Group, "not a W3C Standard nor … on the W3C Standards Track". UI SDK's docs don't list supporting browsers; the [Guide](https://ui-sdk.dev/docs/agents/connect-an-agent/guide) only walks through the ChatGPT desktop app's built-in browser with **Enable site tools** on (it doesn't discover tools inside an iframe). For other browsers, see the proposal's [implementation status](https://github.com/webmachinelearning/webmcp/blob/main/implementation-status.md).
 
 > [!NOTE]
-> The tools carry hints for the consumer: `snapshot` and `query` have `readOnlyHint: true`, all three have `untrustedContentHint: true` because results include page text, and `act` has `consequentialHint: true`. Hints don't enforce anything; your `allow` functions and change callbacks do.
+> The tools carry hints for the consumer: `snapshot` and `query` have `readOnlyHint: true`, and all three have `untrustedContentHint: true` because results include page text. Hints don't enforce anything; your `allow` functions and change callbacks do.
 
 ## Best Practices
 
